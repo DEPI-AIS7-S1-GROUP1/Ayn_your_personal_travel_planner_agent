@@ -23,12 +23,12 @@ def _enable_sqlite_foreign_keys(dbapi_connection, _connection_record):
         cursor.close()
 
 
-def make_engine(url: str) -> Engine:
+def make_engine(url: str, **kwargs) -> Engine:
     connect_args = {}
     if url.startswith("sqlite"):
         # Let the web server use the connection from different threads.
         connect_args["check_same_thread"] = False
-    return create_engine(url, connect_args=connect_args)
+    return create_engine(url, connect_args=connect_args, **kwargs)
 
 
 engine = make_engine(DATABASE_URL)

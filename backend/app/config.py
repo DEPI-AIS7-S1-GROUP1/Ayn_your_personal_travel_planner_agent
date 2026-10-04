@@ -16,3 +16,13 @@ load_dotenv(REPO_ROOT / ".env", override=False)
 
 # Relative SQLite paths resolve against the current directory; run from backend/.
 DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./travel_planner.db")
+
+# Signs login tokens. No default on purpose: app/main.py refuses to start without it.
+AUTH_SECRET_KEY = os.getenv("AUTH_SECRET_KEY", "")
+AUTH_TOKEN_EXPIRE_MINUTES = int(os.getenv("AUTH_TOKEN_EXPIRE_MINUTES", "60"))
+
+CORS_ORIGINS = [
+    origin.strip()
+    for origin in os.getenv("CORS_ORIGINS", "http://localhost:3000").split(",")
+    if origin.strip()
+]
