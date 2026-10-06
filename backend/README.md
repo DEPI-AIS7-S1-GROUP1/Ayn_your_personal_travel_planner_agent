@@ -87,7 +87,8 @@ rm travel_planner.db                # Windows: del travel_planner.db
 ```
 
 The tables and how they relate are described in [`app/models.py`](app/models.py):
-`users` 1–0..1 `profiles`, `users` 1–many `trips`, `trips` 1–1 `plans`, `plans` 1–0..1 `ratings`.
+`users` 1–0..1 `profiles`, `users` 1–many `trips`, `trips` 1–1 `plans`, `plans` 1–0..1 `ratings`,
+`plans` 1–many `conversations` 1–many `chat_messages` (the chat refine panel's history).
 
 ## 6. Run the server
 
@@ -233,7 +234,7 @@ backend/
 │   ├── main.py          # the FastAPI app: CORS, error handlers, routes under /api
 │   ├── config.py        # reads settings from ../.env
 │   ├── database.py      # database connection and sessions
-│   ├── models.py        # the tables: users, profiles, trips, plans, ratings
+│   ├── models.py        # the tables: users, profiles, trips, plans, ratings, conversations, chat_messages
 │   ├── schemas.py       # request/response shapes and validation
 │   ├── security.py      # password hashing (bcrypt) and tokens (JWT)
 │   ├── errors.py        # contract error format

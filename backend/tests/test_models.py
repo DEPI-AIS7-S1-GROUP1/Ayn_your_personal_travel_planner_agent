@@ -7,16 +7,17 @@ import os
 import re
 import subprocess
 import sys
-from datetime import date
+from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 
 import pytest
 from sqlalchemy import create_engine, func, inspect, select, text
 from sqlalchemy.exc import IntegrityError
 
-from app.models import Plan, Profile, Rating, Trip, User
+from app.models import ChatMessage, Conversation, Plan, Profile, Rating, Trip, User
 
 BACKEND_DIR = Path(__file__).resolve().parents[1]
+ALL_TABLES = {"users", "profiles", "trips", "plans", "ratings", "conversations", "chat_messages"}
 
 PROFILE = {
     "personality": ["foodie", "history-loving"],
@@ -138,6 +139,23 @@ def add_sara_journey(session):
     return user
 
 
+def add_chat(session, plan):
+    """The contract example: a vague request, a clarifying question, the answer, the update."""
+    conversation = Conversation(plan=plan)
+    session.add(conversation)
+    for role, content, action, changes in [
+        ("user", "Make the budget higher.", None, None),
+        ("assistant", "What total budget would you like me to use? Please include the amount and currency.",
+         "needs_clarification", []),
+        ("user", "Set it to 75000 EGP.", None, None),
+        ("assistant", "Done. I increased the total budget from 60000 EGP to 75000 EGP.", "updated",
+         [{"type": "budget_changed", "description": "Changed the total budget from 60000 EGP to 75000 EGP."}]),
+    ]:
+        session.add(ChatMessage(conversation=conversation, role=role, content=content, action=action, changes=changes))
+        session.flush()  # one message per request in real use
+    return conversation
+
+
 def assert_rejected(session, *objects, reason):
     """The flush must fail, and for the expected reason (checked against the DB error)."""
     session.add_all(objects)
@@ -149,7 +167,7 @@ def assert_rejected(session, *objects, reason):
 # --- schema shape -------------------------------------------------------------
 
 def test_all_contract_entities_have_tables(engine):
-    assert set(inspect(engine).get_table_names()) == {"users", "profiles", "trips", "plans", "ratings"}
+    assert set(inspect(engine).get_table_names()) == ALL_TABLES
 
 
 def test_users_table_has_no_plaintext_password_column(engine):
@@ -310,6 +328,7 @@ def test_missing_required_field_rejected(session):
 
 def test_deleting_user_deletes_all_their_data(session):
     user = add_sara_journey(session)
+    add_chat(session, user.trips[0].plan)
     other = make_user("other@example.com")
     session.add_all([other, make_trip(other)])
     session.commit()
@@ -320,17 +339,114 @@ def test_deleting_user_deletes_all_their_data(session):
     assert session.scalar(select(func.count()).select_from(Profile)) == 0
     assert session.scalar(select(func.count()).select_from(Plan)) == 0
     assert session.scalar(select(func.count()).select_from(Rating)) == 0
+    assert session.scalar(select(func.count()).select_from(Conversation)) == 0
+    assert session.scalar(select(func.count()).select_from(ChatMessage)) == 0
     # The other user's trip is untouched.
     assert session.scalars(select(Trip.user_id)).all() == [other.id]
 
 
 def test_database_level_cascade_without_orm(session):
     """ON DELETE CASCADE works even for raw SQL (e.g. someone using a DB tool)."""
-    add_sara_journey(session)
+    user = add_sara_journey(session)
+    add_chat(session, user.trips[0].plan)
+    session.commit()
     session.execute(text("DELETE FROM users"))
     session.commit()
-    for table in ("profiles", "trips", "plans", "ratings"):
+    for table in ("profiles", "trips", "plans", "ratings", "conversations", "chat_messages"):
         assert session.execute(text(f"SELECT count(*) FROM {table}")).scalar() == 0
+
+
+# --- chat refine panel (POST /plans/{id}/chat) -------------------------------
+
+@pytest.fixture
+def draft_plan(session):
+    user = make_user()
+    plan = make_plan(make_trip(user))
+    session.add_all([user, plan])
+    session.commit()
+    return plan
+
+
+def test_chat_journey_is_stored_and_read_back(session, draft_plan):
+    conversation = add_chat(session, draft_plan)
+    draft_plan.trip.total_budget = 75000  # the "updated" answer changed the trip
+    session.commit()
+    session.expire_all()
+
+    conversation = session.get(Conversation, conversation.id)
+    assert conversation.plan.id == draft_plan.id
+    assert [m.role for m in conversation.messages] == ["user", "assistant", "user", "assistant"]
+    assert [m.action for m in conversation.messages] == [None, "needs_clarification", None, "updated"]
+    assert conversation.messages[2].content == "Set it to 75000 EGP."
+    assert conversation.messages[3].changes[0]["type"] == "budget_changed"
+    assert conversation.plan.trip.total_budget == 75000
+
+
+def test_messages_come_back_in_time_order(session, draft_plan):
+    # Inserted newest first; the relationship must still return oldest first.
+    conversation = Conversation(plan=draft_plan)
+    start = datetime(2026, 10, 5, 12, 30, tzinfo=timezone.utc)
+    for minute in (3, 2, 1, 0):
+        conversation.messages.append(
+            ChatMessage(role="user", content=f"message {minute}", created_at=start + timedelta(minutes=minute))
+        )
+    session.add(conversation)
+    session.commit()
+    session.expire_all()
+
+    messages = session.get(Conversation, conversation.id).messages
+    assert [m.content for m in messages] == ["message 0", "message 1", "message 2", "message 3"]
+
+
+def test_chat_ids_have_contract_prefixes(session, draft_plan):
+    conversation = add_chat(session, draft_plan)
+    assert re.match(r"^chat_[0-9a-f]{16}$", conversation.id)
+    assert all(re.match(r"^msg_[0-9a-f]{16}$", m.id) for m in conversation.messages)
+
+
+def test_a_plan_can_have_several_conversations(session, draft_plan):
+    add_chat(session, draft_plan)
+    add_chat(session, draft_plan)
+    session.commit()
+    assert len(draft_plan.conversations) == 2
+
+
+@pytest.mark.parametrize(
+    ("fields", "reason"),
+    [
+        ({"role": "system", "content": "hi"}, "CHECK constraint failed: ck_chat_messages_role"),
+        ({"role": "assistant", "content": "hi", "action": "done"}, "CHECK constraint failed: ck_chat_messages_action"),
+        ({"role": "user", "content": "hi", "action": "updated"},
+         "CHECK constraint failed: ck_chat_messages_user_no_action"),
+        ({"role": "user"}, "NOT NULL constraint failed: chat_messages.content"),
+    ],
+    ids=["unknown-role", "unknown-action", "user-message-with-action", "no-content"],
+)
+def test_invalid_chat_message_rejected(session, draft_plan, fields, reason):
+    conversation = Conversation(plan=draft_plan)
+    session.add(conversation)
+    session.commit()
+    assert_rejected(session, ChatMessage(conversation_id=conversation.id, **fields), reason=reason)
+
+
+def test_conversation_for_missing_plan_rejected(session):
+    assert_rejected(session, Conversation(plan_id="plan_doesnotexist0000"), reason="FOREIGN KEY constraint failed")
+
+
+def test_message_for_missing_conversation_rejected(session):
+    assert_rejected(
+        session, ChatMessage(conversation_id="chat_doesnotexist0000", role="user", content="hi"),
+        reason="FOREIGN KEY constraint failed",
+    )
+
+
+def test_deleting_a_plan_deletes_its_conversations(session, draft_plan):
+    add_chat(session, draft_plan)
+    session.commit()
+    session.execute(text("DELETE FROM plans"))
+    session.commit()
+    assert session.scalar(select(func.count()).select_from(Conversation)) == 0
+    assert session.scalar(select(func.count()).select_from(ChatMessage)) == 0
 
 
 # --- init_db script on a real file ------------------------------------------
@@ -342,9 +458,9 @@ def test_init_db_script_creates_tables_in_a_file(tmp_path):
         [sys.executable, "-m", "scripts.init_db"],
         cwd=BACKEND_DIR, env=env, capture_output=True, text=True, check=True,
     )
-    assert "Tables: plans, profiles, ratings, trips, users" in result.stdout
+    assert "Tables: chat_messages, conversations, plans, profiles, ratings, trips, users" in result.stdout
     assert db_file.exists()
 
     file_engine = create_engine(f"sqlite:///{db_file}")
-    assert set(inspect(file_engine).get_table_names()) == {"users", "profiles", "trips", "plans", "ratings"}
+    assert set(inspect(file_engine).get_table_names()) == ALL_TABLES
     file_engine.dispose()

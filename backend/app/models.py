@@ -1,9 +1,11 @@
 """Database tables, based on docs/api-contract.md (Task 1).
 
-    users 1 ── 0..1 profiles
-    users 1 ── *    trips
-    trips 1 ── 1    plans
-    plans 1 ── 0..1 ratings
+    users         1 ── 0..1 profiles
+    users         1 ── *    trips
+    trips         1 ── 1    plans
+    plans         1 ── 0..1 ratings
+    plans         1 ── *    conversations   (chat refine panel)
+    conversations 1 ── 1..* chat_messages
 
 Rules that only need one column (unique, ranges, allowed status) are enforced
 here as constraints. Rules that need logic or look inside JSON (enum values in
@@ -23,6 +25,12 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.database import Base
 
 PLAN_STATUSES = ("draft", "confirmed", "cancelled")
+CHAT_ROLES = ("user", "assistant")
+CHAT_ACTIONS = ("updated", "needs_clarification")
+
+
+def _sql_in(values: tuple[str, ...]) -> str:
+    return "(" + ", ".join(f"'{v}'" for v in values) + ")"
 
 
 def new_id(prefix: str) -> str:
@@ -110,10 +118,7 @@ class Plan(Base):
 
     __tablename__ = "plans"
     __table_args__ = (
-        CheckConstraint(
-            "status IN (" + ", ".join(f"'{s}'" for s in PLAN_STATUSES) + ")",
-            name="ck_plans_status",
-        ),
+        CheckConstraint(f"status IN {_sql_in(PLAN_STATUSES)}", name="ck_plans_status"),
     )
 
     id: Mapped[str] = mapped_column(String(32), primary_key=True, default=lambda: new_id("plan"))
@@ -136,6 +141,9 @@ class Plan(Base):
     rating: Mapped["Rating | None"] = relationship(
         back_populates="plan", cascade="all, delete-orphan", passive_deletes=True
     )
+    conversations: Mapped[list["Conversation"]] = relationship(
+        back_populates="plan", cascade="all, delete-orphan", passive_deletes=True
+    )
 
 
 class Rating(Base):
@@ -155,3 +163,53 @@ class Rating(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow, nullable=False)
 
     plan: Mapped[Plan] = relationship(back_populates="rating")
+
+
+class Conversation(Base):
+    """A chat about one plan (contract: POST /plans/{id}/chat).
+
+    HTTP keeps no memory between requests and the frontend only sends the
+    conversation_id, so the history the agent needs ("Make the budget higher",
+    then "Set it to 75000 EGP") is stored here. The owner is found through
+    plan -> trip -> user.
+    """
+
+    __tablename__ = "conversations"
+
+    id: Mapped[str] = mapped_column(String(32), primary_key=True, default=lambda: new_id("chat"))
+    plan_id: Mapped[str] = mapped_column(ForeignKey("plans.id", ondelete="CASCADE"), nullable=False, index=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow, nullable=False)
+
+    plan: Mapped[Plan] = relationship(back_populates="conversations")
+    messages: Mapped[list["ChatMessage"]] = relationship(
+        back_populates="conversation",
+        order_by="ChatMessage.created_at",  # the agent reads the history in order
+        cascade="all, delete-orphan",
+        passive_deletes=True,
+    )
+
+
+class ChatMessage(Base):
+    """One message in a conversation, from the user or the assistant (agent)."""
+
+    __tablename__ = "chat_messages"
+    __table_args__ = (
+        CheckConstraint(f"role IN {_sql_in(CHAT_ROLES)}", name="ck_chat_messages_role"),
+        CheckConstraint(
+            f"action IS NULL OR action IN {_sql_in(CHAT_ACTIONS)}", name="ck_chat_messages_action"
+        ),
+        # The action says what the agent did; the user's own messages have none.
+        CheckConstraint("role = 'assistant' OR action IS NULL", name="ck_chat_messages_user_no_action"),
+    )
+
+    id: Mapped[str] = mapped_column(String(32), primary_key=True, default=lambda: new_id("msg"))
+    conversation_id: Mapped[str] = mapped_column(
+        ForeignKey("conversations.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    role: Mapped[str] = mapped_column(String(16), nullable=False)
+    content: Mapped[str] = mapped_column(Text, nullable=False)  # user messages: 1-1000 chars (API rule)
+    action: Mapped[str | None] = mapped_column(String(32))  # assistant only
+    changes: Mapped[list[dict] | None] = mapped_column(JSON)  # assistant only: audit summary for the chat UI
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow, nullable=False)
+
+    conversation: Mapped[Conversation] = relationship(back_populates="messages")
