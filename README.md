@@ -2,7 +2,7 @@
 
 A personal travel planner website. The user signs up and answers a short survey about who they are (hobbies, personality, food preferences, what they liked and disliked on their last trip). The system remembers this in a profile. The user then chooses a destination, dates, budget and number of travelers, and an AI agent working in the background builds a day-by-day plan personalised to that profile. It splits the budget across hotel, food, activities and transport, and suggests flight and hotel options. The user reviews the draft, edits it, confirms it, and rates it. Ratings are saved so future plans can improve.
 
-The site is a normal, interactive travel site with forms, picture cards, a timeline and a budget chart. It is not a chatbot interface. The AI is the engine behind the pages.
+The site is a normal, interactive travel site with forms, picture cards, a timeline and a budget chart. A chat refine panel lets the user describe changes to a draft plan in natural language. The AI is the engine behind the pages.
 
 **Live demo deadline: Oct 19, 2026**
 
@@ -13,7 +13,7 @@ The site is a normal, interactive travel site with forms, picture cards, a timel
 | `docs/api-contract.md` | The API contract. The single source of truth for how the frontend, backend and agent talk to each other. |
 | `mock-data/` | Example JSON files that match the contract exactly, for building the frontend before the backend exists. |
 
-Mock files: `profile.json`, `trip-request.json`, `budget-split.json`, `flight-hotel-options.json`, `plan-sharm-el-sheikh.json`.
+Mock files: `profile.json`, `trip-request.json`, `budget-split.json`, `flight-hotel-options.json`, `plan-sharm-el-sheikh.json`, `chat-refinement.json`.
 
 ## MVP scope
 
@@ -29,6 +29,7 @@ This is the agreed scope. If something is not in the "Must have" list, it does n
 - Daily itinerary from the agent
 - Mock flights and hotels
 - Draft review and edit
+- Chat-based draft plan refinement
 - Plan rating
 - Deployed website
 
@@ -38,7 +39,6 @@ This is the agreed scope. If something is not in the "Must have" list, it does n
 - Live Tavily search for real activities
 - Past ratings improve the next plan
 - Personality-based UI theme
-- Chat refine panel
 - Drag-and-drop days
 
 ### Out of scope
