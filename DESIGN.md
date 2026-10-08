@@ -254,21 +254,6 @@ Also required by the contract and described in text only: Sign up, Log in, Gener
 
 ---
 
-## 8. Decisions and contract impact
-
-**Confirmed (Oct 6):**
-1. **Egypt only.** Destinations are Egyptian cities only. `destination.country` must be `"Egypt"`, the default currency is `EGP`, and the static Egypt map is used on the Destination screen. The mock data must cover several Egyptian cities, not only Sharm El Sheikh.
-2. **Chat refine.** The team adds `POST /plans/{id}/refine` to the contract. Request `{ "message": string }` (max 500 characters). Response `{ "reply": string, "changed": boolean, "plan": Plan }`. Draft plans only. The returned plan must keep the budget rules (`budget_split` sums to `total_budget`, `currency` and `total_budget` unchanged). Errors: `400 VALIDATION_ERROR`, `401`, `404`, `409 PLAN_NOT_EDITABLE`, `502 GENERATION_FAILED`. Chat history is not stored by the server; the frontend keeps messages on screen only. It is a Should-have: cut it if the MVP is not stable by Oct 13.
-3. **Rename** the project to Ayn in the README, repo description and docs.
-
-**Still open [CONFIRM]:**
-1. **Supported cities.** The list is not decided. Suggested: Cairo, Alexandria, Luxor, Aswan, Sharm El Sheikh, Hurghada, Dahab. It depends on what the agent and mock data cover.
-2. **Export.** Not in the README scope. Proposal (Should-have): PDF and .ics generated in the frontend, no API change.
-3. **Assets needed:** home slider photos, hotel photos (`/images/hotels/...`), a proper Egypt outline SVG (Natural Earth or similar).
-4. **Destination search:** one box must fill both `city` and `country` (autocomplete from the supported cities), or use two fields. With Egypt only, `country` can be fixed and only the city is chosen.
-
----
-
 ## 9. Change log
 
 | Date | Change | By |
