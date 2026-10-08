@@ -1,0 +1,196 @@
+.ayn-budget-card {
+  background-color: var(--color-surface);
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-card);
+  padding: var(--space-5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  text-align: left;
+  box-sizing: border-box;
+  width: 100%;
+}
+
+.ayn-budget-card__header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+}
+
+.ayn-budget-card__title {
+  font-family: var(--font-heading);
+  font-size: 20px;
+  line-height: 28px;
+  font-weight: 600;
+  color: var(--color-text);
+  margin: 0;
+}
+
+.ayn-budget-card__total {
+  font-family: var(--font-body);
+  font-size: 18px;
+  line-height: 24px;
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+/* Stacked bar */
+.ayn-budget-bar {
+  display: flex;
+  width: 100%;
+  height: 12px;
+  border-radius: 6px;
+  background-color: var(--color-bg);
+  overflow: hidden;
+  gap: 2px;
+}
+
+.ayn-budget-bar__segment {
+  height: 100%;
+  transition: width 150ms ease;
+}
+
+.ayn-budget-bar__segment--hotel {
+  background-color: var(--chart-hotel);
+}
+
+.ayn-budget-bar__segment--food {
+  background-color: var(--chart-food);
+}
+
+.ayn-budget-bar__segment--activities {
+  background-color: var(--chart-activities);
+}
+
+.ayn-budget-bar__segment--transport {
+  background-color: var(--chart-transport);
+}
+
+/* Legend */
+.ayn-budget-legend {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  margin-top: var(--space-1);
+}
+
+.ayn-budget-legend__row {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.ayn-budget-legend__main {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  font-size: 14px;
+  line-height: 20px;
+}
+
+.ayn-budget-legend__left {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--color-text);
+}
+
+.ayn-budget-legend__swatch {
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
+  flex-shrink: 0;
+}
+
+.ayn-budget-legend__swatch--hotel {
+  background-color: var(--chart-hotel);
+}
+
+.ayn-budget-legend__swatch--food {
+  background-color: var(--chart-food);
+}
+
+.ayn-budget-legend__swatch--activities {
+  background-color: var(--chart-activities);
+}
+
+.ayn-budget-legend__swatch--transport {
+  background-color: var(--chart-transport);
+}
+
+.ayn-budget-legend__name {
+  font-weight: 600;
+}
+
+.ayn-budget-legend__right {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.ayn-budget-legend__amount {
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.ayn-budget-legend__percent {
+  color: var(--color-text-muted);
+}
+
+.ayn-budget-legend__input {
+  width: 110px;
+  height: 36px;
+  padding: 6px 10px;
+  background-color: var(--color-surface);
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-input);
+  font-family: var(--font-body);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-text);
+  text-align: right;
+  outline: none;
+}
+
+.ayn-budget-legend__input:focus {
+  border-color: var(--color-primary);
+  outline: var(--focus-ring);
+  outline-offset: var(--focus-offset);
+}
+
+.ayn-budget-legend__sub {
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--color-text-muted);
+  padding-left: 20px; /* Swatch + gap */
+}
+
+/* Edit Mode Footer */
+.ayn-budget-card__edit-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--color-border);
+  margin-top: var(--space-2);
+}
+
+.ayn-budget-card__remaining {
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 600;
+}
+
+.ayn-budget-card__remaining--valid {
+  color: var(--color-green);
+}
+
+.ayn-budget-card__remaining--invalid {
+  color: var(--color-error);
+}
+
+.ayn-budget-card__actions {
+  display: flex;
+  gap: var(--space-2);
+}

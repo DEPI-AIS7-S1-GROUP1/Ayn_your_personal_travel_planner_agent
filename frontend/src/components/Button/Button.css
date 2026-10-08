@@ -1,0 +1,94 @@
+.ayn-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  height: 44px;
+  padding: 0 20px;
+  border-radius: var(--radius-button);
+  font-family: var(--font-body);
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+  box-sizing: border-box;
+  white-space: nowrap;
+  transition: background-color 150ms ease, border-color 150ms ease, color 150ms ease;
+  user-select: none;
+}
+
+.ayn-btn:focus-visible {
+  outline: var(--focus-ring);
+  outline-offset: var(--focus-offset);
+}
+
+.ayn-btn:disabled,
+.ayn-btn--disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+/* Primary Variant */
+.ayn-btn--primary {
+  background-color: var(--color-primary);
+  color: var(--color-on-primary);
+  border: 2px solid var(--color-text);
+  box-shadow: var(--btn-shadow);
+}
+
+.ayn-btn--primary:hover:not(:disabled) {
+  background-color: var(--color-primary-hover);
+}
+
+/* Secondary Variant */
+.ayn-btn--secondary {
+  background-color: transparent;
+  color: var(--color-text);
+  border: 1px solid var(--color-border);
+}
+
+.ayn-btn--secondary:hover:not(:disabled) {
+  border-color: var(--color-text);
+}
+
+/* Destructive Secondary */
+.ayn-btn--destructive {
+  background-color: transparent;
+  color: var(--color-error);
+  border: 1px solid var(--color-border);
+}
+
+.ayn-btn--destructive:hover:not(:disabled) {
+  border-color: var(--color-error);
+}
+
+/* Text Variant */
+.ayn-btn--text {
+  background-color: transparent;
+  color: var(--color-primary);
+  border: none;
+  padding: 0 var(--space-2);
+  height: auto;
+  min-height: 44px;
+}
+
+.ayn-btn--text:hover:not(:disabled) {
+  color: var(--color-primary-hover);
+}
+
+/* Text Destructive */
+.ayn-btn--text.ayn-btn--destructive {
+  color: var(--color-error);
+}
+
+.ayn-btn--text.ayn-btn--destructive:hover:not(:disabled) {
+  color: var(--color-error);
+  text-decoration: underline;
+}
+
+/* Full Width */
+.ayn-btn--full-width {
+  width: 100%;
+}

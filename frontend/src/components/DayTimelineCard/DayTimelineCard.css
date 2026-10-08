@@ -1,0 +1,218 @@
+.ayn-day-card {
+  background-color: var(--color-surface);
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-card);
+  padding: var(--space-5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+  text-align: left;
+  box-sizing: border-box;
+  width: 100%;
+}
+
+/* Header */
+.ayn-day-card__header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--color-border);
+  padding-bottom: var(--space-4);
+}
+
+.ayn-day-card__title-group {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-3);
+}
+
+.ayn-day-card__title {
+  font-family: var(--font-heading);
+  font-size: 20px;
+  line-height: 28px;
+  font-weight: 600;
+  color: var(--color-text);
+  margin: 0;
+}
+
+.ayn-day-card__date {
+  font-family: var(--font-body);
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--color-text-muted);
+}
+
+.ayn-day-card__day-total {
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 24px;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+/* Timeline body */
+.ayn-day-card__timeline {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5); /* 24px between slot groups */
+  position: relative;
+}
+
+/* Slot group */
+.ayn-day-card__slot-group {
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  padding-left: 24px;
+}
+
+/* Continuous vertical 1px line & 8px dot */
+.ayn-day-card__slot-group::before {
+  content: '';
+  position: absolute;
+  left: 3px;
+  top: 8px;
+  bottom: -24px;
+  width: 1px;
+  background-color: var(--color-border);
+}
+
+.ayn-day-card__slot-group:last-child::before {
+  bottom: 0;
+}
+
+.ayn-day-card__slot-dot {
+  position: absolute;
+  left: 0;
+  top: 4px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: var(--color-primary);
+  border: 1px solid var(--color-surface);
+}
+
+.ayn-day-card__slot-label {
+  font-family: var(--font-body);
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+  margin-bottom: var(--space-3);
+}
+
+/* Activities container */
+.ayn-day-card__activities {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4); /* 16px between activities */
+}
+
+/* Activity row */
+.ayn-activity-row {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-4);
+  width: 100%;
+}
+
+.ayn-activity-row__icon-wrap {
+  color: var(--color-text-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.ayn-activity-row__main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.ayn-activity-row__header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.ayn-activity-row__title {
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 24px;
+  font-weight: 600;
+  color: var(--color-text);
+  margin: 0;
+}
+
+.ayn-activity-row__cost {
+  font-family: var(--font-body);
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 600;
+  color: var(--color-text);
+  white-space: nowrap;
+}
+
+.ayn-activity-row__desc {
+  font-family: var(--font-body);
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--color-text-muted);
+  margin: 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.ayn-activity-row__actions {
+  display: flex;
+  gap: var(--space-3);
+  margin-top: var(--space-1);
+}
+
+/* Inline edit form */
+.ayn-activity-edit-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  background-color: var(--color-bg);
+  padding: var(--space-4);
+  border-radius: var(--radius-input);
+  border: 1px solid var(--color-border);
+  width: 100%;
+  margin-top: var(--space-2);
+}
+
+.ayn-activity-edit-form__row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-3);
+}
+
+@media (max-width: 640px) {
+  .ayn-activity-edit-form__row {
+    grid-template-columns: 1fr;
+  }
+}
+
+.ayn-activity-edit-form__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-2);
+  margin-top: var(--space-2);
+}
+
+/* Card footer */
+.ayn-day-card__footer {
+  display: flex;
+  justify-content: flex-start;
+  padding-top: var(--space-2);
+}

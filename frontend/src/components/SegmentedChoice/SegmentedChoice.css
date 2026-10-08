@@ -1,0 +1,94 @@
+.ayn-segmented-choice {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  width: 100%;
+  text-align: left;
+}
+
+.ayn-segmented-choice__label-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+}
+
+.ayn-segmented-choice__label {
+  font-family: var(--font-body);
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.ayn-segmented-choice__caption {
+  font-family: var(--font-body);
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--color-text-muted);
+}
+
+.ayn-segmented-choice__group {
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+  width: 100%;
+  height: 44px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-input);
+  background-color: var(--color-surface);
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+.ayn-segmented-choice__option {
+  flex: 1 1 0;
+  min-width: 0;
+  height: 100%;
+  padding: 0 var(--space-2);
+  background-color: transparent;
+  border: none;
+  border-right: 1px solid var(--color-border);
+  font-family: var(--font-body);
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 600;
+  color: var(--color-text);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  white-space: nowrap;
+  transition: background-color 150ms ease, color 150ms ease;
+  user-select: none;
+  outline: none;
+}
+
+.ayn-segmented-choice__option:last-child {
+  border-right: none;
+}
+
+.ayn-segmented-choice__option:hover:not(:disabled):not(.ayn-segmented-choice__option--selected) {
+  background-color: rgba(31, 95, 139, 0.06); /* 6% primary tint */
+}
+
+.ayn-segmented-choice__option:focus-visible {
+  outline: var(--focus-ring);
+  outline-offset: -2px;
+  z-index: 1;
+}
+
+.ayn-segmented-choice__option--selected {
+  background-color: var(--color-primary);
+  color: var(--color-on-primary);
+}
+
+.ayn-segmented-choice__option:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.ayn-segmented-choice--disabled .ayn-segmented-choice__group {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
