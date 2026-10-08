@@ -1,0 +1,72 @@
+{
+  "flights": [
+    {
+      "id": "flt_001",
+      "airline": "EgyptAir",
+      "outbound": {
+        "from": "CAI",
+        "to": "SSH",
+        "departure": "2026-11-10T08:30",
+        "arrival": "2026-11-10T09:45"
+      },
+      "return": {
+        "from": "SSH",
+        "to": "CAI",
+        "departure": "2026-11-12T20:00",
+        "arrival": "2026-11-12T21:15"
+      },
+      "price": 7000,
+      "details": "Direct flight, one cabin bag each."
+    },
+    {
+      "id": "flt_002",
+      "airline": "Air Cairo",
+      "outbound": {
+        "from": "CAI",
+        "to": "SSH",
+        "departure": "2026-11-10T07:15",
+        "arrival": "2026-11-10T08:30"
+      },
+      "return": {
+        "from": "SSH",
+        "to": "CAI",
+        "departure": "2026-11-12T18:30",
+        "arrival": "2026-11-12T19:45"
+      },
+      "price": 5600,
+      "details": "Direct flight, one cabin bag each, checked bag costs extra."
+    }
+  ],
+  "hotels": [
+    {
+      "id": "htl_001",
+      "name": "Coral Bay Resort",
+      "stars": 4,
+      "area": "Naama Bay",
+      "price_per_night": 12000,
+      "total_price": 24000,
+      "details": "Breakfast included, five minutes from the beach.",
+      "image_url": "/images/hotels/coral-bay.jpg"
+    },
+    {
+      "id": "htl_002",
+      "name": "Palm Terrace Hotel",
+      "stars": 3,
+      "area": "Hadaba",
+      "price_per_night": 8000,
+      "total_price": 16000,
+      "details": "Breakfast included, free shuttle to Naama Bay twice a day.",
+      "image_url": "/images/hotels/palm-terrace.jpg"
+    },
+    {
+      "id": "htl_003",
+      "name": "Blue Reef Beach Resort",
+      "stars": 5,
+      "area": "Sharks Bay",
+      "price_per_night": 15000,
+      "total_price": 30000,
+      "details": "Half board, private beach and spa.",
+      "image_url": "/images/hotels/blue-reef.jpg"
+    }
+  ]
+}
