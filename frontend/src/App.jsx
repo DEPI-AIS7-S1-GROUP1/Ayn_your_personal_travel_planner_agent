@@ -1,122 +1,98 @@
-import { useState } from 'react'
-import heroImg from './assets/hero.png'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import './App.css'
+import React, { useState } from 'react';
+import { Navbar, Footer, Button } from './components';
+import { Home } from './pages/Home';
+import { ComponentsTestPage } from './pages/ComponentsTest';
+import './App.css';
 
 function App() {
-  const [count, setCount] = useState(0)
+  const [currentRoute, setCurrentRoute] = useState('home');
+
+  const handleNavigate = (route) => {
+    setCurrentRoute(route);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
 
   return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.jsx</code> and save to test <code>HMR</code>
-          </p>
-        </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
-      </section>
+    <div className="ayn-app">
+      {/* Reusable Navbar */}
+      <Navbar
+        activeLink={currentRoute}
+        onNavigate={handleNavigate}
+        user={{ name: 'Sarah', loggedIn: true }}
+        onLogout={() => alert('Logged out')}
+      />
 
-      <div className="ticks"></div>
+      {/* Main View Router */}
+      <main className="ayn-main-content">
+        {currentRoute === 'home' && <Home onNavigate={handleNavigate} />}
 
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
+        {currentRoute === 'components' && <ComponentsTestPage />}
 
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
-  )
+        {currentRoute === 'about' && (
+          <div className="ayn-placeholder-screen">
+            <h1 className="ayn-placeholder-screen__title">About Ayn</h1>
+            <p className="ayn-placeholder-screen__desc">
+              Ayn (أين) means &quot;where&quot; in Arabic. It is your intelligent travel partner crafted for Egypt.
+            </p>
+            <Button variant="primary" onClick={() => handleNavigate('home')}>
+              Back to Home
+            </Button>
+          </div>
+        )}
+
+        {currentRoute === 'features' && (
+          <div className="ayn-placeholder-screen">
+            <h1 className="ayn-placeholder-screen__title">Features</h1>
+            <p className="ayn-placeholder-screen__desc">
+              Discover Ayn&apos;s personalized itinerary generator, dynamic budget balancing, and interactive refinement.
+            </p>
+            <Button variant="primary" onClick={() => handleNavigate('home')}>
+              Back to Home
+            </Button>
+          </div>
+        )}
+
+        {currentRoute === 'trips' && (
+          <div className="ayn-placeholder-screen">
+            <h1 className="ayn-placeholder-screen__title">Your Trips</h1>
+            <p className="ayn-placeholder-screen__desc">
+              View your confirmed and draft Egyptian adventures.
+            </p>
+            <Button variant="primary" onClick={() => handleNavigate('destination')}>
+              Plan a new trip
+            </Button>
+          </div>
+        )}
+
+        {currentRoute === 'destination' && (
+          <div className="ayn-placeholder-screen">
+            <h1 className="ayn-placeholder-screen__title">Destination Selection</h1>
+            <p className="ayn-placeholder-screen__desc">
+              Select your Egyptian destination, dates, budget and travelers.
+            </p>
+            <Button variant="secondary" onClick={() => handleNavigate('home')}>
+              Back to Home
+            </Button>
+          </div>
+        )}
+
+        {currentRoute === 'survey' && (
+          <div className="ayn-placeholder-screen">
+            <h1 className="ayn-placeholder-screen__title">Travel Survey</h1>
+            <p className="ayn-placeholder-screen__desc">
+              Help Ayn understand your travel style, pace, and interests.
+            </p>
+            <Button variant="secondary" onClick={() => handleNavigate('home')}>
+              Back to Home
+            </Button>
+          </div>
+        )}
+      </main>
+
+      {/* Reusable Footer */}
+      <Footer onNavigate={handleNavigate} />
+    </div>
+  );
 }
 
-export default App
+export default App;

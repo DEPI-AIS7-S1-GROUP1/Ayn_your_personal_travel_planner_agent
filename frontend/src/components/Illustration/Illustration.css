@@ -1,0 +1,19 @@
+.ayn-illustration {
+  display: inline-block;
+  user-select: none;
+}
+
+.ayn-illustration--person {
+  width: 48px;
+  height: 77px;
+}
+
+.ayn-illustration--cloud {
+  display: block;
+}
+
+.ayn-illustration--arch-scene {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
