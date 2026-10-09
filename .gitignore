@@ -1,0 +1,8 @@
+   .env
+   .venv/
+   venv/
+   node_modules/
+   __pycache__/
+   travel_planner.db
+   output/
+   .idea/

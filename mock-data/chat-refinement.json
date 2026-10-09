@@ -1,0 +1,51 @@
+{
+  "conversation": [
+    {
+      "request": {
+        "conversation_id": "chat_001",
+        "message": "Make the budget higher."
+      },
+      "response": {
+        "conversation_id": "chat_001",
+        "message": {
+          "id": "msg_003",
+          "role": "assistant",
+          "content": "What total budget would you like me to use? Please include the amount and currency.",
+          "created_at": "2026-10-05T12:31"
+        },
+        "action": "needs_clarification",
+        "changes": [],
+        "trip": null,
+        "plan": null
+      }
+    },
+    {
+      "request": {
+        "conversation_id": "chat_001",
+        "message": "Set it to 75000 EGP."
+      },
+      "response": {
+        "conversation_id": "chat_001",
+        "message": {
+          "id": "msg_004",
+          "role": "assistant",
+          "content": "Done. I increased the total budget from 60000 EGP to 75000 EGP and recalculated the budget split and activities.",
+          "created_at": "2026-10-05T12:32"
+        },
+        "action": "updated",
+        "changes": [
+          {
+            "type": "budget_changed",
+            "description": "Changed the total budget from 60000 EGP to 75000 EGP."
+          },
+          {
+            "type": "plan_regenerated",
+            "description": "Recalculated the budget split and regenerated activities within the new budget."
+          }
+        ],
+        "trip_id": "trip_001",
+        "plan_id": "plan_001"
+      }
+    }
+  ]
+}
