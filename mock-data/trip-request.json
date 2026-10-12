@@ -1,0 +1,11 @@
+{
+  "destination": {
+    "city": "Sharm El Sheikh",
+    "country": "Egypt"
+  },
+  "start_date": "2026-11-10",
+  "end_date": "2026-11-12",
+  "total_budget": 60000,
+  "currency": "EGP",
+  "travelers": 2
+}

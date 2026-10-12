@@ -1,0 +1,238 @@
+{
+  "trip": {
+    "id": "trip_001",
+    "destination": {
+      "city": "Sharm El Sheikh",
+      "country": "Egypt"
+    },
+    "start_date": "2026-11-10",
+    "end_date": "2026-11-12",
+    "total_budget": 60000,
+    "currency": "EGP",
+    "travelers": 2,
+    "created_at": "2026-10-04"
+  },
+  "plan": {
+    "id": "plan_001",
+    "trip_id": "trip_001",
+    "status": "draft",
+    "itinerary": [
+      {
+        "day": 1,
+        "date": "2026-11-10",
+        "activities": [
+          {
+            "id": "act_001",
+            "title": "Airport transfer to the hotel",
+            "description": "Private car from Sharm El Sheikh airport to the hotel in Naama Bay, about 20 minutes.",
+            "time_slot": "morning",
+            "estimated_cost": 600,
+            "category": "transport"
+          },
+          {
+            "id": "act_002",
+            "title": "Hotel check-in",
+            "description": "Drop the bags, freshen up and pick up the hotel map.",
+            "time_slot": "afternoon",
+            "estimated_cost": 0,
+            "category": "hotel"
+          },
+          {
+            "id": "act_003",
+            "title": "Late lunch at Farsha Cafe",
+            "description": "Grilled fish and mezze on the terrace, a good first taste of the local seafood.",
+            "time_slot": "afternoon",
+            "estimated_cost": 900,
+            "category": "food"
+          },
+          {
+            "id": "act_004",
+            "title": "Walk along the Naama Bay promenade",
+            "description": "An easy evening walk past the shops and cafes by the water.",
+            "time_slot": "evening",
+            "estimated_cost": 0,
+            "category": "activities"
+          }
+        ]
+      },
+      {
+        "day": 2,
+        "date": "2026-11-11",
+        "activities": [
+          {
+            "id": "act_005",
+            "title": "Snorkelling day at Ras Mohammed National Park",
+            "description": "A small-group boat and snorkelling trip to the coral reefs, about 40 minutes by road from Naama Bay. Park fee, boat and snorkelling gear are included.",
+            "time_slot": "morning",
+            "estimated_cost": 5600,
+            "category": "activities"
+          },
+          {
+            "id": "act_006",
+            "title": "Seafood lunch in Naama Bay",
+            "description": "Fresh grilled fish and calamari at a waterfront restaurant, mild seasoning on request.",
+            "time_slot": "afternoon",
+            "estimated_cost": 2200,
+            "category": "food"
+          },
+          {
+            "id": "act_007",
+            "title": "Free time at the hotel beach",
+            "description": "A quiet rest on the sand before the evening.",
+            "time_slot": "afternoon",
+            "estimated_cost": 0,
+            "category": "activities"
+          },
+          {
+            "id": "act_008",
+            "title": "Taxi to the Old Market",
+            "description": "Short ride from the hotel to the Old Market and back, about 15 minutes each way.",
+            "time_slot": "evening",
+            "estimated_cost": 400,
+            "category": "transport"
+          },
+          {
+            "id": "act_009",
+            "title": "Al Sahaba Mosque and the Old Market",
+            "description": "See the white mosque, then wander the market stalls for spices, perfumes and photos.",
+            "time_slot": "evening",
+            "estimated_cost": 1200,
+            "category": "activities"
+          },
+          {
+            "id": "act_010",
+            "title": "Grilled dinner at the Old Market",
+            "description": "Mixed grill with salads and fresh bread at a local restaurant.",
+            "time_slot": "evening",
+            "estimated_cost": 2600,
+            "category": "food"
+          }
+        ]
+      },
+      {
+        "day": 3,
+        "date": "2026-11-12",
+        "activities": [
+          {
+            "id": "act_011",
+            "title": "Glass-bottom boat ride at Sharks Bay",
+            "description": "A calm morning boat ride over the reef without needing to swim.",
+            "time_slot": "morning",
+            "estimated_cost": 1800,
+            "category": "activities"
+          },
+          {
+            "id": "act_012",
+            "title": "Hotel check-out",
+            "description": "Leave the bags with reception until the afternoon.",
+            "time_slot": "morning",
+            "estimated_cost": 0,
+            "category": "hotel"
+          },
+          {
+            "id": "act_013",
+            "title": "Farewell seafood lunch",
+            "description": "A last relaxed lunch of grilled fish and rice before the trip home.",
+            "time_slot": "afternoon",
+            "estimated_cost": 2400,
+            "category": "food"
+          },
+          {
+            "id": "act_014",
+            "title": "Souvenir shopping in Naama Bay",
+            "description": "Pick up spices, perfumes and handmade gifts from the shops near the promenade.",
+            "time_slot": "afternoon",
+            "estimated_cost": 1500,
+            "category": "activities"
+          },
+          {
+            "id": "act_015",
+            "title": "Transfer to the airport",
+            "description": "Private car from the hotel to the airport, leaving about three hours before the flight.",
+            "time_slot": "afternoon",
+            "estimated_cost": 600,
+            "category": "transport"
+          }
+        ]
+      }
+    ],
+    "budget_split": {
+      "hotel": 24000,
+      "food": 12000,
+      "activities": 14000,
+      "transport": 10000
+    },
+    "options": {
+      "flights": [
+        {
+          "id": "flt_001",
+          "airline": "EgyptAir",
+          "outbound": {
+            "from": "CAI",
+            "to": "SSH",
+            "departure": "2026-11-10T08:30",
+            "arrival": "2026-11-10T09:45"
+          },
+          "return": {
+            "from": "SSH",
+            "to": "CAI",
+            "departure": "2026-11-12T20:00",
+            "arrival": "2026-11-12T21:15"
+          },
+          "price": 7000,
+          "details": "Direct flight, one cabin bag each."
+        },
+        {
+          "id": "flt_002",
+          "airline": "Air Cairo",
+          "outbound": {
+            "from": "CAI",
+            "to": "SSH",
+            "departure": "2026-11-10T07:15",
+            "arrival": "2026-11-10T08:30"
+          },
+          "return": {
+            "from": "SSH",
+            "to": "CAI",
+            "departure": "2026-11-12T18:30",
+            "arrival": "2026-11-12T19:45"
+          },
+          "price": 5600,
+          "details": "Direct flight, one cabin bag each, checked bag costs extra."
+        }
+      ],
+      "hotels": [
+        {
+          "id": "htl_001",
+          "name": "Coral Bay Resort",
+          "stars": 4,
+          "area": "Naama Bay",
+          "price_per_night": 12000,
+          "total_price": 24000,
+          "details": "Breakfast included, five minutes from the beach.",
+          "image_url": "/images/hotels/coral-bay.jpg"
+        },
+        {
+          "id": "htl_002",
+          "name": "Palm Terrace Hotel",
+          "stars": 3,
+          "area": "Hadaba",
+          "price_per_night": 8000,
+          "total_price": 16000,
+          "details": "Breakfast included, free shuttle to Naama Bay twice a day.",
+          "image_url": "/images/hotels/palm-terrace.jpg"
+        },
+        {
+          "id": "htl_003",
+          "name": "Blue Reef Beach Resort",
+          "stars": 5,
+          "area": "Sharks Bay",
+          "price_per_night": 15000,
+          "total_price": 30000,
+          "details": "Half board, private beach and spa.",
+          "image_url": "/images/hotels/blue-reef.jpg"
+        }
+      ]
+    }
+  }
+}

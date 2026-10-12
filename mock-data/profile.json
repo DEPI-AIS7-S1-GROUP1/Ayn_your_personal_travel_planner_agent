@@ -1,0 +1,24 @@
+{
+  "personality": [
+    "foodie",
+    "history-loving"
+  ],
+  "hobbies": [
+    "museums",
+    "photography",
+    "local-markets"
+  ],
+  "food_likes": [
+    "seafood",
+    "grilled meat",
+    "koshari"
+  ],
+  "food_dislikes": [
+    "very spicy food"
+  ],
+  "dietary_limits": [
+    "halal"
+  ],
+  "liked_last_trip": "Small group tours and walking through old neighbourhoods.",
+  "disliked_last_trip": "Long bus rides and crowded beaches."
+}
