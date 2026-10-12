@@ -1,0 +1,101 @@
+/* DESIGN.md Tokens & Global Baseline */
+:root {
+  /* 3.1 Colors */
+  --color-bg: #F5EFE6;
+  --color-surface: #FCFAF6;
+  --color-text: #2B2118;
+  --color-text-muted: #7A6A5A;
+  --color-border: #E0D5C4;
+  --color-primary: #1F5F8B;
+  --color-primary-hover: #184B6F;
+  --color-on-primary: #FCFAF6;
+  --color-sky: #CFE3E8;
+  --color-cloud: #FFFFFF;
+  --color-terracotta: #B5472F;
+  --color-sun: #F5A623;
+  --color-green: #2F6B4A;
+  --color-brown: #7A5232;
+  --color-error: #A8403A;
+
+  /* Budget chart ramp */
+  --chart-hotel: #1F5F8B;
+  --chart-food: #2F6B4A;
+  --chart-activities: #7A5232;
+  --chart-transport: #8DB7D1;
+
+  /* 3.2 Typography */
+  --font-heading: 'Bricolage Grotesque', sans-serif;
+  --font-body: 'Nunito', sans-serif;
+  --font-arabic: 'Cairo', sans-serif;
+
+  /* 3.3 Spacing */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-7: 48px;
+  --space-8: 64px;
+
+  /* 3.4 Borders & Radius */
+  --radius-input: 8px;
+  --radius-button: 12px;
+  --radius-card: 20px;
+  --radius-arch: 999px 999px 16px 16px;
+
+  /* Focus outline */
+  --focus-ring: 2px solid var(--color-primary);
+  --focus-offset: 2px;
+
+  /* Flat button offset */
+  --btn-shadow: 0 3px 0 var(--color-text);
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 24px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-heading);
+  color: var(--color-text);
+  margin: 0;
+}
+
+h1 {
+  font-size: 48px;
+  line-height: 52px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+h2 {
+  font-size: 28px;
+  line-height: 36px;
+  font-weight: 600;
+}
+
+h3 {
+  font-size: 20px;
+  line-height: 28px;
+  font-weight: 600;
+}
+
+p {
+  margin: 0;
+}
+
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}

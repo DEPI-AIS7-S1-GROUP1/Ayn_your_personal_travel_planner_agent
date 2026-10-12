@@ -49,27 +49,17 @@ The data holds the hyphenated values. The frontend shows friendly labels:
 | `style-loving` | Style lover |
 | `exploring` | Explorer |
 
-### Default currency by country
+### Destination and currency rules
 
-`GET /currencies/default` uses this rule. The user can always change the currency afterwards.
+All trips must be within Egypt. The destination `country` must be exactly
+`"Egypt"`; destinations in any other country are rejected.
 
-| Country | Default currency |
-|---|---|
-| Egypt | `EGP` |
-| Saudi Arabia | `SAR` |
-| United Arab Emirates | `AED` |
-| Eurozone member countries | `EUR` |
-| United Kingdom | `GBP` |
-| Japan | `JPY` |
-| China | `CNY` |
-| Switzerland | `CHF` |
-| Canada | `CAD` |
-| Australia | `AUD` |
-| India | `INR` |
-| Turkey | `TRY` |
-| Morocco | `MAD` |
-| United States | `USD` |
-| Any other country | `USD` |
+The user must select the currency they want to use when creating a trip.
+There is no automatic default currency. The selected currency is used for
+the total budget, budget split, activity costs, flight prices and hotel
+prices throughout the plan.
+
+The public currency list endpoint is `GET /currencies`.
 
 ---
 
@@ -120,11 +110,11 @@ The data holds the hyphenated values. The frontend shows friendly labels:
 
 | Field | Type | Required | Notes |
 |---|---|---|---|
-| `destination` | object | yes | `{ "city": string, "country": string }` |
+| `destination` | object | yes | `{ "city": string, "country": "Egypt" }`. Only Egyptian cities are allowed. |
 | `start_date` | string | yes | Not in the past |
 | `end_date` | string | yes | On or after `start_date`. Maximum trip length is 14 days. |
 | `total_budget` | integer | yes | Greater than 0 |
-| `currency` | string | no | From the `currency` enum. If omitted, the backend uses the country's default. |
+| `currency` | string | yes | The currency selected by the user, from the `currency` enum. |
 | `travelers` | integer | yes | 1 to 10 |
 
 ```json
@@ -269,7 +259,7 @@ Flights and hotels are static mock data. Real booking is out of scope.
 | `id` | string | |
 | `trip_id` | string | |
 | `status` | string | `draft`, `confirmed` or `cancelled` |
-| `destination` | object | `{ "city", "country" }` |
+| `destination` | object | `{ "city", "country": "Egypt" }` |
 | `start_date`, `end_date` | string | |
 | `travelers` | integer | |
 | `total_budget` | integer | |
@@ -466,24 +456,20 @@ Errors: `400 VALIDATION_ERROR` (for example 4 personality values, unknown hobby)
 
 ---
 
-### GET /currencies/default
+### GET /currencies
 
-**Purpose:** Get the default currency for a country, and the full list for the currency selector on the trip form.
+**Purpose:** Get the currencies available in the currency selector on the trip form.
 **Auth:** none
-**Query:** `country` (required), for example `/currencies/default?country=Egypt`
 
 Response `200`:
 ```json
 {
-  "country": "Egypt",
-  "currency": "EGP",
   "supported": ["USD", "EUR", "GBP", "JPY", "CNY", "CHF", "CAD", "AUD", "INR", "TRY", "EGP", "SAR", "AED", "MAD"]
 }
 ```
 
-For example, `country=United Arab Emirates` returns `"currency": "AED"`, and a country with no entry in the table (section 2) returns `"currency": "USD"`.
-
-Errors: `400 VALIDATION_ERROR` (missing `country`).
+The frontend must not preselect a currency. The user must choose one before
+submitting `POST /trips`.
 
 ---
 
@@ -502,10 +488,11 @@ Response `201`:
 }
 ```
 
-Errors: `400 VALIDATION_ERROR` (dates, budget, travelers), `400 INVALID_CURRENCY`, `401 UNAUTHORIZED`, `409 PROFILE_REQUIRED` (survey not completed), `502 GENERATION_FAILED`.
+Errors: `400 VALIDATION_ERROR` (dates, budget, travelers, missing currency), `400 INVALID_CURRENCY`, `400 INVALID_DESTINATION`, `401 UNAUTHORIZED`, `409 PROFILE_REQUIRED` (survey not completed), `502 GENERATION_FAILED`.
 
 Notes:
-- If `currency` is omitted, the backend uses the country's default, and the plan always returns the final currency.
+- `currency` is selected by the user and is required. The plan always returns the selected currency.
+- `destination.country` must be `"Egypt"`. The backend rejects all other countries.
 - Generation can take several seconds (this is the "Generating" screen). In the MVP the request stays open until the plan is ready.
 - The agent must return an itinerary that follows section 3.5 and a budget split that sums to `total_budget`.
 
@@ -586,6 +573,89 @@ Notes:
 
 ---
 
+### POST /plans/{id}/chat
+
+**Purpose:** Refine a draft plan through a natural-language chat message. The agent reads the current plan, the user's profile and the conversation history, then applies an unambiguous request and regenerates the affected parts of the plan.
+**Auth:** required
+
+Request:
+```json
+{
+  "conversation_id": "chat_001",
+  "message": "I don't like seafood. Replace seafood meals with vegetarian options and add one more romantic place."
+}
+```
+
+`conversation_id` is optional on the first message. The backend creates one when it is omitted; the frontend sends the returned value on later messages. `message` must be between 1 and 1000 characters.
+
+Response `200` (request understood and applied):
+```json
+{
+  "conversation_id": "chat_001",
+  "message": {
+    "id": "msg_002",
+    "role": "assistant",
+    "content": "Done. I replaced the seafood meals with vegetarian options and added a sunset dinner for two on day 2.",
+    "created_at": "2026-10-05T12:30"
+  },
+  "action": "updated",
+  "changes": [
+    {
+      "type": "replace_activity",
+      "description": "Replaced seafood meals with vegetarian options.",
+      "day": 1
+    },
+    {
+      "type": "add_activity",
+      "description": "Added a romantic sunset dinner for two.",
+      "day": 2
+    }
+  ],
+  "trip": { "...": "updated Trip object, section 3.3" },
+  "plan": { "...": "full updated Plan object, section 3.8" }
+}
+```
+
+Response `200` (clarification needed):
+```json
+{
+  "conversation_id": "chat_001",
+  "message": {
+    "id": "msg_003",
+    "role": "assistant",
+    "content": "What total budget would you like me to use? Please include the amount and currency.",
+    "created_at": "2026-10-05T12:31"
+  },
+  "action": "needs_clarification",
+  "changes": [],
+  "trip": null,
+  "plan": null
+}
+```
+
+When clarification is needed, the frontend displays the assistant's question and sends
+the user's answer as the next message with the same `conversation_id`. The assistant
+must continue asking focused clarification questions until it has enough information
+to perform the requested action. It must not apply a partial or guessed change.
+For example, after asking for the new budget, the user might send:
+`"Set it to 75000 EGP."` The next response is then an `updated` response containing
+the changes and the complete updated trip and plan.
+
+Supported requests include changing or replacing activities, adding or reducing activity density, avoiding foods or places, adding themes such as romantic activities, changing `total_budget`, and changing the trip length. A budget change must include an amount and currency; a length change must include a number of days or a new end date. The agent must preserve the user's dietary limits and explicit dislikes even when the request is vague.
+
+Rules:
+- Only `draft` plans can be refined. Each successful update is saved immediately and returns the complete updated trip and plan.
+- The endpoint may change `total_budget`, `start_date` and `end_date`, unlike `PUT /plans/{id}`. It must revalidate the trip rules in section 3.3, regenerate the itinerary when the number of days changes, and make the budget split sum exactly to the new total.
+- Currency, destination and traveler count are unchanged unless a future contract version explicitly adds support for them.
+- The agent must not invent a silent interpretation for an ambiguous amount, date, food restriction or destination. It returns `needs_clarification` instead.
+- Clarification messages are part of the same conversation and do not modify the trip or plan.
+- Each clarification response must ask only for the missing information needed for the next safe decision.
+- The response `changes` is a concise audit summary for the chat UI; the returned `plan` is the source of truth.
+
+Errors: `400 VALIDATION_ERROR` (empty or oversized message), `401 UNAUTHORIZED`, `404 NOT_FOUND`, `409 PLAN_NOT_EDITABLE`, `502 GENERATION_FAILED`.
+
+---
+
 ### POST /plans/{id}/confirm
 
 **Purpose:** Confirm a draft. After this the plan can no longer be edited.
@@ -651,6 +721,7 @@ Every error uses this shape:
 |---|---|---|
 | 400 | `VALIDATION_ERROR` | A field is missing, malformed or outside its allowed values |
 | 400 | `INVALID_CURRENCY` | Currency is not in the supported list |
+| 400 | `INVALID_DESTINATION` | The destination country is not Egypt or the city is not supported |
 | 401 | `UNAUTHORIZED` | Missing, invalid or expired token |
 | 401 | `INVALID_CREDENTIALS` | Wrong email or password |
 | 404 | `NOT_FOUND` | The item does not exist or belongs to someone else |
@@ -662,5 +733,8 @@ Every error uses this shape:
 | 409 | `ALREADY_RATED` | This plan already has a rating |
 | 502 | `GENERATION_FAILED` | The agent failed or returned invalid data |
 
+### Contract change log
 
----
+| Date | Change |
+|---|---|
+| 2026-10-06 | Restricted trips to Egyptian destinations and made currency selection mandatory for users. Replaced `GET /currencies/default` with `GET /currencies`. |
