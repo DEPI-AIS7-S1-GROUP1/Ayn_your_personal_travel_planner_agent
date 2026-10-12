@@ -1,0 +1,114 @@
+.ayn-input-field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  width: 100%;
+  text-align: left;
+}
+
+.ayn-input-field__label-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.ayn-input-field__label {
+  font-family: var(--font-body);
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.ayn-input-field__control-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+.ayn-input-control {
+  width: 100%;
+  height: 44px;
+  padding: 12px 16px;
+  background-color: var(--color-surface);
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-input);
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 24px;
+  color: var(--color-text);
+  box-sizing: border-box;
+  outline: none;
+  transition: border-color 150ms ease;
+}
+
+textarea.ayn-input-control {
+  min-height: 112px;
+  height: auto;
+  resize: vertical;
+}
+
+select.ayn-input-control {
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%237A6A5A' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 16px center;
+  padding-right: 40px;
+  cursor: pointer;
+}
+
+.ayn-input-control:hover:not(:disabled) {
+  border-color: var(--color-text-muted);
+}
+
+.ayn-input-control:focus {
+  border-color: var(--color-primary);
+  outline: var(--focus-ring);
+  outline-offset: var(--focus-offset);
+}
+
+.ayn-input-control:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.ayn-input-field--error .ayn-input-control {
+  border-color: var(--color-error);
+}
+
+.ayn-input-field--error .ayn-input-control:focus {
+  border-color: var(--color-error);
+  outline: 2px solid var(--color-error);
+}
+
+.ayn-input-field__toggle-btn {
+  position: absolute;
+  right: 12px;
+  background: none;
+  border: none;
+  padding: 4px;
+  font-family: var(--font-body);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-primary);
+  cursor: pointer;
+}
+
+.ayn-input-field__toggle-btn:focus-visible {
+  outline: var(--focus-ring);
+}
+
+.ayn-input-field__helper {
+  font-family: var(--font-body);
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--color-text-muted);
+}
+
+.ayn-input-field__error {
+  font-family: var(--font-body);
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--color-error);
+}
