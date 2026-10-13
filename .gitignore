@@ -1,36 +1,38 @@
-<<<<<<< Updated upstream
-# Environment
+# Environment & Secrets
 .env
-venv/
-__pycache__/
-*.pyc
-*.pyo
+.env.*
+!.env.example
 
-# Output
-output/*.json
-!output/.gitkeep
-
-# IDE
-.idea/
-.vscode/
-*.swp
-*.swo
-
-# OS
-Thumbs.db
-.DS_Store
-=======
-.env
+# Python
 .venv/
 venv/
+__pycache__/
+*/__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+
+# Databases
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
+travel_planner.db
+
+# Node / Frontend
 node_modules/
 frontend/node_modules/
 frontend/dist/
-__pycache__/
-*/__pycache__/
-.pytest_cache/
-*.db
-travel_planner.db
-output/
+dist/
+
+# Output
+output/*
+!output/.gitkeep
+
+# IDE & OS
 .idea/
->>>>>>> Stashed changes
+.vscode/
+Thumbs.db
+.DS_Store
+*.swp
+*.swo
