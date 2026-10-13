@@ -1,3 +1,4 @@
+<<<<<<< Updated upstream
 # Environment
 .env
 venv/
@@ -18,3 +19,18 @@ output/*.json
 # OS
 Thumbs.db
 .DS_Store
+=======
+.env
+.venv/
+venv/
+node_modules/
+frontend/node_modules/
+frontend/dist/
+__pycache__/
+*/__pycache__/
+.pytest_cache/
+*.db
+travel_planner.db
+output/
+.idea/
+>>>>>>> Stashed changes
