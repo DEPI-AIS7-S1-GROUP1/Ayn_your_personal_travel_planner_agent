@@ -1,40 +1,59 @@
 import React, { useState } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { MapPin, Menu, X } from 'lucide-react';
+import { Button } from '../Button';
 import './Navbar.css';
 
 /**
- * Reusable Navbar Component (DESIGN.md 5.1)
+ * Reusable Navbar Component (DESIGN.md §5.1)
  *
- * Left: Wordmark with orange MapPin, "Ayn" (Bricolage 800 primary), "أين" (Cairo 800 muted).
- * Center: Links "Home", "About", "Features", "Your trips" + "Components". Active link = sky pill.
- * Right: Profile icon (42px, Sun fill, 2px text outline, user initial) with dropdown menu.
+ * Logged out:
+ *   Left: Logo (wordmark: orange MapPin, "Ayn", "أين").
+ *   Center: "Home", "How it works", "About".
+ *   Right: "Log in" and primary "Sign up" button.
  *
- * @param {string} activeLink - Current active tab/route
- * @param {(linkKey: string) => void} onNavigate - Navigation callback
- * @param {object} [user] - Current user data (e.g. { name: 'Sarah', loggedIn: true })
- * @param {() => void} [onLogout]
+ * Logged in:
+ *   Left: Logo.
+ *   Center: "Home", "Plan a trip" (as a button), "Your trips", (in DEV only: "Components").
+ *   Right: Avatar menu (42px circle, Sun fill, 2px text outline, user initial)
+ *          with dropdown: "My profile", "Log out".
+ *
+ * "How it works" and "About" scroll to the respective sections on the home page.
  */
 export function Navbar({
-  activeLink = 'home',
-  onNavigate,
-  user = { name: 'Sarah', loggedIn: true },
+  user,
   onLogout,
+  onOpenLogin,
+  onOpenSignup,
   className = ''
 }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
 
-  const navLinks = [
-    { key: 'home', label: 'Home' },
-    { key: 'about', label: 'About' },
-    { key: 'features', label: 'Features' },
-    { key: 'trips', label: 'Your trips' },
-    { key: 'components', label: 'Components' }
-  ];
+  const navigate = useNavigate();
+  const location = useLocation();
 
-  const handleLinkClick = (key) => {
-    onNavigate?.(key);
+  const isLoggedIn = !!user?.loggedIn;
+  const isDev = import.meta.env.DEV;
+
+  const scrollToSection = (sectionId) => {
     setMobileNavOpen(false);
+    if (location.pathname !== '/') {
+      navigate(`/#${sectionId}`);
+      // Wait for navigation then scroll
+      setTimeout(() => {
+        const el = document.getElementById(sectionId);
+        if (el) el.scrollIntoView({ behavior: 'smooth' });
+      }, 100);
+    } else {
+      const el = document.getElementById(sectionId);
+      if (el) el.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
+
+  const handleNavClick = (path) => {
+    setMobileNavOpen(false);
+    navigate(path);
   };
 
   const initial = user?.name ? user.name.charAt(0).toUpperCase() : 'S';
@@ -42,11 +61,11 @@ export function Navbar({
   return (
     <header className={`ayn-navbar-wrapper ${className}`}>
       <div className="ayn-navbar">
-        {/* Wordmark */}
+        {/* Left: Wordmark */}
         <button
           type="button"
           className="ayn-wordmark"
-          onClick={() => handleLinkClick('home')}
+          onClick={() => handleNavClick('/')}
           aria-label="Ayn Home"
         >
           <span className="ayn-wordmark__pin">
@@ -61,21 +80,72 @@ export function Navbar({
           className={`ayn-navbar__links ${mobileNavOpen ? 'ayn-navbar__links--mobile-open' : ''}`}
           aria-label="Main Navigation"
         >
-          {navLinks.map((item) => (
-            <button
-              key={item.key}
-              type="button"
-              className={`ayn-navbar__link ${activeLink === item.key ? 'ayn-navbar__link--active' : ''}`}
-              onClick={() => handleLinkClick(item.key)}
-            >
-              {item.label}
-            </button>
-          ))}
+          {/* Home */}
+          <button
+            type="button"
+            className={`ayn-navbar__link ${location.pathname === '/' && !location.hash ? 'ayn-navbar__link--active' : ''}`}
+            onClick={() => handleNavClick('/')}
+          >
+            Home
+          </button>
+
+          {isLoggedIn ? (
+            <>
+              {/* Plan a trip as a button */}
+              <Button
+                variant="primary"
+                onClick={() => handleNavClick('/destination')}
+                style={{ height: '36px', padding: '0 16px', fontSize: '14px' }}
+              >
+                Plan a trip
+              </Button>
+
+              {/* Your trips */}
+              <button
+                type="button"
+                className={`ayn-navbar__link ${location.pathname === '/trips' ? 'ayn-navbar__link--active' : ''}`}
+                onClick={() => handleNavClick('/trips')}
+              >
+                Your trips
+              </button>
+
+              {/* Components test page: DEV ONLY */}
+              {isDev && (
+                <button
+                  type="button"
+                  className={`ayn-navbar__link ${location.pathname === '/components' ? 'ayn-navbar__link--active' : ''}`}
+                  onClick={() => handleNavClick('/components')}
+                >
+                  Components
+                </button>
+              )}
+            </>
+          ) : (
+            <>
+              {/* How it works -> scrolls to features */}
+              <button
+                type="button"
+                className="ayn-navbar__link"
+                onClick={() => scrollToSection('features')}
+              >
+                How it works
+              </button>
+
+              {/* About -> scrolls to about */}
+              <button
+                type="button"
+                className="ayn-navbar__link"
+                onClick={() => scrollToSection('about')}
+              >
+                About
+              </button>
+            </>
+          )}
         </nav>
 
-        {/* Right side: Profile / Mobile menu */}
+        {/* Right Actions */}
         <div className="ayn-navbar__actions">
-          {user?.loggedIn ? (
+          {isLoggedIn ? (
             <div style={{ position: 'relative' }}>
               <button
                 type="button"
@@ -94,7 +164,7 @@ export function Navbar({
                     className="ayn-navbar__menu-item"
                     onClick={() => {
                       setMenuOpen(false);
-                      onNavigate?.('profile');
+                      handleNavClick('/profile');
                     }}
                   >
                     My profile
@@ -104,7 +174,7 @@ export function Navbar({
                     className="ayn-navbar__menu-item"
                     onClick={() => {
                       setMenuOpen(false);
-                      onNavigate?.('trips');
+                      handleNavClick('/trips');
                     }}
                   >
                     Your trips
@@ -123,15 +193,25 @@ export function Navbar({
               )}
             </div>
           ) : (
-            <button
-              type="button"
-              className="ayn-navbar__link"
-              onClick={() => onNavigate?.('login')}
-            >
-              Log in
-            </button>
+            <>
+              <button
+                type="button"
+                className="ayn-navbar__link"
+                onClick={() => onOpenLogin ? onOpenLogin() : handleNavClick('/login')}
+              >
+                Log in
+              </button>
+              <Button
+                variant="primary"
+                onClick={() => onOpenSignup ? onOpenSignup() : handleNavClick('/signup')}
+                style={{ height: '36px', padding: '0 16px', fontSize: '14px' }}
+              >
+                Sign up
+              </Button>
+            </>
           )}
 
+          {/* Mobile hamburger toggle */}
           <button
             type="button"
             className="ayn-navbar__mobile-toggle"

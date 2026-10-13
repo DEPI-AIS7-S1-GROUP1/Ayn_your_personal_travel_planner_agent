@@ -82,7 +82,7 @@ export function DayTimelineCard({
     setFormData({
       title: activity.title || '',
       description: activity.description || '',
-      slot: activity.slot || 'morning',
+      slot: activity.slot || activity.time_slot || 'morning',
       category: activity.category || 'activities',
       estimated_cost: activity.estimated_cost || 0
     });
@@ -123,7 +123,9 @@ export function DayTimelineCard({
 
   // Group activities by slot in standard order
   const slotGroups = SLOTS_ORDER.map((slotKey) => {
-    const slotActivities = activities.filter((act) => act.slot?.toLowerCase() === slotKey);
+    const slotActivities = activities.filter(
+      (act) => (act.slot || act.time_slot)?.toLowerCase() === slotKey
+    );
     return {
       key: slotKey,
       label: slotKey.toUpperCase(),

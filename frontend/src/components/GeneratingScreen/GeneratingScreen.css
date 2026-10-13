@@ -1,0 +1,52 @@
+.ayn-generating-card {
+  position: relative;
+  max-width: 520px;
+  margin: 64px auto;
+  background: var(--color-surface);
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-card);
+  padding: 40px 32px;
+  text-align: center;
+  overflow: hidden;
+}
+
+.ayn-generating-card__bar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background-color: var(--color-border);
+  overflow: hidden;
+}
+
+.ayn-generating-card__bar-indicator {
+  width: 40%;
+  height: 100%;
+  background-color: var(--color-primary);
+  animation: ayn-indeterminate 1.5s infinite ease-in-out;
+}
+
+@keyframes ayn-indeterminate {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(350%);
+  }
+}
+
+.ayn-generating-card__title {
+  font-family: var(--font-heading);
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--color-text);
+  margin-bottom: 8px;
+}
+
+.ayn-generating-card__desc {
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--color-text-muted);
+  margin-bottom: 12px;
+}

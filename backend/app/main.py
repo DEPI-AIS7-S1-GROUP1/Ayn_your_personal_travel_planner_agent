@@ -11,9 +11,6 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app import config, models  # noqa: F401  (models registers the tables on Base)
-from app.database import Base, engine
-from app.errors import register_error_handlers
-from app.routers import auth, health
 
 # Fail fast: without a strong secret anyone could forge login tokens.
 if len(config.AUTH_SECRET_KEY) < 32:
@@ -22,6 +19,10 @@ if len(config.AUTH_SECRET_KEY) < 32:
         '    python -c "import secrets; print(secrets.token_hex(32))"\n'
         "and put it in the .env file at the repository root (see .env.example)."
     )
+
+from app.database import Base, engine
+from app.errors import register_error_handlers
+from app.routers import auth, currencies, health, plans, profile, ratings, trips
 
 
 @asynccontextmanager
@@ -33,7 +34,7 @@ async def lifespan(_app: FastAPI):
 
 app = FastAPI(title="Personal Travel Planner API", version="0.1.0", lifespan=lifespan)
 
-# Lets the Next.js frontend (another origin, e.g. localhost:3000) call this API from the browser.
+# Lets the Vite frontend (http://localhost:5173) or Next.js call this API from the browser.
 app.add_middleware(
     CORSMiddleware,
     allow_origins=config.CORS_ORIGINS,
@@ -46,3 +47,9 @@ register_error_handlers(app)
 # Every endpoint lives under /api (contract section 1).
 app.include_router(health.router, prefix="/api")
 app.include_router(auth.router, prefix="/api")
+app.include_router(currencies.router, prefix="/api")
+app.include_router(profile.router, prefix="/api")
+app.include_router(trips.router, prefix="/api")
+app.include_router(plans.router, prefix="/api")
+app.include_router(ratings.router, prefix="/api")
+

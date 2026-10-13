@@ -1,0 +1,158 @@
+.ayn-chat-panel {
+  background-color: var(--color-surface);
+  border: 2px solid var(--color-border);
+  border-radius: 20px;
+  padding: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  max-width: 100%;
+}
+
+.ayn-chat-panel__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--color-border);
+  padding-bottom: var(--space-2);
+}
+
+.ayn-chat-panel__title-group {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.ayn-chat-panel__title {
+  font-family: 'Bricolage Grotesque', sans-serif;
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--color-text);
+  margin: 0;
+}
+
+.ayn-chat-panel__figure {
+  display: flex;
+  align-items: center;
+  transform: scale(0.65);
+  transform-origin: center;
+  width: 32px;
+  height: 48px;
+}
+
+.ayn-chat-panel__messages {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  max-height: 380px;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+/* Scrollbar styles */
+.ayn-chat-panel__messages::-webkit-scrollbar {
+  width: 6px;
+}
+.ayn-chat-panel__messages::-webkit-scrollbar-track {
+  background: transparent;
+}
+.ayn-chat-panel__messages::-webkit-scrollbar-thumb {
+  background: var(--color-border);
+  border-radius: 4px;
+}
+
+.ayn-chat-bubble {
+  max-width: 90%;
+  font-family: 'Nunito', sans-serif;
+  font-size: 14px;
+  line-height: 20px;
+  padding: 10px 14px;
+  word-break: break-word;
+}
+
+/* User message: primary blue aligned to end */
+.ayn-chat-bubble--user {
+  align-self: flex-end;
+  background-color: var(--color-primary);
+  color: var(--color-on-primary);
+  border-radius: 16px 16px 4px 16px;
+}
+
+/* Ayn message: sky bubble */
+.ayn-chat-bubble--assistant {
+  align-self: flex-start;
+  background-color: var(--color-sky);
+  color: var(--color-text);
+  border-radius: 16px 16px 16px 4px;
+}
+
+.ayn-chat-bubble__changes {
+  margin-top: 8px;
+  padding-top: 6px;
+  border-top: 1px dashed rgba(43, 33, 24, 0.2);
+  font-size: 12px;
+  line-height: 16px;
+}
+
+.ayn-chat-bubble__change-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* Loading status */
+.ayn-chat-panel__status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--color-text-muted);
+  font-style: italic;
+  padding: 4px 8px;
+}
+
+/* Form controls */
+.ayn-chat-panel__form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin-top: auto;
+}
+
+.ayn-chat-panel__input-row {
+  display: flex;
+  gap: var(--space-2);
+  align-items: center;
+}
+
+.ayn-chat-panel__input {
+  flex: 1;
+  height: 44px;
+  padding: 0 14px;
+  border: 2px solid var(--color-border);
+  border-radius: 8px;
+  background-color: var(--color-surface);
+  font-family: 'Nunito', sans-serif;
+  font-size: 14px;
+  color: var(--color-text);
+  outline: none;
+  transition: border-color 150ms ease;
+}
+
+.ayn-chat-panel__input:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 2px var(--color-primary);
+}
+
+.ayn-chat-panel__input:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.ayn-chat-panel__error-text {
+  font-size: 12px;
+  color: var(--color-error);
+  font-weight: 600;
+  margin: 0;
+  padding-left: 2px;
+}

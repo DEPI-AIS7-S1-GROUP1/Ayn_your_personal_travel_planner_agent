@@ -132,6 +132,7 @@ class Plan(Base):
     # Point at ids inside `options`, so they are not foreign keys.
     selected_flight_id: Mapped[str | None] = mapped_column(String(64))
     selected_hotel_id: Mapped[str | None] = mapped_column(String(64))
+    search_context: Mapped[dict | None] = mapped_column(JSON, nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow, nullable=False)
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=utcnow, onupdate=utcnow, nullable=False
