@@ -4,7 +4,7 @@ import json
 from datetime import date
 from crewai import Task, Agent
 from agent.schemas import FinalPlanResponse
-
+from agent.feedback import feedback_text
 
 def create_planner_task(
     agent: Agent,
@@ -59,7 +59,8 @@ def create_planner_task(
             f"11. Use id format: htl_001, htl_002 for hotels\n"
             f"12. All prices are total for the whole group, not per person\n"
             f"13. Avoid: {profile.get('food_dislikes', [])} and respect "
-            f"dietary limits: {profile.get('dietary_limits', [])}\n\n"
+            f"dietary limits: {profile.get('dietary_limits', [])}\n"
+            f"14. {feedback_text}\n\n"
             f"Output ONLY valid JSON matching this schema (no conversational filler, no prose):\n"
             f"{json.dumps(FinalPlanResponse.model_json_schema(), indent=2)}"
         ),
