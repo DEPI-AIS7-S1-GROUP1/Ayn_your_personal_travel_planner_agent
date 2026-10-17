@@ -22,7 +22,7 @@ crewai>=0.80.0,<1.0.0           # 3-agent sequential pipeline (Tier 1)
 
 # ── LLM providers ────────────────────────────────────────────────────────────
 groq>=0.11.0,<1.0.0             # Tier 2 direct Groq SDK + litellm Groq backend
-google-genai>=0.8.0,<1.0.0      # Tier 1 direct Gemini SDK (google.genai)
+google-genai>=1.30,<3           # Tier 1 direct Gemini SDK; the code needs types.HttpRetryOptions (not in 0.x)
 litellm>=1.40.0,<2.0.0          # LLM proxy used by CrewAI / llm_config.py
 
 # ── Search ────────────────────────────────────────────────────────────────────

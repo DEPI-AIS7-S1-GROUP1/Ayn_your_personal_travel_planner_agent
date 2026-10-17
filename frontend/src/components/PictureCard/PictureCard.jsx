@@ -14,6 +14,7 @@ import './PictureCard.css';
  * @param {string} [details] - Short hotel description (max 2 lines)
  * @param {string | number} totalPrice - Total price for stay (e.g. "EGP 12,000")
  * @param {string | number} [pricePerNight] - Price per night (e.g. "EGP 3,000 / night")
+ * @param {string} [currency='EGP'] - Currency code of the prices (the plan's currency)
  * @param {boolean} [selected=false] - Selected hotel state
  * @param {boolean} [disabled=false] - Disabled state
  * @param {() => void} [onClick] - Selection handler
@@ -26,6 +27,7 @@ export function PictureCard({
   details,
   totalPrice,
   pricePerNight,
+  currency = 'EGP',
   selected = false,
   disabled = false,
   onClick,
@@ -89,11 +91,11 @@ export function PictureCard({
 
         <div className="ayn-picture-card__price-row">
           <span className="ayn-picture-card__price-total tabular-nums">
-            {typeof totalPrice === 'number' ? `EGP ${totalPrice.toLocaleString()}` : totalPrice}
+            {typeof totalPrice === 'number' ? `${currency} ${totalPrice.toLocaleString()}` : totalPrice}
           </span>
           {pricePerNight && (
             <span className="ayn-picture-card__price-night tabular-nums">
-              {typeof pricePerNight === 'number' ? `EGP ${pricePerNight.toLocaleString()} / night` : pricePerNight}
+              {typeof pricePerNight === 'number' ? `${currency} ${pricePerNight.toLocaleString()} / night` : pricePerNight}
             </span>
           )}
         </div>
