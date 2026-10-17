@@ -29,3 +29,6 @@ CORS_ORIGINS = [
     for origin in os.getenv("CORS_ORIGINS", "http://localhost:3000,http://localhost:5173").split(",")
     if origin.strip()
 ]
+
+# Recreate the demo accounts on every start (scripts/seed_demo.py). Off by default.
+SEED_DEMO_DATA = os.getenv("SEED_DEMO_DATA", "false").strip().lower() in ("1", "true", "yes")
