@@ -1,0 +1,234 @@
+.ayn-options-page {
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 40px 24px 80px;
+}
+
+.ayn-options-page__header {
+  margin-bottom: 40px;
+  text-align: left;
+}
+
+.ayn-options-page__title {
+  font-family: var(--font-heading);
+  font-size: 32px;
+  font-weight: 700;
+  color: var(--color-text);
+  margin-bottom: 8px;
+}
+
+.ayn-options-page__subtitle {
+  font-size: 16px;
+  line-height: 24px;
+  color: var(--color-text-muted);
+  max-width: 680px;
+}
+
+.ayn-options-section {
+  margin-bottom: 48px;
+}
+
+.ayn-options-section__title {
+  font-family: var(--font-heading);
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--color-text);
+  margin-bottom: 20px;
+}
+
+.ayn-options-section__header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.ayn-options-section__header-row .ayn-options-section__title {
+  margin-bottom: 0;
+}
+
+.ayn-transport-tabs {
+  display: flex;
+  gap: 8px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  padding: 4px;
+}
+
+.ayn-transport-tab {
+  background: transparent;
+  border: none;
+  padding: 6px 14px;
+  border-radius: 8px;
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.ayn-transport-tab:hover {
+  color: var(--color-text);
+}
+
+.ayn-transport-tab--active {
+  background: var(--color-primary);
+  color: var(--color-on-primary, #ffffff);
+}
+
+.ayn-transport-badge {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 600;
+  background: var(--color-sky);
+  color: var(--color-primary);
+  padding: 2px 8px;
+  border-radius: 6px;
+}
+
+.ayn-options-hotels-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+}
+
+@media (max-width: 860px) {
+  .ayn-options-hotels-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.ayn-options-flights-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.ayn-flight-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--color-surface);
+  border: 2px solid var(--color-border);
+  border-radius: 20px;
+  padding: 20px 24px;
+  cursor: pointer;
+  transition: border-color var(--transition-fast);
+}
+
+.ayn-flight-row:hover {
+  border-color: var(--color-text-muted);
+}
+
+.ayn-flight-row--selected {
+  border-color: var(--color-primary);
+}
+
+.ayn-flight-row__left {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  min-width: 260px;
+}
+
+.ayn-flight-row__icon-box {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: var(--color-sky);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-primary);
+  flex-shrink: 0;
+}
+
+.ayn-flight-row__icon-box--taxi {
+  background: #fef3c7;
+  color: #b45309;
+}
+
+.ayn-flight-row__icon-box--bus {
+  background: #e0e7ff;
+  color: #4338ca;
+}
+
+.ayn-flight-row__airline {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--color-text);
+  margin: 0;
+}
+
+.ayn-flight-row__details {
+  font-size: 13px;
+  color: var(--color-text-muted);
+}
+
+.ayn-flight-row__middle {
+  display: flex;
+  gap: 32px;
+}
+
+@media (max-width: 768px) {
+  .ayn-flight-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+  }
+  .ayn-flight-row__middle {
+    flex-direction: column;
+    gap: 8px;
+  }
+}
+
+.ayn-flight-row__leg {
+  display: flex;
+  flex-direction: column;
+}
+
+.ayn-flight-row__route {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.ayn-flight-row__date {
+  font-size: 12px;
+  color: var(--color-text-muted);
+}
+
+.ayn-flight-row__right {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.ayn-flight-row__price {
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.ayn-options-page__footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 16px;
+  padding-top: 24px;
+  border-top: 1px solid var(--color-border);
+}
+
+.ayn-options-page__loading,
+.ayn-options-page__error {
+  max-width: 520px;
+  margin: 64px auto;
+  text-align: center;
+  background: var(--color-surface);
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-card);
+  padding: 40px;
+}

@@ -9,3 +9,7 @@ export * from './Footer';
 export * from './Illustration';
 export * from './ToggleSwitch';
 export * from './FeatureArchCard';
+export * from './ChatPanel';
+export * from './AuthModal';
+export * from './ErrorBoundary';
+

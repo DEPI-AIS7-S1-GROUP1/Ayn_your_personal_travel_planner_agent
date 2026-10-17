@@ -1,0 +1,91 @@
+.ayn-survey-page {
+  max-width: 640px;
+  margin: 0 auto;
+  padding: var(--space-6) var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+
+.ayn-survey-page__title {
+  font-family: 'Bricolage Grotesque', sans-serif;
+  font-size: 32px;
+  font-weight: 800;
+  color: var(--color-text);
+  margin: 0;
+}
+
+.ayn-survey-page__desc {
+  font-size: 16px;
+  color: var(--color-text-muted);
+  margin: -8px 0 0 0;
+}
+
+.ayn-survey-page__form {
+  background-color: var(--color-surface);
+  border: 2px solid var(--color-border);
+  border-radius: 20px;
+  padding: var(--space-6);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+
+.ayn-survey-page__section-title {
+  font-family: 'Bricolage Grotesque', sans-serif;
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--color-text);
+  margin: 0 0 var(--space-2) 0;
+}
+
+.ayn-chips-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.ayn-chip-button {
+  height: 36px;
+  padding: 0 16px;
+  border-radius: 8px;
+  font-family: 'Nunito', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  border: 2px solid var(--color-border);
+  background-color: var(--color-surface);
+  color: var(--color-text);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 150ms ease;
+}
+
+.ayn-chip-button:hover {
+  border-color: var(--color-text-muted);
+}
+
+.ayn-chip-button--selected {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+  background-color: rgba(31, 95, 139, 0.08);
+}
+
+.ayn-survey-textarea {
+  min-height: 80px;
+  padding: 12px 14px;
+  border: 2px solid var(--color-border);
+  border-radius: 8px;
+  background-color: var(--color-surface);
+  font-family: 'Nunito', sans-serif;
+  font-size: 14px;
+  color: var(--color-text);
+  outline: none;
+  resize: vertical;
+}
+
+.ayn-survey-textarea:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 2px var(--color-primary);
+}

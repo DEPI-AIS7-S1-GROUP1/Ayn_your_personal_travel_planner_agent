@@ -5,11 +5,14 @@ repository root (see .env.example). Nothing secret is hard-coded here.
 """
 
 import os
+import sys
 from pathlib import Path
 
 from dotenv import load_dotenv
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
+if str(REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(REPO_ROOT))
 
 # override=False: a variable already set in the shell wins over .env.
 load_dotenv(REPO_ROOT / ".env", override=False)
@@ -23,6 +26,9 @@ AUTH_TOKEN_EXPIRE_MINUTES = int(os.getenv("AUTH_TOKEN_EXPIRE_MINUTES", "60"))
 
 CORS_ORIGINS = [
     origin.strip()
-    for origin in os.getenv("CORS_ORIGINS", "http://localhost:3000").split(",")
+    for origin in os.getenv("CORS_ORIGINS", "http://localhost:3000,http://localhost:5173").split(",")
     if origin.strip()
 ]
+
+# Recreate the demo accounts on every start (scripts/seed_demo.py). Off by default.
+SEED_DEMO_DATA = os.getenv("SEED_DEMO_DATA", "false").strip().lower() in ("1", "true", "yes")

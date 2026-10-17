@@ -1,82 +1,93 @@
-# Personal Travel Planner
+# Ayn — Personal Travel Planner
 
-A personal travel planner website. The user signs up and answers a short survey about who they are (hobbies, personality, food preferences, what they liked and disliked on their last trip). The system remembers this in a profile. The user then chooses a destination, dates, budget and number of travelers, and an AI agent working in the background builds a day-by-day plan personalised to that profile. It splits the budget across hotel, food, activities and transport, and suggests flight and hotel options. The user reviews the draft, edits it, confirms it, and rates it. Ratings are saved so future plans can improve.
+Ayn (أين, "where?") is a personal travel planner for trips inside Egypt. The user describes
+themselves once in a short survey, and an AI agent builds a personalised day-by-day plan with a
+budget split, which the user can edit by hand or through a chat panel, confirm and rate.
 
-The site is a normal, interactive travel site with forms, picture cards, a timeline and a budget chart. A chat refine panel lets the user describe changes to a draft plan in natural language. The AI is the engine behind the pages.
-
-**Live demo deadline: Oct 19, 2026**
-
-## Where things are
-
-| Path | What it is |
+| Folder | What it is |
 |---|---|
-| `docs/api-contract.md` | The API contract. The single source of truth for how the frontend, backend and agent talk to each other. |
-| `mock-data/` | Example JSON files that match the contract exactly, for building the frontend before the backend exists. |
+| `backend/` | FastAPI API, SQLite database, accounts — see [`backend/README.md`](backend/README.md) |
+| `agent/` | The 3-tier plan generator (CrewAI / Gemini, then Groq, then an offline mock) and the chat agent |
+| `frontend/` | React + Vite website — see [`frontend/README.md`](frontend/README.md) |
+| `docs/api-contract.md` | The data formats every part follows |
+| `DESIGN.md` | Visual rules |
 
-Mock files: `profile.json`, `trip-request.json`, `budget-split.json`, `flight-hotel-options.json`, `plan-sharm-el-sheikh.json`, `chat-refinement.json`.
+---
 
-## MVP scope
+## Run it locally
 
-This is the agreed scope. If something is not in the "Must have" list, it does not block the demo.
+One install covers the backend and the agent. Full details and checks are in
+[`backend/README.md`](backend/README.md).
 
-### Must have (MVP)
+```bash
+git clone https://github.com/DEPI-AIS7-S1-GROUP1/Personal-travel-planner-Agent.git
+cd Personal-travel-planner-Agent
+python3 -m venv .venv && source .venv/bin/activate
+pip install -r requirements.txt
+cp .env.example .env        # then set AUTH_SECRET_KEY (backend/README.md, section 4)
+cd backend && uvicorn app.main:app --reload
+```
 
-- Sign up / log in
-- Onboarding survey
-- Profile saved in database
-- Trip form
-- Budget split with chart
-- Daily itinerary from the agent
-- Mock flights and hotels
-- Draft review and edit
-- Chat-based draft plan refinement
-- Plan rating
-- Deployed website
+Open http://localhost:8000/docs. **No AI key is needed to try it:** the agent falls back to its
+offline tier and still returns a complete plan. Add your own keys to `.env` for real plans.
 
-### Should have (only if the MVP is stable by about Oct 13)
+Frontend, in a second terminal: `cd frontend && npm install && npm run dev`.
 
-- Food suggestions filtered by preferences
-- Live Tavily search for real activities
-- Past ratings improve the next plan
-- Personality-based UI theme
-- Drag-and-drop days
+---
 
-### Out of scope
+## Deploy the backend
 
-- Real booking and payments
-- Maps and routing
-- Mobile app
-- Collaborative or multi-user trips
+These settings work on any Python host (Render, Railway, Koyeb, ...):
 
-## Timeline
+| Setting | Value |
+|---|---|
+| Root directory | `backend` |
+| Build command | `pip install -r requirements.txt` |
+| Start command | `uvicorn app.main:app --host 0.0.0.0 --port $PORT` |
+| Python version | 3.13 (3.11 or newer) |
 
-| Sprint | Dates | Goal |
-|---|---|---|
-| Sprint 1 | Oct 3 - Oct 8 | Foundation and design: API contract, style guide, agent prototype, repo/database/auth skeleton, frontend scaffold |
-| Sprint 2 | Oct 9 - Oct 14 | Build and integrate: all screens connected to the real API, survey saved, budget split, draft review, rating |
-| Sprint 3 | Oct 15 - Oct 19 | Feature freeze Oct 15. Deploy by Oct 16. Test with 2-3 demo scenarios. Demo-ready by Oct 18. Live demo Oct 19. |
+Environment variables on the host (never in the repository):
 
-## Team
+| Variable | Value on the live host |
+|---|---|
+| `AUTH_SECRET_KEY` | A new value from `python -c "import secrets; print(secrets.token_hex(32))"` |
+| `AUTH_TOKEN_EXPIRE_MINUTES` | `1440`, so a login lasts the whole demo day |
+| `DATABASE_URL` | `sqlite:///./travel_planner.db`, or a hosted PostgreSQL URL |
+| `CORS_ORIGINS` | The Vercel address, e.g. `https://your-app.vercel.app` (comma-separate several) |
+| `SEED_DEMO_DATA` | `true` — free hosts can wipe SQLite on restart; this puts the demo accounts back |
+| `DEMO_USER_PASSWORD` | The password Manal's demo script uses |
+| `GEMINI_API_KEY`, `GEMINI_MODEL` | Gemini key and model |
+| `GROQ_API_KEY` (or `GROQ_API_KEY_CONTEXT` / `_SEARCH` / `_PLANNER`), `GROQ_MODEL` | Groq keys and model |
+| `TAVILY_API_KEY` | Tavily key |
 
-Manal (team leader), Roaa, Mohammed, Abdelrhman El Yamny, Abdelrhman Esma3el.
+Check it: `https://<your-backend>/api/health` must answer `"status": "ok"` and show `yes` for every
+AI provider you configured. Then sign up and log in once with a test account.
 
-## Working rules
+On Vercel, set `VITE_API_BASE_URL` to `https://<your-backend>/api` and redeploy the frontend.
 
-- Use Git with feature branches. Do not commit directly to `main`. Every change goes through a pull request reviewed by another person.
-- Never commit API keys or passwords. Keep them in a local `.env` file that is ignored by Git.
-- Follow the API contract exactly. If it needs to change, tell the team leader first, then add a line to the change log in the contract.
-- Say early if you are blocked.
-- Use only fake users and fake data in the demo. Free AI tiers may use inputs to improve models.
+---
 
-## Contract and scope sign-off
+## Run the demo from a laptop (plan B)
 
-Each member confirms they have read `docs/api-contract.md`, the mock files and this scope, and have no open questions.
+If the host is down on demo day, run the backend on a laptop and expose it with a free
+Cloudflare tunnel:
 
-| Member | Read it | No open questions | Date |
-|---|---|---|---|
-| Roaa (author) | [ ] | [ ] | |
-| Manal | [ ] | [ ] | |
-| Abdelrhman Esma3el | [ ] | [ ] | |
-| Mohammed | [ ] | [ ] | |
-| Abdelrhman El Yamny | [ ] | [ ] | |
+```bash
+./backend/scripts/run_demo_from_laptop.sh
+```
 
+It starts the backend with the demo data, waits until `/api/health` answers, and opens the tunnel.
+Needs the `.venv` above, a filled `.env` (with the Vercel address in `CORS_ORIGINS`), and
+`cloudflared` (`brew install cloudflared`).
+
+Copy the `https://....trycloudflare.com` address it prints, set `VITE_API_BASE_URL` on Vercel to
+`https://<that address>/api`, and redeploy the frontend (about a minute). The address changes every
+time the tunnel starts, so do this once, before the demo begins, and keep the laptop awake.
+
+---
+
+## Team rules
+
+- Work on a feature branch and open a pull request; a second person reviews it. Nobody commits to `main`.
+- API keys and passwords live only in your local `.env` or the host's settings. Never in the repository, documents or chat.
+- Follow [`docs/api-contract.md`](docs/api-contract.md). If it must change, tell Manal first.

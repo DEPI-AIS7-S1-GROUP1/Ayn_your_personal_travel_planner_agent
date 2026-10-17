@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Button } from '../../components/Button';
 import { ToggleSwitch } from '../../components/ToggleSwitch';
 import { FeatureArchCard } from '../../components/FeatureArchCard';
 import {
   PersonIllustration,
   CloudIllustration,
-  ArchSceneIllustration
 } from '../../components/Illustration';
 import './Home.css';
 
@@ -79,7 +79,8 @@ const HERO_SLIDES = [
   }
 ];
 
-export function Home({ onNavigate }) {
+export function Home() {
+  const navigate = useNavigate();
   const [currentSlide, setCurrentSlide] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
   const [ctaToggle, setCtaToggle] = useState(false);
@@ -95,6 +96,17 @@ export function Home({ onNavigate }) {
 
     return () => clearInterval(timer);
   }, [isPaused]);
+
+  // Handle hash scroll on mount
+  useEffect(() => {
+    if (window.location.hash) {
+      const id = window.location.hash.replace('#', '');
+      setTimeout(() => {
+        const el = document.getElementById(id);
+        if (el) el.scrollIntoView({ behavior: 'smooth' });
+      }, 100);
+    }
+  }, []);
 
   return (
     <div className="ayn-home">
@@ -127,7 +139,7 @@ export function Home({ onNavigate }) {
             </p>
             <Button
               variant="primary"
-              onClick={() => onNavigate?.('destination')}
+              onClick={() => navigate('/destination')}
             >
               Start planning
             </Button>
@@ -140,29 +152,7 @@ export function Home({ onNavigate }) {
         </div>
       </section>
 
-      {/* 2. ABOUT AYN */}
-      <section className="ayn-home__about-section" id="about">
-        <div className="ayn-home__about-container">
-          <div className="ayn-home__about-text">
-            <h2 className="ayn-home__about-title">About Ayn</h2>
-            <p className="ayn-home__about-desc">
-              Ayn (أين) means &quot;where&quot; in Arabic. It is a travel planner that learns who you are,
-              then builds a day-by-day Egypt trip around your taste and your budget.
-            </p>
-            <p className="ayn-home__about-desc">
-              You review it, change it by chatting with Ayn, and take it with you.
-            </p>
-          </div>
-
-          <div className="ayn-home__about-figures" aria-hidden="true">
-            <PersonIllustration variant="hat" />
-            <PersonIllustration variant="backpack" />
-            <PersonIllustration variant="camera" />
-          </div>
-        </div>
-      </section>
-
-      {/* 3. FEATURES (WHAT AYN DOES) */}
+      {/* 2. FEATURES (WHAT AYN DOES - 4 CARDS) */}
       <section className="ayn-home__features-section" id="features">
         <div className="ayn-home__features-container">
           <h2 className="ayn-home__features-title">What Ayn does</h2>
@@ -188,6 +178,28 @@ export function Home({ onNavigate }) {
               description="Save your plan to your phone"
               sceneType="luxor"
             />
+          </div>
+        </div>
+      </section>
+
+      {/* 3. ABOUT AYN */}
+      <section className="ayn-home__about-section" id="about">
+        <div className="ayn-home__about-container">
+          <div className="ayn-home__about-text">
+            <h2 className="ayn-home__about-title">About Ayn</h2>
+            <p className="ayn-home__about-desc">
+              Ayn (أين) means &quot;where&quot; in Arabic. It is a travel planner that learns who you are,
+              then builds a day-by-day Egypt trip around your taste and your budget.
+            </p>
+            <p className="ayn-home__about-desc">
+              You review it, change it by chatting with Ayn, and take it with you.
+            </p>
+          </div>
+
+          <div className="ayn-home__about-figures" aria-hidden="true">
+            <PersonIllustration variant="hat" />
+            <PersonIllustration variant="backpack" />
+            <PersonIllustration variant="camera" />
           </div>
         </div>
       </section>
@@ -234,7 +246,7 @@ export function Home({ onNavigate }) {
           {ctaToggle && (
             <Button
               variant="primary"
-              onClick={() => onNavigate?.('survey')}
+              onClick={() => navigate('/survey')}
             >
               Start the survey
             </Button>

@@ -1,0 +1,135 @@
+.ayn-trips-page {
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: var(--space-6) var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+}
+
+.ayn-trips-page__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.ayn-trips-page__title {
+  font-family: 'Bricolage Grotesque', sans-serif;
+  font-size: 32px;
+  font-weight: 800;
+  color: var(--color-text);
+  margin: 0;
+}
+
+.ayn-trips-page__grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-5);
+}
+
+@media (min-width: 768px) {
+  .ayn-trips-page__grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1024px) {
+  .ayn-trips-page__grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.ayn-trip-card {
+  background-color: var(--color-surface);
+  border: 2px solid var(--color-border);
+  border-radius: 20px;
+  padding: var(--space-5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  transition: border-color 150ms ease;
+  cursor: pointer;
+}
+
+.ayn-trip-card:hover {
+  border-color: var(--color-text-muted);
+}
+
+.ayn-trip-card__city {
+  font-family: 'Bricolage Grotesque', sans-serif;
+  font-size: 22px;
+  font-weight: 600;
+  color: var(--color-text);
+  margin: 0;
+}
+
+.ayn-trip-card__country {
+  font-size: 14px;
+  color: var(--color-text-muted);
+  margin: -6px 0 0 0;
+}
+
+.ayn-trip-card__meta {
+  font-size: 14px;
+  color: var(--color-text);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.ayn-trip-card__budget {
+  font-weight: 700;
+  color: var(--color-primary);
+}
+
+.ayn-trip-card__footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: auto;
+  padding-top: var(--space-2);
+  border-top: 1px solid var(--color-border);
+}
+
+.ayn-trip-card__status {
+  font-size: 13px;
+  font-weight: 600;
+  text-transform: capitalize;
+}
+
+.ayn-trip-card__status--draft {
+  color: var(--color-primary);
+}
+
+.ayn-trip-card__status--confirmed {
+  color: var(--color-green);
+}
+
+.ayn-trip-card__status--cancelled {
+  color: var(--color-error);
+}
+
+/* Empty state */
+.ayn-trips-empty {
+  text-align: center;
+  padding: var(--space-8) var(--space-4);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.ayn-trips-empty__title {
+  font-family: 'Bricolage Grotesque', sans-serif;
+  font-size: 28px;
+  font-weight: 600;
+  color: var(--color-text);
+  margin: 0;
+}
+
+.ayn-trips-empty__desc {
+  font-size: 16px;
+  color: var(--color-text-muted);
+  max-width: 400px;
+  margin: 0;
+}

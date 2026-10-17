@@ -1,20 +1,41 @@
-# Environment
+# Environment & Secrets
 .env
+.env.*
+!.env.example
+
+# Python
+.venv/
 venv/
 __pycache__/
+*/__pycache__/
 *.pyc
 *.pyo
+.pytest_cache/
+
+# Databases
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
+travel_planner.db
+
+# Node / Frontend
+node_modules/
+frontend/node_modules/
+frontend/dist/
+dist/
 
 # Output
-output/*.json
+output/*
 !output/.gitkeep
 
-# IDE
+# IDE & OS
 .idea/
 .vscode/
+Thumbs.db
+.DS_Store
 *.swp
 *.swo
 
-# OS
-Thumbs.db
-.DS_Store
+# Logs (e.g. agentops.log written by the agent's monitoring)
+*.log

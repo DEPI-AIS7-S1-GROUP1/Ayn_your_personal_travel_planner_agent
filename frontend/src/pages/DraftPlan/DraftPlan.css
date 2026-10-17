@@ -1,0 +1,145 @@
+.ayn-draft-page {
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: var(--space-6) var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+}
+
+/* Header */
+.ayn-draft-page__header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  padding-bottom: var(--space-4);
+  border-bottom: 2px solid var(--color-border);
+}
+
+.ayn-draft-page__header-info {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.ayn-draft-page__title {
+  font-family: 'Bricolage Grotesque', sans-serif;
+  font-size: 32px;
+  line-height: 38px;
+  font-weight: 800;
+  color: var(--color-text);
+  margin: 0;
+}
+
+.ayn-draft-page__meta {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  font-family: 'Nunito', sans-serif;
+  font-size: 14px;
+  color: var(--color-text-muted);
+}
+
+.ayn-draft-page__status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 600;
+  text-transform: capitalize;
+}
+
+.ayn-draft-page__status--draft {
+  color: var(--color-primary);
+}
+
+.ayn-draft-page__status--confirmed {
+  color: var(--color-green);
+}
+
+.ayn-draft-page__status--cancelled {
+  color: var(--color-error);
+}
+
+.ayn-draft-page__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+/* Main Two-column Grid */
+.ayn-draft-page__grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-6);
+  align-items: start;
+}
+
+@media (min-width: 1024px) {
+  .ayn-draft-page__grid {
+    grid-template-columns: 1.25fr 1fr;
+  }
+}
+
+/* Left Column: Itinerary Day Cards */
+.ayn-draft-page__left {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+}
+
+.ayn-draft-page__itinerary-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.ayn-draft-page__itinerary-title {
+  font-family: 'Bricolage Grotesque', sans-serif;
+  font-size: 24px;
+  font-weight: 600;
+  color: var(--color-text);
+  margin: 0;
+}
+
+.ayn-draft-page__itinerary-note {
+  font-size: 13px;
+  color: var(--color-text-muted);
+  margin: 0 0 var(--space-2) 0;
+}
+
+/* Right Column: Chat Panel + Budget Stacked Bar */
+.ayn-draft-page__right {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+  position: sticky;
+  top: 80px;
+}
+
+/* Confirmed Banner */
+.ayn-draft-page__confirmed-banner {
+  background-color: var(--color-sky);
+  border: 2px solid var(--color-primary);
+  border-radius: 20px;
+  padding: var(--space-4);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+}
+
+.ayn-draft-page__confirmed-title {
+  font-family: 'Bricolage Grotesque', sans-serif;
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--color-text);
+  margin: 0 0 4px 0;
+}
+
+.ayn-draft-page__confirmed-desc {
+  font-size: 14px;
+  color: var(--color-text-muted);
+  margin: 0;
+}

@@ -25,18 +25,25 @@ if sys.platform == "win32":
     except Exception:
         pass
 
-from crewai import Crew, Process
+try:
+    from crewai import Crew, Process
+    from agent.agents.context_agent import create_context_agent
+    from agent.agents.search_agent import create_search_agent
+    from agent.agents.planner_agent import create_planner_agent
+    from agent.tasks.context_task import create_context_task
+    from agent.tasks.search_task import create_search_task
+    from agent.tasks.planner_task import create_planner_task
+    from agent.tools.tavily_tool import reset_search_counter
+    CREWAI_AVAILABLE = True
+except ImportError:
+    Crew = None  # type: ignore
+    Process = None  # type: ignore
+    CREWAI_AVAILABLE = False
 
 from agent.schemas import FinalPlanResponse, UserProfile, TripRequest
-from agent.agents.context_agent import create_context_agent
-from agent.agents.search_agent import create_search_agent
-from agent.agents.planner_agent import create_planner_agent
-from agent.tasks.context_task import create_context_task
-from agent.tasks.search_task import create_search_task
-from agent.tasks.planner_task import create_planner_task
+from agent.fallbacks.direct_gemini import run_direct_gemini_fallback
 from agent.fallbacks.direct_groq import run_direct_groq_fallback
 from agent.fallbacks.mock_builder import build_mock_plan
-from agent.tools.tavily_tool import reset_search_counter
 from agent.validators.post_processor import post_process
 
 # ---------------------------------------------------------------------------
@@ -80,6 +87,8 @@ def save_plan(plan: FinalPlanResponse, path: Path) -> None:
 
 def run_crewai_pipeline(profile: dict, trip: dict) -> FinalPlanResponse:
     """Execute the 3-agent sequential CrewAI pipeline."""
+    if not CREWAI_AVAILABLE:
+        raise RuntimeError("CrewAI is not installed or available.")
     reset_search_counter()
     logger.info("Creating agents...")
     context_agent = create_context_agent()
@@ -131,82 +140,68 @@ def run_crewai_pipeline(profile: dict, trip: dict) -> FinalPlanResponse:
 # Orchestrator
 # ---------------------------------------------------------------------------
 
+def generate_plan_from_dict(
+    profile: dict,
+    trip: dict,
+    force_tier: int | None = None,
+) -> FinalPlanResponse:
+    """3-tier plan generation with automatic fallback from raw dictionaries."""
+    validated_profile = UserProfile.model_validate(profile)
+    validated_trip = TripRequest.model_validate(trip)
+
+    p_dict = validated_profile.model_dump()
+    t_dict = validated_trip.model_dump()
+
+    tiers = [force_tier] if force_tier else [1, 2, 3]
+
+    for tier in tiers:
+        try:
+            if tier == 1:
+                logger.info("🚀 Tier 1: Starting primary pipeline (CrewAI / Gemini)...")
+                tavily_key = os.getenv("TAVILY_API_KEY", "")
+                if CREWAI_AVAILABLE and tavily_key and not tavily_key.startswith("tvly_your"):
+                    try:
+                        plan = run_crewai_pipeline(p_dict, t_dict)
+                    except Exception as crew_err:
+                        logger.warning("CrewAI pipeline failed, trying direct Gemini: %s", crew_err)
+                        plan = run_direct_gemini_fallback(p_dict, t_dict)
+                else:
+                    plan = run_direct_gemini_fallback(p_dict, t_dict)
+            elif tier == 2:
+                logger.info("⚡ Tier 2: Direct Groq fallback...")
+                plan = run_direct_groq_fallback(p_dict, t_dict)
+            elif tier == 3:
+                logger.info("🏗️  Tier 3: Deterministic mock builder...")
+                plan = build_mock_plan(p_dict, t_dict)
+            else:
+                continue
+
+            plan = post_process(plan)
+            logger.info("✅ Tier %d succeeded", tier)
+            return plan
+
+        except Exception as exc:
+            logger.warning("⚠️  Tier %d failed: %s", tier, exc)
+            if tier == tiers[-1]:
+                logger.error("❌ All tiers exhausted. No plan generated.")
+                raise
+
+    raise RuntimeError("No tiers executed")
+
+
 def generate_plan(
     profile_path: Path = DEFAULT_PROFILE,
     trip_path: Path = DEFAULT_TRIP,
     force_tier: int | None = None,
 ) -> FinalPlanResponse:
-    """3-tier plan generation with automatic fallback.
-
-    Parameters
-    ----------
-    profile_path : Path
-        Path to the user profile JSON.
-    trip_path : Path
-        Path to the trip request JSON.
-    force_tier : int or None
-        If set, skip directly to this tier (1, 2, or 3). Useful for testing.
-    """
+    """3-tier plan generation with automatic fallback from file paths."""
     raw_profile = load_json(profile_path)
     raw_trip = load_json(trip_path)
 
-    # Strictly validate against schemas (contract §2, §3.2, §3.3)
-    # Reject unknown values in closed enums (hobbies, dietary_limits, etc.)
-    validated_profile = UserProfile.model_validate(raw_profile)
-    validated_trip = TripRequest.model_validate(raw_trip)
-
-    profile = validated_profile.model_dump()
-    trip = validated_trip.model_dump()
+    plan = generate_plan_from_dict(raw_profile, raw_trip, force_tier=force_tier)
     output_path = OUTPUT_DIR / "plan_output.json"
-
-    logger.info("=" * 60)
-    logger.info("Personal Travel Planner — Agent Pipeline")
-    logger.info("=" * 60)
-    logger.info(
-        "Destination: %s, %s | Budget: %s %s | Days: %s to %s",
-        trip["destination"]["city"],
-        trip["destination"]["country"],
-        trip["total_budget"],
-        trip.get("currency", "EGP"),
-        trip["start_date"],
-        trip["end_date"],
-    )
-
-    tiers = []
-    if force_tier:
-        tiers = [force_tier]
-    else:
-        tiers = [1, 2, 3]
-
-    for tier in tiers:
-        try:
-            if tier == 1:
-                logger.info("🚀 Tier 1: Starting CrewAI pipeline...")
-                plan = run_crewai_pipeline(profile, trip)
-            elif tier == 2:
-                logger.info("⚡ Tier 2: Direct Groq fallback...")
-                plan = run_direct_groq_fallback(profile, trip)
-            elif tier == 3:
-                logger.info("🏗️  Tier 3: Deterministic mock builder...")
-                plan = build_mock_plan(profile, trip)
-            else:
-                continue
-
-            # Post-process every output
-            plan = post_process(plan)
-            save_plan(plan, output_path)
-            logger.info("✅ Tier %d succeeded", tier)
-            return plan
-
-        except Exception as exc:
-            logger.warning("⚠️  Tier %d failed: %s", tier, exc, exc_info=True)
-            if tier == tiers[-1]:
-                # Last tier failed — this shouldn't happen with Tier 3
-                logger.error("❌ All tiers exhausted. No plan generated.")
-                raise
-
-    # Should never reach here
-    raise RuntimeError("No tiers executed")
+    save_plan(plan, output_path)
+    return plan
 
 
 # ---------------------------------------------------------------------------

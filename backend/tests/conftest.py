@@ -1,4 +1,11 @@
 import os
+import sys
+from pathlib import Path
+
+# Ensure project root is in sys.path so 'agent' and other root modules can be imported
+PROJECT_ROOT = Path(__file__).resolve().parents[2]
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
 
 # Must be set before the app is imported: config reads them at import time.
 # Test-only values; the real secret lives only in your local .env.
