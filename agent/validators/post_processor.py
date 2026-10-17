@@ -16,7 +16,7 @@ def post_process(plan: FinalPlanResponse) -> FinalPlanResponse:
 
     Repairs applied:
       1. Budget sum rounding — adjusts the largest category
-      2. Float-to-int coercion on estimated_cost
+      2. Float-to-int coercion on estimated_cost, then per-category budget caps
       3. Missing activity IDs — assigns act_NNN
       4. Final Pydantic re-validation (raises on unfixable issues)
     """
@@ -50,6 +50,21 @@ def post_process(plan: FinalPlanResponse) -> FinalPlanResponse:
                     "Coerced cost for '%s': %s → %d",
                     act["title"], old, act["estimated_cost"],
                 )
+
+    # --- 2b. Keep every category within its budget (contract §3.5) ---
+    # "For each category, the sum of estimated_cost across all activities must not exceed that
+    # category's amount in the budget split." LLM tiers often overshoot (e.g. food 320 of 250),
+    # so costs in an over-budget category are scaled down by one shared factor.
+    for category, cap in bs.items():
+        acts = [a for day in data["itinerary"] for a in day["activities"] if a["category"] == category]
+        spent = sum(a["estimated_cost"] for a in acts)
+        if spent > cap:
+            for act in acts:
+                act["estimated_cost"] = act["estimated_cost"] * cap // spent  # rounds down: never over
+            logger.warning(
+                "Scaled %s costs to fit the budget: %d → %d (cap %d)",
+                category, spent, sum(a["estimated_cost"] for a in acts), cap,
+            )
 
     # --- 3. Assign missing activity IDs ---
     id_counter = 1

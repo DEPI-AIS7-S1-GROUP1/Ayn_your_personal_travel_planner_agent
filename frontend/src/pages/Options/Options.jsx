@@ -84,7 +84,10 @@ export function Options() {
 
   const hotels = plan.options?.hotels || [];
   const destCity = plan.destination?.city || 'Egypt';
-  const transportBudget = plan.budget_split?.transport || 6000;
+  // Prices are shares of the plan's own transport budget, so they are always in the trip's currency.
+  // (Fixed minimums like 1200 were EGP amounts and showed as e.g. "USD 1,200" on a USD 1,000 trip.)
+  const transportBudget = plan.budget_split?.transport ?? Math.round((plan.total_budget || 0) * 0.15);
+  const shareOfTransport = (fraction) => Math.max(1, Math.round(transportBudget * fraction));
 
   // 1. Flights (Air)
   const flightsList = (plan.options?.flights || []).map((f) => ({
@@ -115,7 +118,7 @@ export function Options() {
         departure: `${plan.end_date || '2026-11-12'}T16:00`,
         arrival: `${plan.end_date || '2026-11-12'}T20:30`,
       },
-      price: Math.max(1200, Math.round(transportBudget * 0.45)),
+      price: shareOfTransport(0.45),
     },
     {
       id: 'tax_kareem_001',
@@ -136,7 +139,7 @@ export function Options() {
         departure: `${plan.end_date || '2026-11-12'}T17:00`,
         arrival: `${plan.end_date || '2026-11-12'}T21:30`,
       },
-      price: Math.max(1500, Math.round(transportBudget * 0.55)),
+      price: shareOfTransport(0.55),
     },
   ];
 
@@ -161,7 +164,7 @@ export function Options() {
         departure: `${plan.end_date || '2026-11-12'}T15:30`,
         arrival: `${plan.end_date || '2026-11-12'}T20:30`,
       },
-      price: Math.max(700, Math.round(transportBudget * 0.28)),
+      price: shareOfTransport(0.28),
     },
     {
       id: 'bus_gobus_001',
@@ -182,7 +185,7 @@ export function Options() {
         departure: `${plan.end_date || '2026-11-12'}T18:00`,
         arrival: `${plan.end_date || '2026-11-12'}T23:30`,
       },
-      price: Math.max(900, Math.round(transportBudget * 0.35)),
+      price: shareOfTransport(0.35),
     },
   ];
 
@@ -218,6 +221,7 @@ export function Options() {
               details={hotel.details}
               totalPrice={hotel.total_price}
               pricePerNight={hotel.price_per_night}
+              currency={plan.currency}
               selected={selectedHotelId === hotel.id}
               onClick={() => setSelectedHotelId(hotel.id)}
             />

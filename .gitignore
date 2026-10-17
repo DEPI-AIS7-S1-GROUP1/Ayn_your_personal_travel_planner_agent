@@ -36,3 +36,6 @@ Thumbs.db
 .DS_Store
 *.swp
 *.swo
+
+# Logs (e.g. agentops.log written by the agent's monitoring)
+*.log
