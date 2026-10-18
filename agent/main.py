@@ -11,6 +11,7 @@ import sys
 import json
 import logging
 import argparse
+import concurrent.futures
 from pathlib import Path
 from datetime import date
 
@@ -137,8 +138,22 @@ def run_crewai_pipeline(profile: dict, trip: dict) -> FinalPlanResponse:
 
 
 # ---------------------------------------------------------------------------
-# Orchestrator
+# Orchestrator & Timeout Management
 # ---------------------------------------------------------------------------
+
+GLOBAL_TIMEOUT_S = int(os.getenv("AGENT_GLOBAL_TIMEOUT_S", "40"))
+
+
+def _run_tier_with_timeout(fn, *args, timeout_s: int | None = None):
+    """Run fn(*args) in a worker thread; raise TimeoutError if it exceeds timeout_s."""
+    timeout = timeout_s if timeout_s is not None else GLOBAL_TIMEOUT_S
+    with concurrent.futures.ThreadPoolExecutor(max_workers=1) as ex:
+        future = ex.submit(fn, *args)
+        try:
+            return future.result(timeout=timeout)
+        except concurrent.futures.TimeoutError:
+            raise TimeoutError(f"Tier execution exceeded {timeout}s deadline")
+
 
 def generate_plan_from_dict(
     profile: dict,
@@ -151,6 +166,9 @@ def generate_plan_from_dict(
 
     p_dict = validated_profile.model_dump()
     t_dict = validated_trip.model_dump()
+    # language is an optional generation hint, not part of the public trip contract
+    if trip.get("language"):
+        t_dict["language"] = trip["language"]
 
     tiers = [force_tier] if force_tier else [1, 2, 3]
 
@@ -161,23 +179,41 @@ def generate_plan_from_dict(
                 tavily_key = os.getenv("TAVILY_API_KEY", "")
                 if CREWAI_AVAILABLE and tavily_key and not tavily_key.startswith("tvly_your"):
                     try:
-                        plan = run_crewai_pipeline(p_dict, t_dict)
+                        plan = _run_tier_with_timeout(
+                            run_crewai_pipeline, p_dict, t_dict, timeout_s=GLOBAL_TIMEOUT_S
+                        )
+                        tier_name = "crewai"
                     except Exception as crew_err:
-                        logger.warning("CrewAI pipeline failed, trying direct Gemini: %s", crew_err)
-                        plan = run_direct_gemini_fallback(p_dict, t_dict)
+                        logger.warning(
+                            "CrewAI pipeline failed or timed out (%s), trying direct Gemini: %s",
+                            type(crew_err).__name__,
+                            crew_err,
+                        )
+                        plan = _run_tier_with_timeout(
+                            run_direct_gemini_fallback, p_dict, t_dict, timeout_s=20
+                        )
+                        tier_name = "gemini"
                 else:
-                    plan = run_direct_gemini_fallback(p_dict, t_dict)
+                    plan = _run_tier_with_timeout(
+                        run_direct_gemini_fallback, p_dict, t_dict, timeout_s=20
+                    )
+                    tier_name = "gemini"
             elif tier == 2:
                 logger.info("⚡ Tier 2: Direct Groq fallback...")
-                plan = run_direct_groq_fallback(p_dict, t_dict)
+                plan = _run_tier_with_timeout(
+                    run_direct_groq_fallback, p_dict, t_dict, timeout_s=30
+                )
+                tier_name = "groq"
             elif tier == 3:
                 logger.info("🏗️  Tier 3: Deterministic mock builder...")
                 plan = build_mock_plan(p_dict, t_dict)
+                tier_name = "mock"
             else:
                 continue
 
-            plan = post_process(plan)
-            logger.info("✅ Tier %d succeeded", tier)
+            plan = post_process(plan, profile=p_dict)
+            plan.search_context = tier_name
+            logger.info("✅ Tier %d succeeded (%s)", tier, tier_name)
             return plan
 
         except Exception as exc:

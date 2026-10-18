@@ -27,7 +27,7 @@ def create_search_agent() -> Agent:
             "You are strictly budget-conscious and token-efficient — you execute "
             "only 2 to 3 focused queries and never make redundant search calls."
         ),
-        llm=get_groq_llm(temperature=0.3),
+        llm=get_groq_llm(temperature=0.3, agent_name="search"),
         tools=[search_destination],
         max_iter=3,
         verbose=True,
