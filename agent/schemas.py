@@ -187,6 +187,7 @@ class FinalPlanResponse(BaseModel):
     options: Options = Options()
     selected_flight_id: Optional[str] = None
     selected_hotel_id: Optional[str] = None
+    search_context: Optional[str] = None
     created_at: str = Field(default_factory=lambda: date.today().isoformat())
     updated_at: str = Field(default_factory=lambda: date.today().isoformat())
 
