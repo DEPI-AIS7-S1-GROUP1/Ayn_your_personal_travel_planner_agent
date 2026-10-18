@@ -2,23 +2,26 @@
 
 Runs on EVERY plan output regardless of which tier produced it.
 Fixes budget rounding, ensures integer costs, assigns missing IDs,
-and validates the final result against FinalPlanResponse.
+strips food-dislike mentions, and validates the final result against
+FinalPlanResponse.
 """
 
 import logging
+from agent.arabic import normalize_arabic
 from agent.schemas import FinalPlanResponse
 
 logger = logging.getLogger(__name__)
 
 
-def post_process(plan: FinalPlanResponse) -> FinalPlanResponse:
+def post_process(plan: FinalPlanResponse, profile: dict | None = None) -> FinalPlanResponse:
     """Auto-repair and validate a plan. Returns the cleaned plan.
 
     Repairs applied:
       1. Budget sum rounding — adjusts the largest category
       2. Float-to-int coercion on estimated_cost
       3. Missing activity IDs — assigns act_NNN
-      4. Final Pydantic re-validation (raises on unfixable issues)
+      4. Food-dislike mentions — replace violating food items (Arabic-normalized)
+      5. Final Pydantic re-validation (raises on unfixable issues)
     """
     data = plan.model_dump(by_alias=True)
 
@@ -68,7 +71,25 @@ def post_process(plan: FinalPlanResponse) -> FinalPlanResponse:
                 existing_ids.add(act["id"])
                 id_counter += 1
 
-    # --- 4. Final validation (raises on unfixable issues) ---
+    # --- 4. Strip food-dislike mentions (Arabic-normalized) ---
+    if profile:
+        dislikes = [
+            normalize_arabic(d)
+            for d in (profile.get("food_dislikes") or [])
+            if d and len(normalize_arabic(d)) >= 3
+        ]
+        for day in data["itinerary"]:
+            for act in day["activities"]:
+                if act.get("category") != "food":
+                    continue
+                blob = normalize_arabic(f"{act.get('title', '')} {act.get('description', '')}")
+                if any(d in blob for d in dislikes):
+                    old_title = act.get("title")
+                    act["title"] = "Local meal that respects dietary preferences"
+                    act["description"] = "A restaurant option chosen to avoid listed food dislikes."
+                    logger.warning("Replaced dislike-violating meal: %s", old_title)
+
+    # --- 5. Final validation (raises on unfixable issues) ---
     repaired_plan = FinalPlanResponse.model_validate(data)
     logger.info("Post-processing complete — plan is valid")
     return repaired_plan

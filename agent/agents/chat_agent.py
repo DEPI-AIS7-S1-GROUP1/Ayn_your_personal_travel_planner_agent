@@ -27,6 +27,8 @@ import re
 from datetime import datetime
 from typing import Any
 
+from agent.arabic import normalize_arabic, regex_search
+
 logger = logging.getLogger(__name__)
 
 SUPPORTED_CURRENCIES = (
@@ -38,30 +40,49 @@ SUPPORTED_CURRENCIES = (
 DIETARY_FORBIDDEN_PATTERNS = {
     "halal": [
         r"\bpork\b", r"\bbacon\b", r"\bham\b", r"\blard\b",
-        r"\bwine\b", r"(?<!non-)\balcohol(?:ic)?\b", r"\bbeer\b", r"\bcocktail\b", r"\bliquor\b"
+        r"\bwine\b", r"(?<!non-)\balcohol(?:ic)?\b", r"\bbeer\b", r"\bcocktail\b", r"\bliquor\b",
+        # Arabic equivalents
+        r"(?:لحم\s+)?(?:ال)?خنزير", r"(?:ال)?بيكون", r"(?:ال)?خمر", r"(?:ال)?نبيذ",
+        r"(?:ال)?كحول", r"(?:ال)?بيرة",
     ],
     "vegetarian": [
         r"\bmeat\b", r"\bbeef\b", r"\bchicken\b", r"\bpork\b", r"\blamb\b",
-        r"\bduck\b", r"\bseafood\b", r"\bfish\b", r"\bshrimp\b", r"\bsalmon\b", r"\btuna\b"
+        r"\bduck\b", r"\bseafood\b", r"\bfish\b", r"\bshrimp\b", r"\bsalmon\b", r"\btuna\b",
+        # Arabic equivalents
+        r"(?:ال)?لحم(?:ة|ات|وم)?", r"(?:ال)?دجاج", r"(?:ال)?فراخ", r"(?:ال)?سمك",
+        r"(?:ال)?أسماك", r"(?:ال)?جمبري", r"(?:ال)?روبيان", r"(?:ال)?تونا", r"(?:ال)?سلمون",
     ],
     "vegan": [
         r"\bmeat\b", r"\bbeef\b", r"\bchicken\b", r"\bpork\b", r"\blamb\b", r"\bfish\b",
         r"\bdairy\b", r"\bcheese\b", r"\bmilk\b", r"\bbutter\b",
         # eggs but never eggplant / egg-plant
         r"\beggs?\b(?![\s-]?plant)",
-        r"\bhoney\b"
+        r"\bhoney\b",
+        # Arabic equivalents
+        r"(?:ال)?لحم(?:ة|ات|وم)?", r"(?:ال)?دجاج", r"(?:ال)?فراخ", r"(?:ال)?سمك",
+        r"(?:ال)?ألبان", r"(?:ال)?حليب", r"(?:ال)?لبن", r"(?:ال)?جبن(?:ة)?",
+        r"(?:ال)?زبدة", r"(?:ال)?بيض", r"(?:ال)?عسل",
     ],
     "gluten-free": [
-        r"\bwheat\b", r"\bgluten\b", r"\bbarley\b", r"\brye\b", r"\bbread\b", r"\bpasta\b"
+        r"\bwheat\b", r"\bgluten\b", r"\bbarley\b", r"\brye\b", r"\bbread\b", r"\bpasta\b",
+        # Arabic equivalents
+        r"(?:ال)?قمح", r"(?:ال)?غلوتين", r"(?:ال)?جلوتين", r"(?:ال)?شعير",
+        r"(?:ال)?خبز", r"(?:ال)?مكرونة", r"(?:ال)?معكرونة",
     ],
     "dairy-free": [
-        r"\bmilk\b", r"\bcheese\b", r"\bbutter\b", r"\bcream\b", r"\byogurt\b", r"\bdairy\b"
+        r"\bmilk\b", r"\bcheese\b", r"\bbutter\b", r"\bcream\b", r"\byogurt\b", r"\bdairy\b",
+        # Arabic equivalents
+        r"(?:ال)?حليب", r"(?:ال)?لبن", r"(?:ال)?جبن(?:ة)?", r"(?:ال)?زبدة",
+        r"(?:ال)?قشطة", r"(?:ال)?كريمة", r"(?:ال)?زبادي", r"(?:ال)?ألبان",
     ],
     "nut-free": [
         # Match standalone nut/nuts, peanut, almond, etc. Never match 'minutes'
         r"\bpeanuts?\b", r"\balmonds?\b", r"\bwalnuts?\b", r"\bhazelnuts?\b",
         r"\bcashews?\b", r"\bpistachios?\b", r"\btree[\s-]nuts?\b",
-        r"\bnuts?\b"
+        r"\bnuts?\b",
+        # Arabic equivalents
+        r"(?:ال)?مكسرات", r"(?:ال)?فول\s+سوداني", r"(?:ال)?سوداني", r"(?:ال)?لوز",
+        r"(?:ال)?جوز", r"عين\s+جمل", r"(?:ال)?بندق", r"(?:ال)?كاجو", r"(?:ال)?فستق",
     ],
 }
 
@@ -74,43 +95,57 @@ def check_immutable_fields_guard(message: str) -> tuple[bool, str]:
     """Guard: Currency, destination or travelers cannot change in existing plans."""
     msg_lower = message.lower()
 
-    # Destination change attempts
+    # Destination change attempts (English & Arabic)
     dest_patterns = [
         r"\b(?:change|switch|move|update)\s+(?:the\s+)?(?:destination|city|country|location|place)\b",
         r"\b(?:go|travel|fly|head)\s+to\s+([a-zA-Z\s]+)\s+instead\b",
         r"\bvisit\s+([a-zA-Z\s]+)\s+instead\b",
         r"\bchange\s+to\s+(?:cairo|alexandria|luxor|aswan|hurghada|dahab|giza)\b",
+        # Arabic destination change
+        r"(?:غير|بدل|تغيير|تبديل)\s+(?:ال)?وجهة",
+        r"(?:غير|بدل|تغيير|تبديل)\s+(?:ال)?مدينة",
+        r"(?:غير|بدل|تغيير|تبديل)\s+(?:ال)?مكان",
+        r"(?:روح|سافر|اذهب|انتقل|غير|بدل)\s+(?:إلى|الي|لـ)\s+(?:الإسكندرية|القاهرة|الأقصر|اسوان|أسوان|شرم\s+الشيخ|الغردقة|دهب)",
     ]
     for pat in dest_patterns:
-        if re.search(pat, msg_lower):
+        if regex_search(pat, msg_lower):
             return True, (
                 "Destination cannot be changed for an existing plan because the contract "
                 "specifies destination is fixed at creation. You can create a new trip to explore another city, "
                 "or let me know what activities or budget you'd like to adjust for this trip."
             )
 
-    # Travelers change attempts
+    # Travelers change attempts (English & Arabic)
     traveler_patterns = [
         r"\b(?:change|update|switch)\s+(?:the\s+)?(?:number\s+of\s+)?(?:travelers|travellers|people|guests|persons)\b",
         r"\b(?:add|remove|bring)\s+(?:another|one|2|3|4|\d+)\s+(?:traveler|traveller|person|people|friend)\b",
         r"\bwe\s+are\s+now\s+\d+\s+(?:people|travelers|travellers)\b",
         r"\bfor\s+\d+\s+(?:travelers|travellers|people)\b",
+        # Arabic travelers change
+        r"(?:غير|بدل|تعديل|تغيير)\s+(?:عدد\s+)?(?:ال)?مسافرين",
+        r"(?:غير|بدل|تعديل|تغيير)\s+(?:عدد\s+)?(?:الأشخاص|الناس|الأفراد|الضيوف)",
+        r"(?:أضف|زد|نقص|قلل|احذف|شيل)\s+(?:مسافر|شخص|واحد)",
+        r"(?:إحنا|نحن|بقينا|صرنا)\s+\d+\s+(?:مسافرين|أشخاص|أفراد|ناس)",
+        r"لـ?\s*\d+\s+(?:مسافرين|أشخاص|أفراد)",
     ]
     for pat in traveler_patterns:
-        if re.search(pat, msg_lower):
+        if regex_search(pat, msg_lower):
             return True, (
                 "The number of travelers cannot be changed for an existing plan because "
                 "flight and hotel bookings depend on traveler count. Please start a new trip if you have a different party size."
             )
 
-    # Standalone currency change attempts
+    # Standalone currency change attempts (English & Arabic)
     currency_patterns = [
         r"\b(?:change|switch|convert|update)\s+(?:the\s+)?currency\b",
         r"\bswitch\s+(?:the\s+currency\s+)?to\s+(?:usd|eur|gbp|sar|aed|egp|inr|jpy)\b",
         r"\buse\s+(?:usd|eur|gbp|sar|aed|egp|inr|jpy)\s+instead\b",
+        # Arabic currency change
+        r"(?:غير|بدل|تغيير|تبديل)\s+(?:ال)?عملة",
+        r"(?:استخدم|حول\s+إلى|حول\s+الي|خليها\s+بـ)\s+(?:دولار|يورو|جنيه|ريال|درهم)",
     ]
     for pat in currency_patterns:
-        if re.search(pat, msg_lower) and not re.search(r"\b\d+[\d,]*\s*(?:egp|usd|eur|gbp|sar|aed)\b", msg_lower):
+        if regex_search(pat, msg_lower) and not regex_search(r"\b\d+[\d,]*\s*(?:egp|usd|eur|gbp|sar|aed)\b", msg_lower):
             return True, (
                 "Currency cannot be changed for an existing plan. All budgets and activity costs "
                 "are fixed to the plan's original currency."
@@ -128,10 +163,11 @@ def check_budget_change_guard(message: str, current_currency: str) -> tuple[bool
     msg_lower = message.lower()
 
     # Search for amount and currency in message
-    curr_regex = r"(?:" + "|".join([c.lower() for c in SUPPORTED_CURRENCIES]) + r"|le|pounds|egp)"
-    match = re.search(rf"(\d[\d,\.]*)\s*({curr_regex})\b", msg_lower, re.IGNORECASE)
+    arabic_curr_regex = r"(?:جنيه|ج\.م|جم|دولار|يورو|ريال|درهم)"
+    curr_regex = r"(?:" + "|".join([c.lower() for c in SUPPORTED_CURRENCIES]) + rf"|le|pounds|egp|{arabic_curr_regex})"
+    match = regex_search(rf"(\d[\d,\.]*)\s*({curr_regex})\b", msg_lower, re.IGNORECASE)
     if not match:
-        match = re.search(rf"({curr_regex})\s*(\d[\d,\.]*)\b", msg_lower, re.IGNORECASE)
+        match = regex_search(rf"({curr_regex})\s*(\d[\d,\.]*)\b", msg_lower, re.IGNORECASE)
         if match:
             c_str, a_str = match.group(1), match.group(2)
         else:
@@ -141,16 +177,30 @@ def check_budget_change_guard(message: str, current_currency: str) -> tuple[bool
 
     amount = None
     currency = None
+    arabic_map = {
+        "جنيه": "EGP", "ج.م": "EGP", "جم": "EGP",
+        "دولار": "USD", "يورو": "EUR", "ريال": "SAR", "درهم": "AED"
+    }
     if a_str and c_str:
         try:
             cleaned_num = int(float(a_str.replace(",", "")))
             c_norm = c_str.upper()
             if c_norm in ("LE", "POUNDS"):
                 c_norm = "EGP"
+            elif c_str in arabic_map:
+                c_norm = arabic_map[c_str]
             amount = cleaned_num
             currency = c_norm
         except ValueError:
             amount = None
+    elif not match:
+        # Check if amount is specified standalone with budget intent
+        num_match = regex_search(r"\b(\d[\d,\.]*)\b", msg_lower)
+        if num_match:
+            try:
+                amount = int(float(num_match.group(1).replace(",", "")))
+            except ValueError:
+                amount = None
 
     # Exclude activity-level or descriptive phrases that mention cost/price/budget
     activity_level_patterns = [
@@ -162,8 +212,12 @@ def check_budget_change_guard(message: str, current_currency: str) -> tuple[bool
         r"\bhotel\s+price\b",
         r"\bbudget\s+(?:hotel|inn|hostel|restaurant|meal|airline|flight|option|activity|room|resort)\b",
         r"\bcheaper\s+(?:hotel|inn|hostel|restaurant|meal|airline|flight|option|activity|room|resort)\b",
+        # Arabic activity-level patterns
+        r"نشاط\s+(?:رخيص|اقتصادي)",
+        r"(?:فندق|مطعم|وجبة|طيران)\s+(?:رخيص|اقتصادي)",
+        r"سعر\s+(?:الفندق|التذكرة|النشاط)",
     ]
-    is_activity_level = any(re.search(p, msg_lower) for p in activity_level_patterns)
+    is_activity_level = any(regex_search(p, msg_lower) for p in activity_level_patterns)
 
     # Explicit overall trip budget change patterns
     overall_budget_patterns = [
@@ -173,8 +227,11 @@ def check_budget_change_guard(message: str, current_currency: str) -> tuple[bool
         r"\b(?:make|have)\s+(?:the\s+trip\s+|it\s+)?(?:cheaper|more\s+expensive)\b",
         r"\bspend\s+(?:more|less)\s+(?:money\s+)?(?:in\s+total|overall|for\s+the\s+trip)\b",
         r"\bset\s+(?:the\s+budget\s+|it\s+)?to\s+\d+",
+        # Arabic budget change patterns
+        r"(?:غير|بدل|تغيير|تبديل|عدل|تعديل|خلي|اجعل|ضع|زود|ارفع|قلل|خفض)\s+(?:ال)?ميزانية",
+        r"(?:ال)?ميزانية\s+(?:الجديدة|عالية|كبيرة|قليلة|صغيرة)",
     ]
-    has_overall_budget_intent = any(re.search(p, msg_lower) for p in overall_budget_patterns)
+    has_overall_budget_intent = any(regex_search(p, msg_lower) for p in overall_budget_patterns)
 
     # If it is purely an activity-level mention and NOT an overall budget command
     if is_activity_level and not has_overall_budget_intent and amount is None:
@@ -195,7 +252,7 @@ def check_budget_change_guard(message: str, current_currency: str) -> tuple[bool
     # Direct budget statement like "75000 EGP" or "Set it to 75000 EGP"
     if amount is not None and currency is not None:
         # Check if message is a budget set command
-        if re.search(r"\b(?:set|budget|it\s+to|change)\b", msg_lower) or len(msg_lower.split()) <= 4:
+        if regex_search(r"\b(?:set|budget|it\s+to|change|ميزانية|خلي|اجعل)\b", msg_lower) or len(msg_lower.split()) <= 4:
             if currency != current_currency:
                 return True, (
                     f"The plan's currency is {current_currency} and cannot be changed. "
@@ -216,16 +273,19 @@ def check_dietary_limits_guard(message: str, profile: dict) -> tuple[bool, str]:
     limits = profile.get("dietary_limits", []) or []
     dislikes = profile.get("food_dislikes", []) or []
 
-    avoid_words = ["avoid", "no", "remove", "replace", "don't like", "dont like", "hate", "without", "free", "allerg"]
+    avoid_words = [
+        "avoid", "no", "remove", "replace", "don't like", "dont like", "hate", "without", "free", "allerg",
+        "تجنب", "بدون", "من غير", "بلاش", "لا تضع", "احذف", "استبدل", "لا أحب", "حساسية"
+    ]
 
     # Check dietary limit patterns
     for limit in limits:
         patterns = DIETARY_FORBIDDEN_PATTERNS.get(limit, [])
         for pat in patterns:
-            match = re.search(pat, msg_lower)
+            match = regex_search(pat, msg_lower)
             if match:
                 matched_word = match.group(0)
-                is_avoiding = any(re.search(rf"{aw}.*{re.escape(matched_word)}", msg_lower) for aw in avoid_words)
+                is_avoiding = any(regex_search(rf"{aw}.*{re.escape(matched_word)}", msg_lower) for aw in avoid_words)
                 if not is_avoiding:
                     return True, (
                         f"Your profile specifies a {limit} diet, which excludes '{matched_word}'. "
@@ -234,12 +294,12 @@ def check_dietary_limits_guard(message: str, profile: dict) -> tuple[bool, str]:
 
     # Check food dislikes
     for dislike in dislikes:
-        d_lower = dislike.lower().strip()
+        d_lower = normalize_arabic(dislike.strip())
         if not d_lower:
             continue
-        # Use word boundaries for exact dislike match
-        if re.search(rf"\b{re.escape(d_lower)}\b", msg_lower):
-            is_avoiding = any(re.search(rf"{aw}.*{re.escape(d_lower)}", msg_lower) for aw in avoid_words)
+        # Use word boundaries for exact dislike match (Arabic-normalized)
+        if regex_search(rf"\b{re.escape(d_lower)}\b", msg_lower):
+            is_avoiding = any(regex_search(rf"{aw}.*{re.escape(d_lower)}", msg_lower) for aw in avoid_words)
             if not is_avoiding:
                 return True, (
                     f"Your profile lists '{dislike}' in your dislikes. "
@@ -253,7 +313,7 @@ def sanitize_plan_dietary(plan: dict, profile: dict) -> list[dict]:
     """Verify that food activities never violate dietary limits or dislikes."""
     changes = []
     limits = profile.get("dietary_limits", []) or []
-    dislikes = [d.lower().strip() for d in (profile.get("food_dislikes", []) or []) if d.strip()]
+    dislikes = [normalize_arabic(d.strip()) for d in (profile.get("food_dislikes", []) or []) if d.strip()]
 
     all_patterns = []
     for l in limits:
@@ -265,9 +325,9 @@ def sanitize_plan_dietary(plan: dict, profile: dict) -> list[dict]:
         for act in day.get("activities", []):
             if act.get("category") != "food":
                 continue
-            text = (act.get("title", "") + " " + act.get("description", "")).lower()
+            text = act.get("title", "") + " " + act.get("description", "")
             for pat in all_patterns:
-                if re.search(pat, text):
+                if regex_search(pat, text):
                     old_title = act.get("title")
                     act["title"] = "Authentic Vegetarian Egyptian Meal"
                     act["description"] = "Fresh falafel, hummus, tahini, warm baladi bread, and seasonal salad."
@@ -560,7 +620,6 @@ def _call_gemini(system_prompt: str, user_content: str) -> dict[str, Any] | None
 
         http_options = types.HttpOptions(
             timeout=15000,
-            retry_options=types.HttpRetryOptions(attempts=1),
         )
         client = genai.Client(api_key=api_key, http_options=http_options)
 

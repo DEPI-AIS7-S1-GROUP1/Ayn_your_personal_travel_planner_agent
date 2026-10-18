@@ -10,6 +10,7 @@ import logging
 from datetime import date
 
 from groq import Groq
+from agent.arabic import arabic_language_rule_block
 from agent.schemas import FinalPlanResponse
 
 logger = logging.getLogger(__name__)
@@ -58,7 +59,8 @@ def run_direct_groq_fallback(
         f"8. category: hotel, food, activities, or transport\n"
         f"9. Include 2 flight options and 2-3 hotel options\n"
         f"10. All prices are total for the whole group\n"
-        f"11. created_at and updated_at: {date.today().isoformat()}\n\n"
+        f"11. created_at and updated_at: {date.today().isoformat()}\n"
+        f"{arabic_language_rule_block(trip)}\n"
         f"User Profile: {json.dumps(profile)}\n"
         f"Trip Request: {json.dumps(trip)}"
     )

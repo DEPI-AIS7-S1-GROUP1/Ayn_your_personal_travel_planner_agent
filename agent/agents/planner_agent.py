@@ -25,7 +25,7 @@ def create_planner_agent() -> Agent:
             "that budget splits sum correctly to the exact budget, and keep activity "
             "descriptions sharp and informative."
         ),
-        llm=get_groq_llm(temperature=0.2),
+        llm=get_groq_llm(temperature=0.2, agent_name="planner"),
         verbose=True,
         allow_delegation=False,
     )

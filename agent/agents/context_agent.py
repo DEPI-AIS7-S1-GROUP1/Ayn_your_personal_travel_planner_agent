@@ -23,7 +23,7 @@ def create_context_agent() -> Agent:
             "things the user explicitly dislikes. You are efficient and "
             "produce minimal, structured output."
         ),
-        llm=get_groq_llm(temperature=0.2),
+        llm=get_groq_llm(temperature=0.2, agent_name="context"),
         verbose=True,
         allow_delegation=False,
     )
