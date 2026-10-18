@@ -8,6 +8,7 @@ returns something usable.
 import logging
 from datetime import date, timedelta
 
+from agent.arabic import trip_language
 from agent.schemas import (
     BudgetSplit,
     ActivityItem,
@@ -38,6 +39,10 @@ def build_mock_plan(profile: dict, trip: dict) -> FinalPlanResponse:
     country = trip["destination"]["country"]
     travelers = trip["travelers"]
     today = date.today().isoformat()
+    lang = trip_language(trip)
+
+    def loc(en: str, ar: str) -> str:
+        return ar if lang == "ar" else en
 
     # --- Budget split (remainder goes to transport) ---
     hotel = int(budget * 0.40)
@@ -57,6 +62,7 @@ def build_mock_plan(profile: dict, trip: dict) -> FinalPlanResponse:
     # --- Build itinerary ---
     itinerary = []
     act_counter = 1
+    is_calm = "calm" in profile.get("personality", [])
 
     for day_num in range(1, num_days + 1):
         current_date = (start + timedelta(days=day_num - 1)).isoformat()
@@ -66,8 +72,11 @@ def build_mock_plan(profile: dict, trip: dict) -> FinalPlanResponse:
         if day_num == 1:
             day_activities.append(ActivityItem(
                 id=f"act_{act_counter:03d}",
-                title=f"Airport transfer to the hotel",
-                description=f"Private car from {city} airport to the hotel.",
+                title=loc("Airport transfer to the hotel", "انتقال من المطار إلى الفندق"),
+                description=loc(
+                    f"Private car from {city} airport to the hotel.",
+                    f"سيارة خاصة من مطار {city} إلى الفندق.",
+                ),
                 time_slot="morning",
                 estimated_cost=transport_per_day // 2,
                 category="transport",
@@ -76,8 +85,11 @@ def build_mock_plan(profile: dict, trip: dict) -> FinalPlanResponse:
 
             day_activities.append(ActivityItem(
                 id=f"act_{act_counter:03d}",
-                title="Hotel check-in",
-                description="Drop the bags, freshen up and settle in.",
+                title=loc("Hotel check-in", "تسجيل الوصول إلى الفندق"),
+                description=loc(
+                    "Drop the bags, freshen up and settle in.",
+                    "اترك الأمتعة واسترح واستقر في الغرفة.",
+                ),
                 time_slot="afternoon",
                 estimated_cost=0,
                 category="hotel",
@@ -86,8 +98,11 @@ def build_mock_plan(profile: dict, trip: dict) -> FinalPlanResponse:
 
             day_activities.append(ActivityItem(
                 id=f"act_{act_counter:03d}",
-                title=f"Lunch in {city}",
-                description=f"A welcoming first meal at a local restaurant in {city}.",
+                title=loc(f"Lunch in {city}", f"غداء في {city}"),
+                description=loc(
+                    f"A welcoming first meal at a local restaurant in {city}.",
+                    f"وجبة ترحيب أولى في مطعم محلي في {city}.",
+                ),
                 time_slot="afternoon",
                 estimated_cost=food_per_day // 2,
                 category="food",
@@ -96,8 +111,11 @@ def build_mock_plan(profile: dict, trip: dict) -> FinalPlanResponse:
 
             day_activities.append(ActivityItem(
                 id=f"act_{act_counter:03d}",
-                title=f"Evening walk in {city}",
-                description=f"An easy evening stroll to explore the area.",
+                title=loc(f"Evening walk in {city}", f"تمشية مسائية في {city}"),
+                description=loc(
+                    "An easy evening stroll to explore the area.",
+                    "تمشية مسائية هادئة لاستكشاف المنطقة.",
+                ),
                 time_slot="evening",
                 estimated_cost=0,
                 category="activities",
@@ -108,8 +126,11 @@ def build_mock_plan(profile: dict, trip: dict) -> FinalPlanResponse:
         elif day_num == num_days:
             day_activities.append(ActivityItem(
                 id=f"act_{act_counter:03d}",
-                title=f"Morning sightseeing in {city}",
-                description=f"A last morning exploring highlights of {city}.",
+                title=loc(f"Morning sightseeing in {city}", f"جولة صباحية في {city}"),
+                description=loc(
+                    f"A last morning exploring highlights of {city}.",
+                    f"صباح أخير لاستكشاف أبرز معالم {city}.",
+                ),
                 time_slot="morning",
                 estimated_cost=activities_per_day // 2,
                 category="activities",
@@ -118,8 +139,11 @@ def build_mock_plan(profile: dict, trip: dict) -> FinalPlanResponse:
 
             day_activities.append(ActivityItem(
                 id=f"act_{act_counter:03d}",
-                title="Hotel check-out",
-                description="Leave bags with reception until departure.",
+                title=loc("Hotel check-out", "تسجيل المغادرة من الفندق"),
+                description=loc(
+                    "Leave bags with reception until departure.",
+                    "اترك الأمتعة عند الاستقبال حتى موعد المغادرة.",
+                ),
                 time_slot="morning",
                 estimated_cost=0,
                 category="hotel",
@@ -128,8 +152,11 @@ def build_mock_plan(profile: dict, trip: dict) -> FinalPlanResponse:
 
             day_activities.append(ActivityItem(
                 id=f"act_{act_counter:03d}",
-                title=f"Farewell lunch in {city}",
-                description=f"A last relaxed meal before heading home.",
+                title=loc(f"Farewell lunch in {city}", f"غداء الوداع في {city}"),
+                description=loc(
+                    "A last relaxed meal before heading home.",
+                    "وجبة هادئة أخيرة قبل العودة إلى المنزل.",
+                ),
                 time_slot="afternoon",
                 estimated_cost=food_per_day // 2,
                 category="food",
@@ -138,8 +165,11 @@ def build_mock_plan(profile: dict, trip: dict) -> FinalPlanResponse:
 
             day_activities.append(ActivityItem(
                 id=f"act_{act_counter:03d}",
-                title="Transfer to the airport",
-                description=f"Private car from the hotel to {city} airport.",
+                title=loc("Transfer to the airport", "الانتقال إلى المطار"),
+                description=loc(
+                    f"Private car from the hotel to {city} airport.",
+                    f"سيارة خاصة من الفندق إلى مطار {city}.",
+                ),
                 time_slot="afternoon",
                 estimated_cost=transport_per_day // 2,
                 category="transport",
@@ -150,8 +180,11 @@ def build_mock_plan(profile: dict, trip: dict) -> FinalPlanResponse:
         else:
             day_activities.append(ActivityItem(
                 id=f"act_{act_counter:03d}",
-                title=f"Morning activity in {city}",
-                description=f"Explore a top-rated attraction in {city}.",
+                title=loc(f"Morning activity in {city}", f"نشاط صباحي في {city}"),
+                description=loc(
+                    f"Explore a top-rated attraction in {city}.",
+                    f"استكشف أحد أبرز المعالم في {city}.",
+                ),
                 time_slot="morning",
                 estimated_cost=activities_per_day // 2,
                 category="activities",
@@ -160,33 +193,43 @@ def build_mock_plan(profile: dict, trip: dict) -> FinalPlanResponse:
 
             day_activities.append(ActivityItem(
                 id=f"act_{act_counter:03d}",
-                title=f"Lunch in {city}",
-                description=f"A mid-day meal at a popular local spot.",
+                title=loc(f"Lunch in {city}", f"غداء في {city}"),
+                description=loc(
+                    "A mid-day meal at a popular local spot.",
+                    "وجبة منتصف اليوم في مكان محلي مشهور.",
+                ),
                 time_slot="afternoon",
                 estimated_cost=food_per_day // 2,
                 category="food",
             ))
             act_counter += 1
 
-            day_activities.append(ActivityItem(
-                id=f"act_{act_counter:03d}",
-                title=f"Afternoon excursion in {city}",
-                description=f"Guided tour or free exploration in {city}.",
-                time_slot="afternoon",
-                estimated_cost=activities_per_day // 2,
-                category="activities",
-            ))
-            act_counter += 1
+            if not is_calm:
+                day_activities.append(ActivityItem(
+                    id=f"act_{act_counter:03d}",
+                    title=loc(f"Afternoon excursion in {city}", f"رحلة بعد الظهر في {city}"),
+                    description=loc(
+                        f"Guided tour or free exploration in {city}.",
+                        f"جولة مرشدة أو استكشاف حر في {city}.",
+                    ),
+                    time_slot="afternoon",
+                    estimated_cost=activities_per_day // 2,
+                    category="activities",
+                ))
+                act_counter += 1
 
-            day_activities.append(ActivityItem(
-                id=f"act_{act_counter:03d}",
-                title=f"Dinner in {city}",
-                description=f"Evening meal at a recommended restaurant.",
-                time_slot="evening",
-                estimated_cost=food_per_day // 2,
-                category="food",
-            ))
-            act_counter += 1
+                day_activities.append(ActivityItem(
+                    id=f"act_{act_counter:03d}",
+                    title=loc(f"Dinner in {city}", f"عشاء في {city}"),
+                    description=loc(
+                        "Evening meal at a recommended restaurant.",
+                        "وجبة مسائية في مطعم موصى به.",
+                    ),
+                    time_slot="evening",
+                    estimated_cost=food_per_day // 2,
+                    category="food",
+                ))
+                act_counter += 1
 
         itinerary.append(DayPlan(
             day=day_num,
