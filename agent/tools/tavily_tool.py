@@ -4,15 +4,44 @@ Wraps the Tavily Python SDK as a CrewAI @tool so Agent 2 can call it.
 Keeps results concise to minimise token usage.
 """
 
-import os
+import hashlib
 import logging
+import os
+from pathlib import Path
 from crewai.tools import tool
 from tavily import TavilyClient
 
 logger = logging.getLogger(__name__)
 
+CACHE_DIR = Path(__file__).resolve().parent.parent / "cache" / "tavily"
+
 MAX_SEARCH_QUERIES = 2
 _search_counter = 0
+
+
+def _cache_key(query: str) -> str:
+    """Compute a stable hash key for a query."""
+    return hashlib.md5(query.lower().strip().encode("utf-8")).hexdigest()[:12]
+
+
+def _load_cache(query: str) -> str | None:
+    """Load cached search result if available."""
+    path = CACHE_DIR / f"{_cache_key(query)}.txt"
+    if path.exists():
+        try:
+            return path.read_text(encoding="utf-8")
+        except Exception:
+            return None
+    return None
+
+
+def _save_cache(query: str, result: str) -> None:
+    """Persist search result to local cache."""
+    try:
+        CACHE_DIR.mkdir(parents=True, exist_ok=True)
+        (CACHE_DIR / f"{_cache_key(query)}.txt").write_text(result, encoding="utf-8")
+    except Exception as exc:
+        logger.debug("Failed to write Tavily cache: %s", exc)
 
 
 def reset_search_counter() -> None:
@@ -21,15 +50,16 @@ def reset_search_counter() -> None:
     _search_counter = 0
 
 
-@tool("Search for real places and activities")
-def search_destination(query: str) -> str:
-    """Search the web for real restaurants, activities, hotels, and transport
-    options at a travel destination.
-
-    Returns a concise list of verified place names with short descriptions
-    and approximate costs.
-    """
+def execute_tavily_search(query: str) -> str:
+    """Core logic to search destination with caching."""
     global _search_counter
+
+    # Check cache first (saves Tavily free quota and prevents timeouts)
+    cached = _load_cache(query)
+    if cached:
+        logger.info("Tavily cache hit for query: %s", query[:60])
+        return cached
+
     if _search_counter >= MAX_SEARCH_QUERIES:
         logger.info("Search query cap reached (%d queries). Forcing synthesis.", MAX_SEARCH_QUERIES)
         return (
@@ -64,6 +94,20 @@ def search_destination(query: str) -> str:
         results.append(f"- {r.get('title', 'Untitled')}: {snippet}")
 
     if not results:
-        return "No results found for this query."
+        res_text = "No results found for this query."
+    else:
+        res_text = "\n".join(results)
 
-    return "\n".join(results)
+    _save_cache(query, res_text)
+    return res_text
+
+
+@tool("Search for real places and activities")
+def search_destination(query: str) -> str:
+    """Search the web for real restaurants, activities, hotels, and transport
+    options at a travel destination.
+
+    Returns a concise list of verified place names with short descriptions
+    and approximate costs.
+    """
+    return execute_tavily_search(query)

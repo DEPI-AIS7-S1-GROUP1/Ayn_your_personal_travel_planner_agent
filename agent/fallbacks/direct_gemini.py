@@ -12,6 +12,7 @@ import os
 from datetime import date
 from typing import Any
 
+from agent.arabic import arabic_language_rule_block
 from agent.schemas import FinalPlanResponse
 from agent.feedback import feedback_text
 
@@ -36,7 +37,6 @@ def run_direct_gemini_fallback(
 
     http_options = types.HttpOptions(
         timeout=15000,
-        retry_options=types.HttpRetryOptions(attempts=1),
     )
     client = genai.Client(api_key=api_key.strip(), http_options=http_options)
 
@@ -66,6 +66,7 @@ def run_direct_gemini_fallback(
         f"10. All prices are total for the whole group\n"
         f"11. created_at and updated_at: {date.today().isoformat()}\n"
         f"12. {feedback_text(profile)}\n\n"
+        f"{arabic_language_rule_block(trip)}\n"
         f"User Profile: {json.dumps(profile)}\n"
         f"Trip Request: {json.dumps(trip)}"
     )

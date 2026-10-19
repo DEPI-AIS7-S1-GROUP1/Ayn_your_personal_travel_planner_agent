@@ -10,6 +10,7 @@ import sys
 from pathlib import Path
 from datetime import date, timedelta
 
+from agent.arabic import normalize_arabic
 from agent.schemas import FinalPlanResponse
 
 if sys.platform == "win32":
@@ -118,28 +119,47 @@ def check_hotel_cost_zero(data: dict) -> tuple[bool, str]:
     return False, f"Hotel activities with non-zero cost: {', '.join(bad)}"
 
 
-def check_no_dislikes(data: dict) -> tuple[bool, str]:
-    """Check 8: No activity mentions food_dislikes items."""
-    try:
-        profile = load_profile()
-    except FileNotFoundError:
-        return True, "Profile not found — skipping dislike check"
+def check_no_dislikes(data: dict, profile: dict | None = None) -> tuple[bool, str]:
+    """Check 8: No activity mentions food_dislikes items (Arabic-normalized)."""
+    if profile is None:
+        try:
+            profile = load_profile()
+        except FileNotFoundError:
+            return True, "Profile not found — skipping dislike check"
 
-    dislikes = [d.lower() for d in profile.get("food_dislikes", [])]
+    dislikes = [normalize_arabic(d) for d in profile.get("food_dislikes", []) if d]
     if not dislikes:
         return True, "No food dislikes to check"
 
     violations = []
     for day in data["itinerary"]:
         for act in day["activities"]:
-            text = (act["title"] + " " + act["description"]).lower()
+            text = normalize_arabic(act["title"] + " " + act["description"])
             for dislike in dislikes:
-                if dislike in text:
+                if dislike and dislike in text:
                     violations.append(f"{act['title']} mentions '{dislike}'")
 
     if not violations:
         return True, f"No dislikes found ({', '.join(dislikes)})"
     return False, f"Dislike violations: {', '.join(violations)}"
+
+
+def check_activity_density(data: dict, profile: dict | None = None) -> tuple[bool, str]:
+    """Check 9: Report activity density and verify calm vs adventurous."""
+    if profile is None:
+        try:
+            profile = load_profile()
+        except Exception:
+            profile = {}
+    personalities = profile.get("personality", [])
+    if "calm" not in personalities and "adventurous" not in personalities:
+        return True, "Profile is neither calm nor adventurous — skipping density check"
+
+    itinerary = data.get("itinerary", [])
+    if not itinerary:
+        return False, "Itinerary is empty"
+    avg = sum(len(d.get("activities", [])) for d in itinerary) / len(itinerary)
+    return True, f"Avg activities/day: {avg:.1f} (profile: {personalities})"
 
 
 # ---------------------------------------------------------------------------
@@ -155,11 +175,13 @@ ALL_CHECKS = [
     ("enum_categories", check_enum_categories),
     ("hotel_cost_zero", check_hotel_cost_zero),
     ("no_dislikes", check_no_dislikes),
+    ("activity_density", check_activity_density),
 ]
 
 
-def run_validation(plan_path: Path) -> bool:
+def run_validation(plan_path: Path, profile: dict | None = None) -> bool:
     """Run all checks and print results. Returns True if all pass."""
+    import inspect
     data = load_plan(plan_path)
 
     print(f"\n{'=' * 60}")
@@ -168,7 +190,11 @@ def run_validation(plan_path: Path) -> bool:
 
     all_passed = True
     for name, check_fn in ALL_CHECKS:
-        passed, message = check_fn(data)
+        sig = inspect.signature(check_fn)
+        if len(sig.parameters) >= 2:
+            passed, message = check_fn(data, profile)
+        else:
+            passed, message = check_fn(data)
         icon = "✅" if passed else "❌"
         print(f"  {icon}  {name:20s} — {message}")
         if not passed:

@@ -10,6 +10,7 @@ import logging
 from datetime import date
 
 from groq import Groq
+from agent.arabic import arabic_language_rule_block
 from agent.schemas import FinalPlanResponse
 from agent.feedback import feedback_text
 
@@ -61,6 +62,7 @@ def run_direct_groq_fallback(
         f"10. All prices are total for the whole group\n"
         f"11. created_at and updated_at: {date.today().isoformat()}\n"
         f"12. {feedback_text(profile)}\n\n"
+        f"{arabic_language_rule_block(trip)}\n"
         f"User Profile: {json.dumps(profile)}\n"
         f"Trip Request: {json.dumps(trip)}"
     )
