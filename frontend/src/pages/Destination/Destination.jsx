@@ -1,11 +1,12 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '../../components/Button';
 import { GeneratingScreen } from '../../components/GeneratingScreen/GeneratingScreen';
 import api from '../../services/api';
+import { useLanguage } from '../../context/LanguageContext.js';
 import './Destination.css';
 
-export const EGYPT_ORIGIN_GOVERNORATES = [
+const EGYPT_ORIGIN_GOVERNORATES = [
   {
     group: 'Delta & Lower Egypt (الدلتا ومصر السفلى)',
     options: [
@@ -83,6 +84,7 @@ const EGYPT_CITIES = [
 
 export function Destination() {
   const navigate = useNavigate();
+  const { t, translate } = useLanguage();
 
   const [originCity, setOriginCity] = useState('Cairo');
   const [city, setCity] = useState('Sharm El Sheikh');
@@ -120,7 +122,7 @@ export function Destination() {
         navigate('/survey');
         return;
       }
-      setError(err.message || 'Failed to create trip.');
+      setError(translate(err.message || 'Failed to create trip.'));
       setIsSubmitting(false);
     }
   };
@@ -145,16 +147,16 @@ export function Destination() {
 
   return (
     <div className="ayn-dest-page">
-      <h1 className="ayn-dest-page__title">Where to in Egypt?</h1>
+      <h1 className="ayn-dest-page__title">{t('destination.title')}</h1>
       <p className="ayn-dest-page__desc">
-        Pick your departure point, destination, dates and budget. Ayn will craft your tailored day-by-day plan.
+        {t('destination.description')}
       </p>
 
       <form className="ayn-dest-page__form" onSubmit={handleSubmit}>
         <div className="ayn-dest-page__row">
           <div className="ayn-dest-page__field">
             <label className="ayn-dest-page__label" htmlFor="dest-origin">
-              Where are you traveling from?
+              {t('destination.from')}
             </label>
             <select
               id="dest-origin"
@@ -163,10 +165,10 @@ export function Destination() {
               onChange={(e) => setOriginCity(e.target.value)}
             >
               {EGYPT_ORIGIN_GOVERNORATES.map((grp) => (
-                <optgroup key={grp.group} label={grp.group}>
+                <optgroup key={grp.group} label={translate(grp.group)}>
                   {grp.options.map((opt) => (
                     <option key={opt.value} value={opt.value}>
-                      {opt.label}
+                      {translate(opt.label)}
                     </option>
                   ))}
                 </optgroup>
@@ -176,7 +178,7 @@ export function Destination() {
 
           <div className="ayn-dest-page__field">
             <label className="ayn-dest-page__label" htmlFor="dest-city">
-              Destination in Egypt
+              {t('destination.destination')}
             </label>
             <select
               id="dest-city"
@@ -186,7 +188,7 @@ export function Destination() {
             >
               {EGYPT_CITIES.map((c) => (
                 <option key={c} value={c}>
-                  {c}, Egypt
+                  {translate(c)}, {t('destination.egypt')}
                 </option>
               ))}
             </select>
@@ -196,7 +198,7 @@ export function Destination() {
         <div className="ayn-dest-page__row">
           <div className="ayn-dest-page__field">
             <label className="ayn-dest-page__label" htmlFor="dest-start-date">
-              Start date
+              {t('destination.startDate')}
             </label>
             <input
               id="dest-start-date"
@@ -210,7 +212,7 @@ export function Destination() {
 
           <div className="ayn-dest-page__field">
             <label className="ayn-dest-page__label" htmlFor="dest-end-date">
-              End date
+              {t('destination.endDate')}
             </label>
             <input
               id="dest-end-date"
@@ -226,7 +228,7 @@ export function Destination() {
         <div className="ayn-dest-page__row">
           <div className="ayn-dest-page__field">
             <label className="ayn-dest-page__label" htmlFor="dest-budget">
-              Total budget
+              {t('destination.totalBudget')}
             </label>
             <input
               id="dest-budget"
@@ -241,7 +243,7 @@ export function Destination() {
 
           <div className="ayn-dest-page__field">
             <label className="ayn-dest-page__label" htmlFor="dest-currency">
-              Currency
+              {t('destination.currency')}
             </label>
             <select
               id="dest-currency"
@@ -249,19 +251,19 @@ export function Destination() {
               value={currency}
               onChange={(e) => setCurrency(e.target.value)}
             >
-              <option value="EGP">EGP (Egyptian Pound)</option>
-              <option value="USD">USD (US Dollar)</option>
-              <option value="EUR">EUR (Euro)</option>
-              <option value="GBP">GBP (British Pound)</option>
-              <option value="SAR">SAR (Saudi Riyal)</option>
-              <option value="AED">AED (Emirati Dirham)</option>
+              <option value="EGP">EGP ({t('currency.egp')})</option>
+              <option value="USD">USD ({t('currency.usd')})</option>
+              <option value="EUR">EUR ({t('currency.eur')})</option>
+              <option value="GBP">GBP ({t('currency.gbp')})</option>
+              <option value="SAR">SAR ({t('currency.sar')})</option>
+              <option value="AED">AED ({t('currency.aed')})</option>
             </select>
           </div>
         </div>
 
         <div className="ayn-dest-page__field">
           <label className="ayn-dest-page__label" htmlFor="dest-travelers">
-            Number of travelers
+            {t('destination.travelers')}
           </label>
           <input
             id="dest-travelers"
@@ -274,7 +276,7 @@ export function Destination() {
             required
           />
           <p className="ayn-dest-page__note">
-            1 to 10 travelers. All prices and budgets are for the whole group.
+            {t('destination.travelersNote')}
           </p>
         </div>
 
@@ -285,7 +287,7 @@ export function Destination() {
         )}
 
         <Button variant="primary" type="submit" disabled={isSubmitting}>
-          {isSubmitting ? 'Building your plan...' : 'Generate your plan'}
+          {isSubmitting ? t('generating.title') : t('destination.generate')}
         </Button>
       </form>
     </div>

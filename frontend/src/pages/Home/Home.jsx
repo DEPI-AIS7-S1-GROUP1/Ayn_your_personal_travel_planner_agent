@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '../../components/Button';
 import { ToggleSwitch } from '../../components/ToggleSwitch';
 import { FeatureArchCard } from '../../components/FeatureArchCard';
+import { useLanguage } from '../../context/LanguageContext.js';
 import {
   PersonIllustration,
   CloudIllustration,
@@ -81,6 +82,7 @@ const HERO_SLIDES = [
 
 export function Home() {
   const navigate = useNavigate();
+  const { t, translate } = useLanguage();
   const [currentSlide, setCurrentSlide] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
   const [ctaToggle, setCtaToggle] = useState(false);
@@ -116,7 +118,7 @@ export function Home() {
         onMouseEnter={() => setIsPaused(true)}
         onMouseLeave={() => setIsPaused(false)}
         aria-roledescription="carousel"
-        aria-label="Egypt Destinations"
+        aria-label={t('home.destinations')}
       >
         {HERO_SLIDES.map((slide, idx) => (
           <div
@@ -132,50 +134,50 @@ export function Home() {
           {/* White Card on the Left */}
           <div className="ayn-home__hero-card">
             <h1 className="ayn-home__hero-title">
-              Where to in Egypt?<br />Ayn knows.
+              {t('home.heroTitle')}<br />{t('home.heroKnows')}
             </h1>
             <p className="ayn-home__hero-subtitle">
-              Tell us a little about you. Ayn plans the rest.
+              {t('home.heroSubtitle')}
             </p>
             <Button
               variant="primary"
               onClick={() => navigate('/destination')}
             >
-              Start planning
+              {t('home.startPlanning')}
             </Button>
           </div>
         </div>
 
         {/* Caption pill at bottom right */}
         <div className="ayn-home__hero-caption">
-          {HERO_SLIDES[currentSlide].name}
+          {translate(HERO_SLIDES[currentSlide].name)}
         </div>
       </section>
 
       {/* 2. FEATURES (WHAT AYN DOES - 4 CARDS) */}
       <section className="ayn-home__features-section" id="features">
         <div className="ayn-home__features-container">
-          <h2 className="ayn-home__features-title">What Ayn does</h2>
+          <h2 className="ayn-home__features-title">{t('home.featuresTitle')}</h2>
 
           <div className="ayn-home__features-grid">
             <FeatureArchCard
-              title="Made for you"
-              description="Your survey shapes every plan"
+              title={t('home.feature.personalized.title')}
+              description={t('home.feature.personalized.description')}
               sceneType="pyramids"
             />
             <FeatureArchCard
-              title="A budget that adds up"
-              description="Hotel, food, activities and transport, split for you"
+              title={t('home.feature.budget.title')}
+              description={t('home.feature.budget.description')}
               sceneType="nile"
             />
             <FeatureArchCard
-              title="Chat to change it"
-              description="Ask Ayn to tweak any day"
+              title={t('home.feature.chat.title')}
+              description={t('home.feature.chat.description')}
               sceneType="redsea"
             />
             <FeatureArchCard
-              title="Take it with you"
-              description="Save your plan to your phone"
+              title={t('home.feature.take.title')}
+              description={t('home.feature.take.description')}
               sceneType="luxor"
             />
           </div>
@@ -186,13 +188,12 @@ export function Home() {
       <section className="ayn-home__about-section" id="about">
         <div className="ayn-home__about-container">
           <div className="ayn-home__about-text">
-            <h2 className="ayn-home__about-title">About Ayn</h2>
+            <h2 className="ayn-home__about-title">{t('home.aboutTitle')}</h2>
             <p className="ayn-home__about-desc">
-              Ayn (أين) means &quot;where&quot; in Arabic. It is a travel planner that learns who you are,
-              then builds a day-by-day Egypt trip around your taste and your budget.
+              {t('home.aboutDescription')}
             </p>
             <p className="ayn-home__about-desc">
-              You review it, change it by chatting with Ayn, and take it with you.
+              {t('home.aboutSecond')}
             </p>
           </div>
 
@@ -233,14 +234,14 @@ export function Home() {
         {/* Content */}
         <div className="ayn-home__cta-content">
           <h2 className="ayn-home__cta-title">
-            Is Egypt your next destination?
+            {t('home.ctaTitle')}
           </h2>
 
           <ToggleSwitch
             checked={ctaToggle}
             onChange={setCtaToggle}
-            labelBefore="Not yet"
-            labelAfter="Yes, take me to Ayn"
+            labelBefore={t('home.notYet')}
+            labelAfter={t('home.takeMeToAyn')}
           />
 
           {ctaToggle && (
@@ -248,7 +249,7 @@ export function Home() {
               variant="primary"
               onClick={() => navigate('/survey')}
             >
-              Start the survey
+              {t('home.startSurvey')}
             </Button>
           )}
         </div>

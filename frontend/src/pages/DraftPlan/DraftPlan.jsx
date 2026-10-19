@@ -45,7 +45,7 @@ export function DraftPlan() {
       })
       .catch((err) => {
         if (!mounted) return;
-        setError(err.message || 'Failed to load plan from server.');
+        setError(translate(err.message || 'Failed to load plan from server.'));
         setPlan(null);
       })
       .finally(() => {

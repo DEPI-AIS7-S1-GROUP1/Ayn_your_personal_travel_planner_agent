@@ -34,7 +34,7 @@ export function Trips() {
       })
       .catch((err) => {
         if (mounted) {
-          setError(err.message || 'Failed to load trips.');
+          setError(translate(err.message || 'Failed to load trips.'));
           setTrips([]);
         }
       })

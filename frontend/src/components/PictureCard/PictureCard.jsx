@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Star, Check } from 'lucide-react';
+import { useLanguage } from '../../context/LanguageContext.js';
 import './PictureCard.css';
 
 /**
@@ -34,6 +35,7 @@ export function PictureCard({
   className = '',
   ...props
 }) {
+  const { t, translate } = useLanguage();
   const [imageFailed, setImageFailed] = useState(false);
 
   const starCount = Math.max(0, Math.min(5, Math.round(stars || 0)));
@@ -51,7 +53,7 @@ export function PictureCard({
         {imageUrl && !imageFailed ? (
           <img
             src={imageUrl}
-            alt={name}
+            alt={translate(name)}
             className="ayn-picture-card__image"
             onError={() => setImageFailed(true)}
           />
@@ -62,17 +64,17 @@ export function PictureCard({
 
       <div className="ayn-picture-card__body">
         <div className="ayn-picture-card__header">
-          <h3 className="ayn-picture-card__title">{name}</h3>
+          <h3 className="ayn-picture-card__title">{translate(name)}</h3>
           {selected && (
             <span className="ayn-picture-card__selected-badge">
               <Check size={16} strokeWidth={2} />
-              <span>Selected</span>
+              <span>{t('options.selected')}</span>
             </span>
           )}
         </div>
 
         <div className="ayn-picture-card__meta">
-          {area && <span>{area}</span>}
+          {area && <span>{translate(area)}</span>}
           {starCount > 0 && (
             <span className="ayn-picture-card__stars" aria-label={`${starCount} out of 5 stars`}>
               {Array.from({ length: 5 }).map((_, i) => (
@@ -87,7 +89,7 @@ export function PictureCard({
           )}
         </div>
 
-        {details && <p className="ayn-picture-card__details">{details}</p>}
+        {details && <p className="ayn-picture-card__details">{translate(details)}</p>}
 
         <div className="ayn-picture-card__price-row">
           <span className="ayn-picture-card__price-total tabular-nums">
@@ -95,7 +97,7 @@ export function PictureCard({
           </span>
           {pricePerNight && (
             <span className="ayn-picture-card__price-night tabular-nums">
-              {typeof pricePerNight === 'number' ? `${currency} ${pricePerNight.toLocaleString()} / night` : pricePerNight}
+              {typeof pricePerNight === 'number' ? `${currency} ${pricePerNight.toLocaleString()} / ${t('common.night')}` : pricePerNight}
             </span>
           )}
         </div>

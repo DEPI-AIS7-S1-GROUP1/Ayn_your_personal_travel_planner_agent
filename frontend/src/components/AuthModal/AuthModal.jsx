@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { X } from 'lucide-react';
 import { Button } from '../Button';
 import { useAuth } from '../../context/AuthContext';
+import { useLanguage } from '../../context/LanguageContext.js';
 import './AuthModal.css';
 
 export function AuthModal({ isOpen, initialMode = 'login', onClose }) {
@@ -13,9 +14,11 @@ export function AuthModal({ isOpen, initialMode = 'login', onClose }) {
   const [localError, setLocalError] = useState(null);
 
   const { login, signup, loading } = useAuth();
+  const { t, translate } = useLanguage();
 
   useEffect(() => {
     if (isOpen) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setMode(initialMode);
       setLocalError(null);
       setEmail('');
@@ -30,11 +33,10 @@ export function AuthModal({ isOpen, initialMode = 'login', onClose }) {
     setLocalError(null);
 
     try {
-      let loggedUser;
       if (mode === 'login') {
-        loggedUser = await login(email, password);
+        await login(email, password);
       } else {
-        loggedUser = await signup(email, password);
+        await signup(email, password);
       }
       onClose();
 
@@ -43,7 +45,7 @@ export function AuthModal({ isOpen, initialMode = 'login', onClose }) {
         navigate('/survey');
       }
     } catch (err) {
-      setLocalError(err.message || 'Authentication failed');
+      setLocalError(translate(err.message || 'Authentication failed'));
     }
   };
 
@@ -54,24 +56,24 @@ export function AuthModal({ isOpen, initialMode = 'login', onClose }) {
           type="button"
           className="ayn-modal__close"
           onClick={onClose}
-          aria-label="Close dialog"
+          aria-label={t('navbar.closeMenu')}
         >
           <X size={20} />
         </button>
 
         <h2 className="ayn-modal__title">
-          {mode === 'login' ? 'Log in to Ayn' : 'Sign up for Ayn'}
+          {mode === 'login' ? t('auth.loginTitle') : t('auth.signupTitle')}
         </h2>
         <p className="ayn-modal__desc">
           {mode === 'login'
-            ? 'Access your Egypt trips and draft itineraries.'
-            : 'Start planning your tailored trip across Egypt.'}
+            ? t('auth.loginDescription')
+            : t('auth.signupDescription')}
         </p>
 
         <form className="ayn-modal__form" onSubmit={handleSubmit}>
           <div className="ayn-modal__field">
             <label className="ayn-modal__label" htmlFor="auth-email">
-              Email address
+              {t('auth.email')}
             </label>
             <input
               id="auth-email"
@@ -86,7 +88,7 @@ export function AuthModal({ isOpen, initialMode = 'login', onClose }) {
 
           <div className="ayn-modal__field">
             <label className="ayn-modal__label" htmlFor="auth-password">
-              Password
+              {t('auth.password')}
             </label>
             <input
               id="auth-password"
@@ -106,13 +108,13 @@ export function AuthModal({ isOpen, initialMode = 'login', onClose }) {
           )}
 
           <Button variant="primary" type="submit" disabled={loading}>
-            {loading ? 'Please wait...' : mode === 'login' ? 'Log in' : 'Create account'}
+            {loading ? t('common.pleaseWait') : mode === 'login' ? t('navbar.logIn') : t('auth.createAccount')}
           </Button>
 
           <p className="ayn-modal__footer-text">
             {mode === 'login' ? (
               <>
-                Don&apos;t have an account?{' '}
+                {t('auth.noAccount')}{' '}
                 <button
                   type="button"
                   className="ayn-modal__toggle-btn"
@@ -121,12 +123,12 @@ export function AuthModal({ isOpen, initialMode = 'login', onClose }) {
                     setMode('signup');
                   }}
                 >
-                  Sign up
+                  {t('navbar.signUp')}
                 </button>
               </>
             ) : (
               <>
-                Already have an account?{' '}
+                {t('auth.hasAccount')}{' '}
                 <button
                   type="button"
                   className="ayn-modal__toggle-btn"
@@ -135,7 +137,7 @@ export function AuthModal({ isOpen, initialMode = 'login', onClose }) {
                     setMode('login');
                   }}
                 >
-                  Log in
+                  {t('navbar.logIn')}
                 </button>
               </>
             )}
