@@ -85,6 +85,26 @@ Copy the `https://....trycloudflare.com` address it prints, set `VITE_API_BASE_U
 time the tunnel starts, so do this once, before the demo begins, and keep the laptop awake.
 
 ---
+## Scope
+
+**Must have**
+- Sign up and log in, onboarding survey, profile saved in the database
+- Trip form, budget split with chart, daily itinerary from the agent
+- Mock flights and hotels, draft review and edit, plan rating
+- Deployed website
+- Arabic Level 1: EN | عربي toggle, all fixed interface text in Arabic, right-to-left layout, choice remembered after refresh
+
+**Should have**
+- Food suggestions filtered by preferences
+- Live Tavily search for real activities
+- Past ratings improve the next plan
+- Personality-based theme, chat refine panel, drag-and-drop days
+- Arabic Level 2 (stretch): trips created with `language: "ar"`, Arabic plan text, dietary and dislike checks on Arabic words. Cut if not passing its checks by 18 Oct at noon.
+
+**Out of scope**
+- Real booking and payments, maps and routing, mobile app, collaborative trips
+- Languages other than English and Arabic, an Arabic place-name database, voice
+---
 
 ## Team rules
 

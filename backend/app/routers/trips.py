@@ -140,9 +140,11 @@ def create_trip(
     try:
         s_date = date.fromisoformat(payload.start_date)
         e_date = date.fromisoformat(payload.end_date)
+        if s_date < date.today():
+            raise ValueError("start_date cannot be in the past")
         if s_date > e_date:
             raise ValueError("end_date must be on or after start_date")
-        if (e_date - s_date).days > 14:
+        if (e_date - s_date).days > 13:
             raise ValueError("Trip length cannot exceed 14 days")
     except Exception as exc:
         raise ApiError(400, "VALIDATION_ERROR", f"Invalid dates: {exc}")
