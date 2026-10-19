@@ -17,6 +17,23 @@ from agent.main import generate_plan_from_dict
 
 router = APIRouter(tags=["trips"])
 
+def get_past_feedback(db: Session, user_id: str) -> dict:
+    """Collect what the user liked and disliked in their past ratings."""
+    ratings = db.execute(
+        select(Rating)
+        .join(Plan, Rating.plan_id == Plan.id)
+        .join(Trip, Plan.trip_id == Trip.id)
+        .where(Trip.user_id == user_id)
+    ).scalars().all()
+
+    liked = []
+    disliked = []
+    for r in ratings:
+        liked.extend(r.liked or [])
+        disliked.extend(r.disliked or [])
+
+    return {"liked": liked, "disliked": disliked}
+
 
 class DestinationPayload(BaseModel):
     city: str
@@ -137,6 +154,7 @@ def create_trip(
         "food_likes": user.profile.food_likes,
         "food_dislikes": user.profile.food_dislikes,
         "dietary_limits": user.profile.dietary_limits,
+        "past_feedback": get_past_feedback(db, user.id),
     }
 
     trip_dict = {

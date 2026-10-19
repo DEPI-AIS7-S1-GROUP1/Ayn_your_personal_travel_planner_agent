@@ -55,14 +55,6 @@ def create_rating(
         comment=payload.comment,
     )
     db.add(rating)
-
-    # Sync liked/disliked memories to user profile for future planning
-    if user.profile:
-        if payload.liked:
-            user.profile.liked_last_trip = "; ".join(payload.liked)
-        if payload.disliked:
-            user.profile.disliked_last_trip = "; ".join(payload.disliked)
-
     db.commit()
 
     return {

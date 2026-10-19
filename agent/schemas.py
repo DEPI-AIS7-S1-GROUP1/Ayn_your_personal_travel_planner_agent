@@ -54,6 +54,7 @@ class UserProfile(BaseModel):
     dietary_limits: List[DietaryLimitsEnum]
     liked_last_trip: Optional[str] = ""
     disliked_last_trip: Optional[str] = ""
+    past_feedback: dict[str, list[str]] = Field(default_factory=dict)
 
 
 class Destination(BaseModel):

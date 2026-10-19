@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Check } from 'lucide-react';
 import { Button } from '../../components/Button';
@@ -38,14 +38,36 @@ const DIETARY_OPTIONS = [
 export function Survey() {
   const navigate = useNavigate();
 
-  const [personality, setPersonality] = useState(['foodie', 'history-loving']);
-  const [hobbies, setHobbies] = useState(['museums', 'photography', 'local-markets']);
-  const [dietary, setDietary] = useState(['halal']);
-  const [foodLikes, setFoodLikes] = useState('koshari, seafood, grilled meat');
-  const [foodDislikes, setFoodDislikes] = useState('very spicy food');
-  const [likedLastTrip, setLikedLastTrip] = useState('Small group tours and walking old neighbourhoods.');
-  const [dislikedLastTrip, setDislikedLastTrip] = useState('Long bus rides.');
+  const [personality, setPersonality] = useState([]);
+  const [hobbies, setHobbies] = useState([]);
+  const [dietary, setDietary] = useState([]);
+  const [foodLikes, setFoodLikes] = useState('');
+  const [foodDislikes, setFoodDislikes] = useState('');
+  const [likedLastTrip, setLikedLastTrip] = useState('');
+  const [dislikedLastTrip, setDislikedLastTrip] = useState('');
   const [isSaving, setIsSaving] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    let cancelled = false;
+    api.getProfile()
+      .then((res) => {
+        const p = res?.profile ?? res;
+        if (cancelled || !p) return;
+        setPersonality(p.personality || []);
+        setHobbies(p.hobbies || []);
+        setDietary(p.dietary_limits || []);
+        setFoodLikes((p.food_likes || []).join(', '));
+        setFoodDislikes((p.food_dislikes || []).join(', '));
+        setLikedLastTrip(p.liked_last_trip || '');
+        setDislikedLastTrip(p.disliked_last_trip || '');
+    })
+    .catch(() => {})   // a new user has no profile yet, so the form stays empty
+    .finally(() => {
+      if (!cancelled) setIsLoading(false);
+    });
+  return () => { cancelled = true; };
+}, []);
 
   const toggleItem = (list, setList, item, max = Infinity) => {
     if (list.includes(item)) {
@@ -207,7 +229,7 @@ export function Survey() {
           />
         </div>
 
-        <Button variant="primary" type="submit" disabled={isSaving}>
+        <Button variant="primary" type="submit" disabled={isSaving || isLoading}>
           {isSaving ? 'Saving...' : 'Save and continue to Destination'}
         </Button>
       </form>
