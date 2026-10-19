@@ -321,3 +321,33 @@ def test_currencies_endpoint(client):
     assert res_default.status_code == 200
     assert res_default.json()["default"] == "EGP"
 
+def test_rating_keeps_survey_answers_and_feeds_next_plan(client, session):
+    """R1: a rating must not change the survey answers, and its feedback reaches the agent."""
+    from app.routers.trips import get_past_feedback
+
+    user, _, plan, token = create_test_setup(session)
+    headers = {"Authorization": f"Bearer {token}"}
+
+    # The user already filled the survey answers about their last trip.
+    profile = session.query(Profile).filter_by(user_id=user.id).one()
+    profile.liked_last_trip = "Walking old streets"
+    profile.disliked_last_trip = "Long bus rides"
+    session.commit()
+
+    client.post(f"/api/plans/{plan.id}/confirm", headers=headers)
+    res = client.post(
+        "/api/ratings",
+        json={"plan_id": plan.id, "score": 4, "liked": ["Snorkeling"], "disliked": ["Crowds"], "comment": ""},
+        headers=headers,
+    )
+    assert res.status_code == 201
+
+    # 1. The survey answers are unchanged (read through the API, as the website does).
+    prof = client.get("/api/profile", headers=headers).json()["profile"]
+    assert prof["liked_last_trip"] == "Walking old streets"
+    assert prof["disliked_last_trip"] == "Long bus rides"
+
+    # 2. The rating feedback is stored separately and is given to the agent for the next plan.
+    session.expire_all()
+    feedback = get_past_feedback(session, user.id)
+    assert feedback == {"liked": ["Snorkeling"], "disliked": ["Crowds"]}

@@ -5,7 +5,7 @@ from datetime import date
 from crewai import Task, Agent
 from agent.arabic import arabic_language_rule_block
 from agent.schemas import FinalPlanResponse
-
+from agent.feedback import feedback_text
 
 def create_planner_task(
     agent: Agent,
@@ -62,6 +62,7 @@ def create_planner_task(
             f"13. Avoid: {profile.get('food_dislikes', [])} and respect "
             f"dietary limits: {profile.get('dietary_limits', [])}\n"
             f"14. Use only places supported by search results as source-backed; do not invent source URLs, prices, or opening hours. Unsupported details must remain clearly unverified. Budget arithmetic does not verify market prices.\n"
+            f"14. {feedback_text(profile)}\n\n"
             f"{arabic_language_rule_block(trip)}\n"
             f"Output ONLY valid JSON matching this schema (no conversational filler, no prose):\n"
             f"{json.dumps(FinalPlanResponse.model_json_schema(), indent=2)}"

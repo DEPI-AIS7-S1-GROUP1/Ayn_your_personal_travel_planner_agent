@@ -1,7 +1,7 @@
 """Trips router (contract §3.3, §4 POST/GET /trips)."""
 
 from datetime import date
-from typing import Any
+from typing import Any, Literal
 
 from fastapi import APIRouter, Depends
 from pydantic import BaseModel, Field
@@ -17,6 +17,23 @@ from agent.main import generate_plan_from_dict
 
 router = APIRouter(tags=["trips"])
 
+def get_past_feedback(db: Session, user_id: str) -> dict:
+    """Collect what the user liked and disliked in their past ratings."""
+    ratings = db.execute(
+        select(Rating)
+        .join(Plan, Rating.plan_id == Plan.id)
+        .join(Trip, Plan.trip_id == Trip.id)
+        .where(Trip.user_id == user_id)
+    ).scalars().all()
+
+    liked = []
+    disliked = []
+    for r in ratings:
+        liked.extend(r.liked or [])
+        disliked.extend(r.disliked or [])
+
+    return {"liked": liked, "disliked": disliked}
+
 
 class DestinationPayload(BaseModel):
     city: str
@@ -30,6 +47,8 @@ class CreateTripPayload(BaseModel):
     total_budget: int = Field(gt=0)
     currency: str = Field(min_length=3, max_length=3)
     travelers: int = Field(ge=1, le=10)
+    # Language the agent should write the plan in. Anything else is a 400 VALIDATION_ERROR.
+    language: Literal["en", "ar"] = "en"
 
 
 @router.get("/trips")
@@ -121,13 +140,45 @@ def create_trip(
     try:
         s_date = date.fromisoformat(payload.start_date)
         e_date = date.fromisoformat(payload.end_date)
+        if s_date < date.today():
+            raise ValueError("start_date cannot be in the past")
         if s_date > e_date:
             raise ValueError("end_date must be on or after start_date")
-        if (e_date - s_date).days > 14:
+        if (e_date - s_date).days > 13:
             raise ValueError("Trip length cannot exceed 14 days")
     except Exception as exc:
         raise ApiError(400, "VALIDATION_ERROR", f"Invalid dates: {exc}")
 
+    # Generate draft plan using multi-tier agent generation pipeline
+    profile_dict = {
+        "personality": user.profile.personality,
+        "hobbies": user.profile.hobbies,
+        "food_likes": user.profile.food_likes,
+        "food_dislikes": user.profile.food_dislikes,
+        "dietary_limits": user.profile.dietary_limits,
+        "past_feedback": get_past_feedback(db, user.id),
+    }
+
+    trip_dict = {
+        "destination": {"city": payload.destination.city, "country": "Egypt"},
+        "start_date": s_date.isoformat(),
+        "end_date": e_date.isoformat(),
+        "total_budget": payload.total_budget,
+        "currency": curr,
+        "travelers": payload.travelers,
+        "language": payload.language,
+    }
+
+    # Nothing is written before the agent finishes: generation can take many seconds, and an open
+    # write would lock SQLite for every other user (signups, survey saves) during that time.
+    # Ending the read transaction here also releases the snapshot held since the profile was loaded.
+    db.rollback()
+    try:
+        gen_plan = generate_plan_from_dict(profile_dict, trip_dict)
+    except Exception as exc:
+        raise ApiError(502, "GENERATION_FAILED", f"Plan generation failed: {exc}")
+
+    # Trip and plan are written together in one short transaction.
     trip = Trip(
         user_id=user.id,
         destination_city=payload.destination.city,
@@ -141,29 +192,6 @@ def create_trip(
     db.add(trip)
     db.flush()
 
-    # Generate draft plan using multi-tier agent generation pipeline
-    profile_dict = {
-        "personality": user.profile.personality,
-        "hobbies": user.profile.hobbies,
-        "food_likes": user.profile.food_likes,
-        "food_dislikes": user.profile.food_dislikes,
-        "dietary_limits": user.profile.dietary_limits,
-    }
-
-    trip_dict = {
-        "destination": {"city": trip.destination_city, "country": "Egypt"},
-        "start_date": trip.start_date.isoformat(),
-        "end_date": trip.end_date.isoformat(),
-        "total_budget": trip.total_budget,
-        "currency": trip.currency,
-        "travelers": trip.travelers,
-    }
-
-    try:
-        gen_plan = generate_plan_from_dict(profile_dict, trip_dict)
-    except Exception as exc:
-        raise ApiError(502, "GENERATION_FAILED", f"Plan generation failed: {exc}")
-
     plan = Plan(
         trip_id=trip.id,
         status="draft",
@@ -172,6 +200,8 @@ def create_trip(
         options=gen_plan.options.model_dump(by_alias=True),
         selected_flight_id=gen_plan.selected_flight_id,
         selected_hotel_id=gen_plan.selected_hotel_id,
+        # The language is kept here instead of in a new database column (Y9).
+        search_context={"language": payload.language},
     )
     db.add(plan)
     db.commit()
