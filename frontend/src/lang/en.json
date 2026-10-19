@@ -1,0 +1,247 @@
+{
+  "navbar.home": "Home",
+  "navbar.howItWorks": "How it works",
+  "navbar.about": "About",
+  "navbar.planTrip": "Plan a trip",
+  "navbar.yourTrips": "Your trips",
+  "navbar.components": "Components",
+  "navbar.logIn": "Log in",
+  "navbar.signUp": "Sign up",
+  "navbar.myProfile": "My profile",
+  "navbar.logOut": "Log out",
+  "navbar.mainNavigation": "Main navigation",
+  "navbar.homeAriaLabel": "Ayn home",
+  "navbar.profileMenu": "User profile menu",
+  "navbar.closeMenu": "Close menu",
+  "navbar.openMenu": "Open menu",
+  "language.english": "EN",
+  "language.arabic": "عربي",
+  "language.label": "Language",
+  "language.switchToEnglish": "Switch to English",
+  "language.switchToArabic": "Switch to Arabic",
+  "footer.tagline": "Just tell us where. We'll cover the rest.",
+  "footer.explore": "Explore",
+  "footer.aboutAyn": "About Ayn",
+  "footer.features": "Features",
+  "footer.travel": "Travel",
+  "footer.destination": "Destination",
+  "footer.survey": "Survey",
+  "footer.system": "System",
+  "footer.componentLibrary": "Component Library",
+  "footer.version": "Egypt MVP v4.1",
+  "footer.copyright": "© 2026 Ayn. Built for authentic Egyptian travel experiences.",
+  "footer.cities": "Cairo • Alexandria • Luxor • Aswan • Sharm El Sheikh • Hurghada • Dahab",
+  "draft.backToTrips": "Back to Your Trips",
+  "draft.tripTo": "Trip to",
+  "draft.staysFlights": "Stays & Flights",
+  "draft.doneEditing": "Done editing",
+  "draft.editPlan": "Edit plan",
+  "draft.confirmTrip": "Confirm trip",
+  "draft.cancelTrip": "Cancel trip",
+  "draft.confirmationExport": "Confirmation & Export",
+  "draft.rateTrip": "Rate trip",
+  "draft.confirmedTitle": "Your trip is confirmed!",
+  "draft.confirmedDescription": "Your itinerary and budget are locked. Have a wonderful adventure in",
+  "draft.itinerary": "Itinerary",
+  "draft.pricesForTravelers": "Prices are for all travelers.",
+  "destination.egypt": "Egypt",
+  "trip.traveler": "traveler",
+  "trip.travelers": "travelers",
+  "trip.day": "Day",
+  "trip.noActivities": "No activities planned for this day.",
+  "time.morning": "MORNING",
+  "time.afternoon": "AFTERNOON",
+  "time.evening": "EVENING",
+  "activity.title": "Title",
+  "activity.description": "Description",
+  "activity.timeSlot": "Time Slot",
+  "activity.category": "Category",
+  "activity.cost": "Cost",
+  "activity.add": "Add activity",
+  "common.cancel": "Cancel",
+  "common.save": "Save",
+  "common.edit": "Edit",
+  "common.remove": "Remove",
+  "common.free": "Free",
+  "budget.title": "Budget",
+  "budget.hotel": "Hotel",
+  "budget.food": "Food",
+  "budget.activities": "Activities",
+  "budget.transport": "Transport",
+  "budget.planned": "Planned",
+  "budget.of": "of",
+  "budget.balanced": "Budget balanced (0 left to assign)",
+  "budget.leftToAssign": "left to assign",
+  "budget.overBy": "Over by"
+  ,"survey.title": "Travel Survey & Profile"
+  ,"survey.description": "Help Ayn understand who you are so every day in Egypt matches your taste and pace."
+  ,"survey.travelStyle": "Travel Style (Pick 1 to 3)"
+  ,"survey.interests": "Interests & Hobbies"
+  ,"survey.dietaryLimits": "Dietary limits"
+  ,"survey.foodLikes": "Food likes (comma-separated)"
+  ,"survey.foodDislikes": "Food dislikes (comma-separated)"
+  ,"survey.likedLastTrip": "What did you like on your last trip?"
+  ,"survey.dislikedLastTrip": "What did you dislike on your last trip?"
+  ,"survey.save": "Save and continue to Destination"
+  ,"common.saving": "Saving..."
+  ,"survey.option.calm": "Calm"
+  ,"survey.option.adventurous": "Adventurous"
+  ,"survey.option.foodie": "Foodie"
+  ,"survey.option.landmark-loving": "Landmark lover"
+  ,"survey.option.history-loving": "History lover"
+  ,"survey.option.style-loving": "Style lover"
+  ,"survey.option.exploring": "Explorer"
+  ,"survey.option.museums": "Museums"
+  ,"survey.option.photography": "Photography"
+  ,"survey.option.beaches": "Beaches"
+  ,"survey.option.diving": "Diving"
+  ,"survey.option.hiking": "Hiking"
+  ,"survey.option.local-markets": "Local markets"
+  ,"survey.option.cooking": "Cooking"
+  ,"survey.option.art": "Art"
+  ,"survey.option.halal": "Halal"
+  ,"survey.option.vegetarian": "Vegetarian"
+  ,"survey.option.vegan": "Vegan"
+  ,"survey.option.gluten-free": "Gluten-free"
+  ,"survey.option.dairy-free": "Dairy-free"
+  ,"survey.option.nut-free": "Nut-free"
+  ,"trips.title": "Your trips"
+  ,"trips.loading": "Loading your trips..."
+  ,"trips.planNew": "Plan a new trip"
+  ,"trips.emptyTitle": "No trips yet"
+  ,"trips.emptyDescription": "You haven't started any plans yet. Tell Ayn where you want to go in Egypt!"
+  ,"trips.planFirst": "Plan your first trip"
+  ,"trips.to": "to"
+  ,"trips.rated": "Rated"
+  ,"trips.rateThis": "Rate this trip"
+  ,"trips.viewDetails": "View details"
+  ,"trips.viewAll": "View all your trips"
+  ,"confirmed.loading": "Loading confirmation..."
+  ,"confirmed.notFound": "Plan not found"
+  ,"confirmed.title": "Your trip is confirmed!"
+  ,"confirmed.days": "Days"
+  ,"confirmed.takeWithYou": "Take it with you"
+  ,"confirmed.downloadDescription": "Download your confirmed schedule to access offline or sync activities to your calendar."
+  ,"confirmed.savePhone": "Save to phone (PDF)"
+  ,"confirmed.addCalendar": "Add to calendar (.ics)"
+  ,"confirmed.travelDetails": "Accommodations & Travel Details"
+  ,"confirmed.hotelStay": "Hotel Stay"
+  ,"confirmed.stars": "Stars"
+  ,"confirmed.total": "total"
+  ,"confirmed.transportation": "Transportation"
+  ,"confirmed.departureFrom": "Departure from"
+  ,"confirmed.scheduleTitle": "Confirmed Day-by-Day Schedule"
+  ,"confirmed.scheduleDescription": "Your complete itinerary with activities, time slots, and costs."
+  ,"confirmed.includedFree": "Included / Free"
+  ,"confirmed.bookingRecommended": "Advance Booking Recommended"
+  ,"confirmed.afterTrip": "After your trip"
+  ,"confirmed.afterTripDescription": "Help Ayn improve future recommendations by telling us what you loved and what could be better."
+  ,"confirmed.daytime": "Daytime"
+  ,"generating.title": "Building your plan"
+  ,"generating.failed": "Generation failed"
+  ,"generating.description": "Ayn is tailoring activities, balancing your budget, and finding hotels and flights."
+  ,"common.tryAgain": "Try again"
+  ,"common.backToForm": "Back to form"
+  ,"destination.title": "Where to in Egypt?"
+  ,"destination.description": "Pick your departure point, destination, dates and budget. Ayn will craft your tailored day-by-day plan."
+  ,"destination.from": "Where are you traveling from?"
+  ,"destination.destination": "Destination in Egypt"
+  ,"destination.startDate": "Start date"
+  ,"destination.endDate": "End date"
+  ,"destination.totalBudget": "Total budget"
+  ,"destination.currency": "Currency"
+  ,"destination.travelers": "Number of travelers"
+  ,"destination.travelersNote": "1 to 10 travelers. All prices and budgets are for the whole group."
+  ,"destination.generate": "Generate your plan"
+  ,"currency.egp": "Egyptian Pound"
+  ,"currency.usd": "US Dollar"
+  ,"currency.eur": "Euro"
+  ,"currency.gbp": "British Pound"
+  ,"currency.sar": "Saudi Riyal"
+  ,"currency.aed": "Emirati Dirham"
+  ,"options.loading": "Loading suggested stays, flights & rides..."
+  ,"options.error": "Could not load options"
+  ,"options.title": "Choose your stay & transportation"
+  ,"options.subtitleFrom": "Traveling from"
+  ,"options.subtitleCompare": "Compare flights, InDrive, Kareem, and Swvl options for your journey."
+  ,"options.subtitleBudget": "Selected prices adjust your total trip budget automatically."
+  ,"options.suggestedStays": "Suggested stays in"
+  ,"options.transportation": "Transportation options"
+  ,"options.all": "All"
+  ,"options.flights": "Flights (Air)"
+  ,"options.taxis": "InDrive & Kareem"
+  ,"options.buses": "Swvl & Buses"
+  ,"options.outbound": "Outbound"
+  ,"options.return": "Return"
+  ,"options.selected": "Selected"
+  ,"options.select": "Select"
+  ,"options.skip": "Skip to itinerary"
+  ,"options.continue": "Continue to Itinerary"
+  ,"common.night": "night"
+  ,"common.pleaseWait": "Please wait..."
+  ,"auth.loginTitle": "Log in to Ayn"
+  ,"auth.signupTitle": "Sign up for Ayn"
+  ,"auth.loginDescription": "Access your Egypt trips and draft itineraries."
+  ,"auth.signupDescription": "Start planning your tailored trip across Egypt."
+  ,"auth.email": "Email address"
+  ,"auth.password": "Password"
+  ,"auth.createAccount": "Create account"
+  ,"auth.noAccount": "Don't have an account?"
+  ,"auth.hasAccount": "Already have an account?"
+  ,"chat.title": "Ask Ayn to change it"
+  ,"chat.welcome": "Hi! Let me know if you would like to adjust any activities, meals, or total budget."
+  ,"chat.updateFailed": "Ayn couldn't change the plan. Try again."
+  ,"chat.updating": "Updating your plan..."
+  ,"chat.placeholder": "Describe a change"
+  ,"chat.ariaLabel": "Describe a change to your travel plan"
+  ,"chat.send": "Send"
+  ,"rating.title": "Rate your trip"
+  ,"rating.description": "Your feedback helps Ayn learn what you love for your future trips in Egypt."
+  ,"rating.thankYou": "Thank you for rating!"
+  ,"rating.returning": "Taking you back to your trips..."
+  ,"rating.overall": "Overall rating"
+  ,"rating.scale": "1 = poor, 5 = excellent"
+  ,"rating.liked": "What did you like?"
+  ,"rating.likedPlaceholder": "Type and press Enter (e.g. Diving in Dahab)"
+  ,"rating.improved": "What could be improved?"
+  ,"rating.improvedPlaceholder": "Type and press Enter (e.g. Long bus rides)"
+  ,"rating.notes": "Additional notes"
+  ,"rating.notesPlaceholder": "Any special memories or tips for next time?"
+  ,"rating.submitting": "Submitting..."
+  ,"rating.submit": "Submit rating"
+  ,"home.destinations": "Egypt Destinations"
+  ,"home.heroTitle": "Where to in Egypt?"
+  ,"home.heroKnows": "Ayn knows."
+  ,"home.heroSubtitle": "Tell us a little about you. Ayn plans the rest."
+  ,"home.startPlanning": "Start planning"
+  ,"home.featuresTitle": "What Ayn does"
+  ,"home.feature.personalized.title": "Made for you"
+  ,"home.feature.personalized.description": "Your survey shapes every plan"
+  ,"home.feature.budget.title": "A budget that adds up"
+  ,"home.feature.budget.description": "Hotel, food, activities and transport, split for you"
+  ,"home.feature.chat.title": "Chat to change it"
+  ,"home.feature.chat.description": "Ask Ayn to tweak any day"
+  ,"home.feature.take.title": "Take it with you"
+  ,"home.feature.take.description": "Save your plan to your phone"
+  ,"home.aboutTitle": "About Ayn"
+  ,"home.aboutDescription": "Ayn (أين) means \"where\" in Arabic. It is a travel planner that learns who you are, then builds a day-by-day Egypt trip around your taste and your budget."
+  ,"home.aboutSecond": "You review it, change it by chatting with Ayn, and take it with you."
+  ,"home.ctaTitle": "Is Egypt your next destination?"
+  ,"home.notYet": "Not yet"
+  ,"home.takeMeToAyn": "Yes, take me to Ayn"
+  ,"home.startSurvey": "Start the survey"
+  ,"country.egypt": "Egypt"
+  ,"country.saudiArabia": "Saudi Arabia"
+  ,"country.unitedArabEmirates": "United Arab Emirates"
+  ,"country.unitedStates": "United States"
+  ,"country.unitedKingdom": "United Kingdom"
+  ,"country.france": "France"
+  ,"country.germany": "Germany"
+  ,"country.italy": "Italy"
+  ,"country.spain": "Spain"
+  ,"country.turkey": "Turkey"
+  ,"country.greece": "Greece"
+  ,"trip.status.draft": "draft"
+  ,"trip.status.confirmed": "confirmed"
+  ,"trip.status.cancelled": "cancelled"
+}

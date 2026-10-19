@@ -1,18 +1,19 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { CheckCircle2, Clock, XCircle, ArrowLeft, Edit3, ShieldAlert } from 'lucide-react';
+import { CheckCircle2, Clock, XCircle, ArrowLeft, Edit3 } from 'lucide-react';
 import { Button } from '../../components/Button';
 import { DayTimelineCard } from '../../components/DayTimelineCard';
 import { BudgetStackedBar } from '../../components/BudgetStackedBar';
 import { ChatPanel } from '../../components/ChatPanel';
 import api from '../../services/api';
+import { useLanguage } from '../../context/LanguageContext.js';
 import './DraftPlan.css';
 
-function formatDisplayDate(dateStr) {
+function formatDisplayDate(dateStr, language) {
   if (!dateStr) return '';
   try {
     const d = new Date(dateStr);
-    return d.toLocaleDateString('en-GB', {
+    return d.toLocaleDateString(language === 'ar' ? 'ar-EG' : 'en-GB', {
       weekday: 'short',
       day: 'numeric',
       month: 'short',
@@ -24,6 +25,7 @@ function formatDisplayDate(dateStr) {
 }
 
 export function DraftPlan() {
+  const { language, t, translate } = useLanguage();
   const { id } = useParams();
   const navigate = useNavigate();
 
@@ -43,7 +45,7 @@ export function DraftPlan() {
       })
       .catch((err) => {
         if (!mounted) return;
-        setError(err.message || 'Failed to load plan from server.');
+        setError(translate(err.message || 'Failed to load plan from server.'));
         setPlan(null);
       })
       .finally(() => {
@@ -185,7 +187,7 @@ export function DraftPlan() {
       <div>
         <Button variant="text" onClick={() => navigate('/trips')}>
           <ArrowLeft size={16} style={{ marginRight: 6 }} />
-          Back to Your Trips
+          {t('draft.backToTrips')}
         </Button>
       </div>
 
@@ -193,21 +195,21 @@ export function DraftPlan() {
       <div className="ayn-draft-page__header">
         <div className="ayn-draft-page__header-info">
           <h1 className="ayn-draft-page__title">
-            Trip to {plan.destination?.city || 'Egypt'}
+            {t('draft.tripTo')} {translate(plan.destination?.city || t('destination.egypt'))}
           </h1>
           <div className="ayn-draft-page__meta">
             <span>
-              {formatDisplayDate(plan.start_date)} – {formatDisplayDate(plan.end_date)}
+              {formatDisplayDate(plan.start_date, language)} – {formatDisplayDate(plan.end_date, language)}
             </span>
             <span>•</span>
-            <span>{plan.travelers} {plan.travelers === 1 ? 'traveler' : 'travelers'}</span>
+            <span>{plan.travelers} {plan.travelers === 1 ? t('trip.traveler') : t('trip.travelers')}</span>
             <span>•</span>
             {/* Status indicator (DESIGN §4.10) */}
             <span className={`ayn-draft-page__status ayn-draft-page__status--${plan.status}`}>
               {isConfirmed && <CheckCircle2 size={16} />}
               {isDraft && <Clock size={16} />}
               {plan.status === 'cancelled' && <XCircle size={16} />}
-              {plan.status}
+              {t(`trip.status.${plan.status}`, plan.status)}
             </span>
           </div>
         </div>
@@ -220,27 +222,27 @@ export function DraftPlan() {
                 variant="secondary"
                 onClick={() => navigate(`/plan/${plan.id}/options`)}
               >
-                Stays & Flights
+                {t('draft.staysFlights')}
               </Button>
               <Button
                 variant="secondary"
                 onClick={() => setIsManualEditMode(!isManualEditMode)}
               >
                 <Edit3 size={16} style={{ marginRight: 6 }} />
-                {isManualEditMode ? 'Done editing' : 'Edit plan'}
+                {isManualEditMode ? t('draft.doneEditing') : t('draft.editPlan')}
               </Button>
               <Button
                 variant="primary"
                 onClick={handleConfirmPlan}
               >
-                Confirm trip
+                {t('draft.confirmTrip')}
               </Button>
               <Button
                 variant="secondary"
                 style={{ color: 'var(--color-error)' }}
                 onClick={handleCancelPlan}
               >
-                Cancel trip
+                {t('draft.cancelTrip')}
               </Button>
             </>
           )}
@@ -251,20 +253,20 @@ export function DraftPlan() {
                 variant="primary"
                 onClick={() => navigate(`/plan/${plan.id}/confirmed`)}
               >
-                Confirmation & Export
+                {t('draft.confirmationExport')}
               </Button>
               <Button
                 variant="secondary"
                 onClick={() => navigate(`/plan/${plan.id}/rate`)}
               >
-                Rate trip
+                {t('draft.rateTrip')}
               </Button>
               <Button
                 variant="secondary"
                 style={{ color: 'var(--color-error)' }}
                 onClick={handleCancelPlan}
               >
-                Cancel trip
+                {t('draft.cancelTrip')}
               </Button>
             </>
           )}
@@ -275,9 +277,9 @@ export function DraftPlan() {
       {isConfirmed && (
         <div className="ayn-draft-page__confirmed-banner">
           <div>
-            <h3 className="ayn-draft-page__confirmed-title">Your trip is confirmed!</h3>
+            <h3 className="ayn-draft-page__confirmed-title">{t('draft.confirmedTitle')}</h3>
             <p className="ayn-draft-page__confirmed-desc">
-              Your itinerary and budget are locked. Have a wonderful adventure in {plan.destination?.city}!
+              {t('draft.confirmedDescription')} {translate(plan.destination?.city)}!
             </p>
           </div>
         </div>
@@ -288,17 +290,17 @@ export function DraftPlan() {
         {/* Left Column: Day timeline cards */}
         <div className="ayn-draft-page__left">
           <div className="ayn-draft-page__itinerary-header">
-            <h2 className="ayn-draft-page__itinerary-title">Itinerary</h2>
+            <h2 className="ayn-draft-page__itinerary-title">{t('draft.itinerary')}</h2>
           </div>
           <p className="ayn-draft-page__itinerary-note">
-            Prices are for all travelers.
+            {t('draft.pricesForTravelers')}
           </p>
 
           {plan.itinerary?.map((day, idx) => (
             <DayTimelineCard
               key={day.day || idx}
               dayNumber={day.day}
-              date={formatDisplayDate(day.date)}
+              date={formatDisplayDate(day.date, language)}
               currency={plan.currency}
               activities={day.activities || []}
               editMode={isManualEditMode}

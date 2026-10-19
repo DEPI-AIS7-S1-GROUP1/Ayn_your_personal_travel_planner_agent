@@ -93,6 +93,45 @@
   position: relative;
 }
 
+.ayn-language-toggle {
+  display: inline-flex;
+  align-items: center;
+  min-height: 36px;
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-input);
+  background-color: var(--color-surface);
+  overflow: hidden;
+}
+
+.ayn-language-toggle__option {
+  min-height: 32px;
+  padding: 0 8px;
+  border: none;
+  background: transparent;
+  color: var(--color-text-muted);
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.ayn-language-toggle__option:hover,
+.ayn-language-toggle__option--active {
+  background-color: var(--color-sky);
+  color: var(--color-primary);
+}
+
+.ayn-language-toggle__option:focus-visible {
+  outline: var(--focus-ring);
+  outline-offset: -2px;
+}
+
+.ayn-language-toggle__divider {
+  color: var(--color-border);
+  font-size: 14px;
+  line-height: 1;
+}
+
 .ayn-navbar__avatar-btn {
   width: 42px;
   height: 42px;

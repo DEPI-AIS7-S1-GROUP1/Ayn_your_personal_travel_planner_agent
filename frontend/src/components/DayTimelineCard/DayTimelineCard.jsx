@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { BedDouble, Utensils, Compass, CarTaxiFront, Plane } from 'lucide-react';
 import { Button } from '../Button';
 import { Input } from '../Input';
 import { SegmentedChoice } from '../SegmentedChoice';
 import './DayTimelineCard.css';
+import { useLanguage } from '../../context/LanguageContext.js';
 
 const CATEGORY_ICONS = {
   hotel: BedDouble,
@@ -28,11 +29,11 @@ const SLOT_OPTIONS = [
 
 const SLOTS_ORDER = ['morning', 'afternoon', 'evening'];
 
-function formatCost(cost, category, currency = 'EGP') {
+function formatCost(cost, category, currency = 'EGP', t) {
   const num = Number(cost) || 0;
   if (num === 0) {
     if (category === 'hotel') return null;
-    return 'Free';
+    return t('common.free');
   }
   return `${currency} ${num.toLocaleString()}`;
 }
@@ -63,6 +64,7 @@ export function DayTimelineCard({
   onRemoveActivity,
   className = ''
 }) {
+  const { t, translate } = useLanguage();
   const [editingId, setEditingId] = useState(null);
   const [isAddingNew, setIsAddingNew] = useState(false);
   const [formData, setFormData] = useState({
@@ -128,7 +130,7 @@ export function DayTimelineCard({
     );
     return {
       key: slotKey,
-      label: slotKey.toUpperCase(),
+      label: t(`time.${slotKey}`),
       activities: slotActivities
     };
   }).filter((group) => group.activities.length > 0 || (isAddingNew && formData.slot === group.key));
@@ -138,7 +140,7 @@ export function DayTimelineCard({
       {/* Header */}
       <div className="ayn-day-card__header">
         <div className="ayn-day-card__title-group">
-          <h3 className="ayn-day-card__title">Day {dayNumber}</h3>
+          <h3 className="ayn-day-card__title">{t('trip.day')} {dayNumber}</h3>
           {date && <span className="ayn-day-card__date">{date}</span>}
         </div>
         <span className="ayn-day-card__day-total tabular-nums">
@@ -149,7 +151,7 @@ export function DayTimelineCard({
       {/* Timeline slots */}
       <div className="ayn-day-card__timeline">
         {slotGroups.length === 0 && !isAddingNew ? (
-          <div className="ayn-day-card__date">No activities planned for this day.</div>
+          <div className="ayn-day-card__date">{t('trip.noActivities')}</div>
         ) : (
           slotGroups.map((group) => (
             <div key={group.key} className="ayn-day-card__slot-group">
@@ -160,33 +162,33 @@ export function DayTimelineCard({
                 {group.activities.map((activity) => {
                   const Icon = CATEGORY_ICONS[activity.category] || Compass;
                   const isCurrentlyEditing = editingId === activity.id;
-                  const costFormatted = formatCost(activity.estimated_cost, activity.category, currency);
+                  const costFormatted = formatCost(activity.estimated_cost, activity.category, currency, t);
 
                   return (
                     <div key={activity.id} className="ayn-activity-row-wrapper">
                       {isCurrentlyEditing ? (
                         <div className="ayn-activity-edit-form">
                           <Input
-                            label="Title"
+                            label={t('activity.title')}
                             value={formData.title}
                             onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                           />
                           <Input
                             as="textarea"
-                            label="Description"
+                            label={t('activity.description')}
                             value={formData.description}
                             onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                           />
                           <div className="ayn-activity-edit-form__row">
                             <SegmentedChoice
-                              label="Time Slot"
+                              label={t('activity.timeSlot')}
                               options={SLOT_OPTIONS}
                               value={formData.slot}
                               onChange={(val) => setFormData({ ...formData, slot: val })}
                             />
                             <Input
                               as="select"
-                              label="Category"
+                              label={t('activity.category')}
                               value={formData.category}
                               onChange={(e) => setFormData({ ...formData, category: e.target.value })}
                               options={CATEGORY_OPTIONS}
@@ -194,16 +196,16 @@ export function DayTimelineCard({
                           </div>
                           <Input
                             as="number"
-                            label="Cost"
+                            label={t('activity.cost')}
                             value={formData.estimated_cost}
                             onChange={(e) => setFormData({ ...formData, estimated_cost: e.target.value })}
                           />
                           <div className="ayn-activity-edit-form__actions">
                             <Button variant="secondary" onClick={cancelEdit}>
-                              Cancel
+                              {t('common.cancel')}
                             </Button>
                             <Button variant="primary" onClick={saveEdit}>
-                              Save
+                              {t('common.save')}
                             </Button>
                           </div>
                         </div>
@@ -215,7 +217,7 @@ export function DayTimelineCard({
 
                           <div className="ayn-activity-row__main">
                             <div className="ayn-activity-row__header">
-                              <h4 className="ayn-activity-row__title">{activity.title}</h4>
+                              <h4 className="ayn-activity-row__title">{translate(activity.title)}</h4>
                               {costFormatted && (
                                 <span className="ayn-activity-row__cost tabular-nums">
                                   {costFormatted}
@@ -224,7 +226,7 @@ export function DayTimelineCard({
                             </div>
 
                             {activity.description && (
-                              <p className="ayn-activity-row__desc">{activity.description}</p>
+                              <p className="ayn-activity-row__desc">{translate(activity.description)}</p>
                             )}
 
                             {editMode && (
@@ -233,14 +235,14 @@ export function DayTimelineCard({
                                   variant="text"
                                   onClick={() => startEdit(activity)}
                                 >
-                                  Edit
+                                  {t('common.edit')}
                                 </Button>
                                 <Button
                                   variant="text"
                                   destructive
                                   onClick={() => onRemoveActivity?.(activity.id)}
                                 >
-                                  Remove
+                                  {t('common.remove')}
                                 </Button>
                               </div>
                             )}
@@ -255,26 +257,26 @@ export function DayTimelineCard({
                 {isAddingNew && formData.slot === group.key && (
                   <div className="ayn-activity-edit-form">
                     <Input
-                      label="Title"
+                      label={t('activity.title')}
                       value={formData.title}
                       onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                     />
                     <Input
                       as="textarea"
-                      label="Description"
+                      label={t('activity.description')}
                       value={formData.description}
                       onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                     />
                     <div className="ayn-activity-edit-form__row">
                       <SegmentedChoice
-                        label="Time Slot"
+                        label={t('activity.timeSlot')}
                         options={SLOT_OPTIONS}
                         value={formData.slot}
                         onChange={(val) => setFormData({ ...formData, slot: val })}
                       />
                       <Input
                         as="select"
-                        label="Category"
+                        label={t('activity.category')}
                         value={formData.category}
                         onChange={(e) => setFormData({ ...formData, category: e.target.value })}
                         options={CATEGORY_OPTIONS}
@@ -282,16 +284,16 @@ export function DayTimelineCard({
                     </div>
                     <Input
                       as="number"
-                      label="Cost"
+                      label={t('activity.cost')}
                       value={formData.estimated_cost}
                       onChange={(e) => setFormData({ ...formData, estimated_cost: e.target.value })}
                     />
                     <div className="ayn-activity-edit-form__actions">
                       <Button variant="secondary" onClick={cancelEdit}>
-                        Cancel
+                        {t('common.cancel')}
                       </Button>
                       <Button variant="primary" onClick={saveEdit}>
-                        Save
+                        {t('common.save')}
                       </Button>
                     </div>
                   </div>
@@ -306,7 +308,7 @@ export function DayTimelineCard({
       {editMode && !isAddingNew && !editingId && (
         <div className="ayn-day-card__footer">
           <Button variant="secondary" onClick={startAddNew}>
-            Add activity
+            {t('activity.add')}
           </Button>
         </div>
       )}

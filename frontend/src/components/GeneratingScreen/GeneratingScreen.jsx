@@ -1,5 +1,5 @@
-import React from 'react';
 import { Button } from '../Button';
+import { useLanguage } from '../../context/LanguageContext.js';
 import './GeneratingScreen.css';
 
 /**
@@ -10,6 +10,7 @@ import './GeneratingScreen.css';
  * On 502: inline message and "Try again" button.
  */
 export function GeneratingScreen({ error, onRetry, onCancel }) {
+  const { t, translate } = useLanguage();
   return (
     <div className="ayn-generating-card">
       {!error && (
@@ -19,25 +20,25 @@ export function GeneratingScreen({ error, onRetry, onCancel }) {
       )}
 
       <h2 className="ayn-generating-card__title">
-        {error ? 'Generation Failed' : 'Building your plan'}
+        {error ? t('generating.failed') : t('generating.title')}
       </h2>
 
       <p className="ayn-generating-card__desc">
         {error
-          ? error
-          : 'Ayn is tailoring activities, balancing your budget, and finding hotels and flights.'}
+          ? translate(error)
+          : t('generating.description')}
       </p>
 
       {error && (
         <div style={{ marginTop: 16, display: 'flex', gap: 12, justifyContent: 'center' }}>
           {onRetry && (
             <Button variant="primary" onClick={onRetry}>
-              Try again
+              {t('common.tryAgain')}
             </Button>
           )}
           {onCancel && (
             <Button variant="secondary" onClick={onCancel}>
-              Back to form
+              {t('common.backToForm')}
             </Button>
           )}
         </div>

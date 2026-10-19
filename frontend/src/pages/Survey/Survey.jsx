@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Check } from 'lucide-react';
 import { Button } from '../../components/Button';
 import api from '../../services/api';
+import { useLanguage } from '../../context/LanguageContext.js';
 import './Survey.css';
 
 const PERSONALITY_OPTIONS = [
@@ -37,6 +38,7 @@ const DIETARY_OPTIONS = [
 
 export function Survey() {
   const navigate = useNavigate();
+  const { t } = useLanguage();
 
   const [personality, setPersonality] = useState([]);
   const [hobbies, setHobbies] = useState([]);
@@ -106,16 +108,16 @@ export function Survey() {
 
   return (
     <div className="ayn-survey-page">
-      <h1 className="ayn-survey-page__title">Travel Survey & Profile</h1>
+      <h1 className="ayn-survey-page__title">{t('survey.title')}</h1>
       <p className="ayn-survey-page__desc">
-        Help Ayn understand who you are so every day in Egypt matches your taste and pace.
+        {t('survey.description')}
       </p>
 
       <form className="ayn-survey-page__form" onSubmit={handleSave}>
         {/* Personality */}
         <div>
           <h3 className="ayn-survey-page__section-title">
-            Travel Style (Pick 1 to 3)
+            {t('survey.travelStyle')}
           </h3>
           <div className="ayn-chips-grid">
             {PERSONALITY_OPTIONS.map((opt) => {
@@ -128,7 +130,7 @@ export function Survey() {
                   onClick={() => toggleItem(personality, setPersonality, opt.value, 3)}
                 >
                   {selected && <Check size={16} />}
-                  {opt.label}
+                  {t(`survey.option.${opt.value}`, opt.label)}
                 </button>
               );
             })}
@@ -138,7 +140,7 @@ export function Survey() {
         {/* Hobbies */}
         <div>
           <h3 className="ayn-survey-page__section-title">
-            Interests & Hobbies
+            {t('survey.interests')}
           </h3>
           <div className="ayn-chips-grid">
             {HOBBY_OPTIONS.map((opt) => {
@@ -151,7 +153,7 @@ export function Survey() {
                   onClick={() => toggleItem(hobbies, setHobbies, opt.value)}
                 >
                   {selected && <Check size={16} />}
-                  {opt.label}
+                  {t(`survey.option.${opt.value}`, opt.label)}
                 </button>
               );
             })}
@@ -161,7 +163,7 @@ export function Survey() {
         {/* Dietary limits */}
         <div>
           <h3 className="ayn-survey-page__section-title">
-            Dietary limits
+            {t('survey.dietaryLimits')}
           </h3>
           <div className="ayn-chips-grid">
             {DIETARY_OPTIONS.map((opt) => {
@@ -174,7 +176,7 @@ export function Survey() {
                   onClick={() => toggleItem(dietary, setDietary, opt.value)}
                 >
                   {selected && <Check size={16} />}
-                  {opt.label}
+                  {t(`survey.option.${opt.value}`, opt.label)}
                 </button>
               );
             })}
@@ -184,7 +186,7 @@ export function Survey() {
         {/* Food likes / dislikes */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
           <label className="ayn-dest-page__label">
-            Food likes (comma-separated)
+            {t('survey.foodLikes')}
           </label>
           <input
             type="text"
@@ -196,7 +198,7 @@ export function Survey() {
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
           <label className="ayn-dest-page__label">
-            Food dislikes (comma-separated)
+            {t('survey.foodDislikes')}
           </label>
           <input
             type="text"
@@ -209,7 +211,7 @@ export function Survey() {
         {/* Last trip feedback */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
           <label className="ayn-dest-page__label">
-            What did you like on your last trip?
+            {t('survey.likedLastTrip')}
           </label>
           <textarea
             className="ayn-survey-textarea"
@@ -220,7 +222,7 @@ export function Survey() {
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
           <label className="ayn-dest-page__label">
-            What did you dislike on your last trip?
+            {t('survey.dislikedLastTrip')}
           </label>
           <textarea
             className="ayn-survey-textarea"
@@ -230,7 +232,7 @@ export function Survey() {
         </div>
 
         <Button variant="primary" type="submit" disabled={isSaving || isLoading}>
-          {isSaving ? 'Saving...' : 'Save and continue to Destination'}
+          {isSaving ? t('common.saving') : t('survey.save')}
         </Button>
       </form>
     </div>

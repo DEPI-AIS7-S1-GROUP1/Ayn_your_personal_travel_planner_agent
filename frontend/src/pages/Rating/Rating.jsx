@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { X, Check } from 'lucide-react';
 import { SegmentedChoice } from '../../components/SegmentedChoice';
 import { Button } from '../../components/Button';
 import api from '../../services/api';
+import { useLanguage } from '../../context/LanguageContext.js';
 import './Rating.css';
 
 const SCORE_OPTIONS = [
@@ -17,6 +18,7 @@ const SCORE_OPTIONS = [
 export function Rating() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { t, translate } = useLanguage();
 
   const [score, setScore] = useState('5');
   const [liked, setLiked] = useState([]);
@@ -77,7 +79,7 @@ export function Rating() {
         navigate('/trips');
       }, 1500);
     } catch (err) {
-      setError(err.message || 'Failed to submit rating.');
+      setError(translate(err.message || 'Failed to submit rating.'));
       setSubmitting(false);
     }
   };
@@ -85,34 +87,34 @@ export function Rating() {
   return (
     <div className="ayn-rating-page">
       <div className="ayn-rating-card">
-        <h1 className="ayn-rating-card__title">Rate your trip</h1>
+        <h1 className="ayn-rating-card__title">{t('rating.title')}</h1>
         <p className="ayn-rating-card__subtitle">
-          Your feedback helps Ayn learn what you love for your future trips in Egypt.
+          {t('rating.description')}
         </p>
 
         {success ? (
           <div className="ayn-rating-card__success">
             <Check size={32} color="var(--color-green)" />
-            <h3>Thank you for rating!</h3>
-            <p>Taking you back to your trips...</p>
+            <h3>{t('rating.thankYou')}</h3>
+            <p>{t('rating.returning')}</p>
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="ayn-rating-form">
             {/* Score Selector */}
             <div className="ayn-rating-field">
-              <label className="ayn-rating-label">Overall rating</label>
+              <label className="ayn-rating-label">{t('rating.overall')}</label>
               <SegmentedChoice
                 options={SCORE_OPTIONS}
                 value={score}
                 onChange={setScore}
               />
-              <span className="ayn-rating-hint">1 = poor, 5 = excellent</span>
+              <span className="ayn-rating-hint">{t('rating.scale')}</span>
             </div>
 
             {/* What you liked */}
             <div className="ayn-rating-field">
               <label className="ayn-rating-label">
-                What did you like? <span className="ayn-rating-counter">({liked.length}/10)</span>
+                {t('rating.liked')} <span className="ayn-rating-counter">({liked.length}/10)</span>
               </label>
               <div className="ayn-chips-wrap">
                 {liked.map((item) => (
@@ -131,7 +133,7 @@ export function Rating() {
               <input
                 type="text"
                 className="ayn-rating-input"
-                placeholder="Type and press Enter (e.g. Diving in Dahab)"
+                placeholder={t('rating.likedPlaceholder')}
                 value={likedInput}
                 onChange={(e) => setLikedInput(e.target.value)}
                 onKeyDown={handleAddLiked}
@@ -142,7 +144,7 @@ export function Rating() {
             {/* What could be improved */}
             <div className="ayn-rating-field">
               <label className="ayn-rating-label">
-                What could be improved? <span className="ayn-rating-counter">({disliked.length}/10)</span>
+                {t('rating.improved')} <span className="ayn-rating-counter">({disliked.length}/10)</span>
               </label>
               <div className="ayn-chips-wrap">
                 {disliked.map((item) => (
@@ -161,7 +163,7 @@ export function Rating() {
               <input
                 type="text"
                 className="ayn-rating-input"
-                placeholder="Type and press Enter (e.g. Long bus rides)"
+                placeholder={t('rating.improvedPlaceholder')}
                 value={dislikedInput}
                 onChange={(e) => setDislikedInput(e.target.value)}
                 onKeyDown={handleAddDisliked}
@@ -171,11 +173,11 @@ export function Rating() {
 
             {/* Comment */}
             <div className="ayn-rating-field">
-              <label className="ayn-rating-label">Additional notes</label>
+              <label className="ayn-rating-label">{t('rating.notes')}</label>
               <textarea
                 className="ayn-rating-textarea"
                 rows={3}
-                placeholder="Any special memories or tips for next time?"
+                placeholder={t('rating.notesPlaceholder')}
                 value={comment}
                 onChange={(e) => setComment(e.target.value)}
               />
@@ -185,10 +187,10 @@ export function Rating() {
 
             <div className="ayn-rating-actions">
               <Button variant="secondary" type="button" onClick={() => navigate('/trips')}>
-                Skip
+                {t('options.skip')}
               </Button>
               <Button variant="primary" type="submit" disabled={submitting}>
-                {submitting ? 'Submitting...' : 'Submit rating'}
+                {submitting ? t('rating.submitting') : t('rating.submit')}
               </Button>
             </div>
           </form>

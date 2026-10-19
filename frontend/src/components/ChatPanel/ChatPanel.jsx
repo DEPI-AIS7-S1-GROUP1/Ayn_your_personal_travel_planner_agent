@@ -1,7 +1,8 @@
-import React, { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Button } from '../Button';
 import { PersonIllustration } from '../Illustration';
 import api from '../../services/api';
+import { useLanguage } from '../../context/LanguageContext.js';
 import './ChatPanel.css';
 
 /**
@@ -27,6 +28,7 @@ export function ChatPanel({
   onPlanUpdated,
   className = ''
 }) {
+  const { t, translate } = useLanguage();
   const [messages, setMessages] = useState([]);
   const [inputText, setInputText] = useState('');
   const [conversationId, setConversationId] = useState(null);
@@ -39,6 +41,7 @@ export function ChatPanel({
   // If status changes away from draft (or 409 received), hide panel
   useEffect(() => {
     if (planStatus !== 'draft') {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setIsPlanNonEditable(true);
     } else {
       setIsPlanNonEditable(false);
@@ -49,14 +52,15 @@ export function ChatPanel({
   useEffect(() => {
     if (!planId || planStatus !== 'draft') return;
 
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setMessages([
       {
         id: 'init_welcome',
         role: 'assistant',
-        content: 'Hi! Let me know if you would like to adjust any activities, meals, or total budget.'
+        content: t('chat.welcome')
       }
     ]);
-  }, [planId, planStatus]);
+  }, [planId, planStatus, t]);
 
   // Auto-scroll to bottom of messages
   useEffect(() => {
@@ -117,7 +121,7 @@ export function ChatPanel({
         setIsPlanNonEditable(true);
       } else {
         // On 502 or network error: show message and KEEP user's text
-        setErrorMessage('Ayn couldn’t change the plan. Try again.');
+        setErrorMessage(t('chat.updateFailed'));
       }
     } finally {
       setIsUpdating(false);
@@ -125,11 +129,11 @@ export function ChatPanel({
   };
 
   return (
-    <div className={`ayn-chat-panel ${className}`} aria-label="Ask Ayn to change it">
+    <div className={`ayn-chat-panel ${className}`} aria-label={t('chat.title')}>
       {/* Header */}
       <div className="ayn-chat-panel__header">
         <div className="ayn-chat-panel__title-group">
-          <h3 className="ayn-chat-panel__title">Ask Ayn to change it</h3>
+          <h3 className="ayn-chat-panel__title">{t('chat.title')}</h3>
         </div>
         <div className="ayn-chat-panel__figure" aria-hidden="true">
           <PersonIllustration variant="backpack" />
@@ -148,7 +152,7 @@ export function ChatPanel({
               <div className="ayn-chat-bubble__changes">
                 {msg.changes.map((c, i) => (
                   <div key={i} className="ayn-chat-bubble__change-item">
-                    • {c.description}
+                    • {translate(c.description)}
                   </div>
                 ))}
               </div>
@@ -159,7 +163,7 @@ export function ChatPanel({
         {/* Loading state indicator */}
         {isUpdating && (
           <div className="ayn-chat-panel__status">
-            Updating your plan...
+            {t('chat.updating')}
           </div>
         )}
 
@@ -172,19 +176,19 @@ export function ChatPanel({
           <input
             type="text"
             className="ayn-chat-panel__input"
-            placeholder="Describe a change"
+            placeholder={t('chat.placeholder')}
             value={inputText}
             onChange={(e) => setInputText(e.target.value)}
             disabled={isUpdating}
             maxLength={1000}
-            aria-label="Describe a change to your travel plan"
+            aria-label={t('chat.ariaLabel')}
           />
           <Button
             variant="primary"
             type="submit"
             disabled={isUpdating || !inputText.trim()}
           >
-            Send
+            {t('chat.send')}
           </Button>
         </div>
 

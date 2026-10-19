@@ -1,12 +1,14 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Plane, CarTaxiFront, Bus, Check, ArrowRight } from 'lucide-react';
 import { PictureCard } from '../../components/PictureCard';
 import { Button } from '../../components/Button';
 import api from '../../services/api';
+import { useLanguage } from '../../context/LanguageContext.js';
 import './Options.css';
 
 export function Options() {
+  const { t, translate } = useLanguage();
   const { id } = useParams();
   const navigate = useNavigate();
 
@@ -33,14 +35,14 @@ export function Options() {
       })
       .catch((err) => {
         if (!mounted) return;
-        setError(err.message || 'Failed to load options.');
+        setError(translate(err.message || 'Failed to load options.'));
         setLoading(false);
       });
 
     return () => {
       mounted = false;
     };
-  }, [id]);
+  }, [id, translate]);
 
   const handleContinue = async () => {
     setSaving(true);
@@ -50,7 +52,7 @@ export function Options() {
         selected_flight_id: selectedFlightId,
       });
       navigate(`/plan/${id}`);
-    } catch (_err) {
+    } catch {
       // Proceed even if update fails
       navigate(`/plan/${id}`);
     } finally {
@@ -62,7 +64,7 @@ export function Options() {
     return (
       <div className="ayn-options-page">
         <div className="ayn-options-page__loading">
-          <h2>Loading suggested stays, flights & rides...</h2>
+          <h2>{t('options.loading')}</h2>
         </div>
       </div>
     );
@@ -72,10 +74,10 @@ export function Options() {
     return (
       <div className="ayn-options-page">
         <div className="ayn-options-page__error">
-          <h2>Could not load options</h2>
-          <p>{error || 'Plan not found.'}</p>
+          <h2>{t('options.error')}</h2>
+          <p>{error || t('confirmed.notFound')}</p>
           <Button variant="primary" onClick={() => navigate('/trips')}>
-            Back to trips
+            {t('draft.backToTrips')}
           </Button>
         </div>
       </div>
@@ -190,6 +192,8 @@ export function Options() {
   ];
 
   const allTransport = [...flightsList, ...taxiOptions, ...busOptions];
+  const translateRoute = (from, to) =>
+    `${translate(from)} → ${translate(to)}`;
 
   const filteredTransport = allTransport.filter((item) => {
     if (transportFilter === 'all') return true;
@@ -199,17 +203,16 @@ export function Options() {
   return (
     <div className="ayn-options-page">
       <div className="ayn-options-page__header">
-        <h1 className="ayn-options-page__title">Choose your stay & transportation</h1>
+        <h1 className="ayn-options-page__title">{t('options.title')}</h1>
         <p className="ayn-options-page__subtitle">
-          Traveling from <strong>{origin}</strong> to <strong>{destCity}</strong>.
-          Compare Flights, InDrive, Kareem, and Swvl options for your journey.
-          Selected prices adjust your total trip budget automatically.
+          {t('options.subtitleFrom')} <strong>{translate(origin)}</strong> {t('trips.to')} <strong>{translate(destCity)}</strong>.
+          {t('options.subtitleCompare')} {t('options.subtitleBudget')}
         </p>
       </div>
 
       {/* Hotels Section */}
       <section className="ayn-options-section">
-        <h2 className="ayn-options-section__title">Suggested stays in {destCity}</h2>
+        <h2 className="ayn-options-section__title">{t('options.suggestedStays')} {translate(destCity)}</h2>
         <div className="ayn-options-hotels-grid">
           {hotels.map((hotel) => (
             <PictureCard
@@ -232,35 +235,35 @@ export function Options() {
       {/* Transportation Section (Air, InDrive, Kareem, Swvl) */}
       <section className="ayn-options-section">
         <div className="ayn-options-section__header-row">
-          <h2 className="ayn-options-section__title">Transportation options</h2>
+          <h2 className="ayn-options-section__title">{t('options.transportation')}</h2>
           <div className="ayn-transport-tabs">
             <button
               type="button"
               className={`ayn-transport-tab ${transportFilter === 'all' ? 'ayn-transport-tab--active' : ''}`}
               onClick={() => setTransportFilter('all')}
             >
-              All ({allTransport.length})
+              {t('options.all')} ({allTransport.length})
             </button>
             <button
               type="button"
               className={`ayn-transport-tab ${transportFilter === 'air' ? 'ayn-transport-tab--active' : ''}`}
               onClick={() => setTransportFilter('air')}
             >
-              Flights (Air)
+              {t('options.flights')}
             </button>
             <button
               type="button"
               className={`ayn-transport-tab ${transportFilter === 'taxi' ? 'ayn-transport-tab--active' : ''}`}
               onClick={() => setTransportFilter('taxi')}
             >
-              InDrive & Kareem
+              {t('options.taxis')}
             </button>
             <button
               type="button"
               className={`ayn-transport-tab ${transportFilter === 'bus' ? 'ayn-transport-tab--active' : ''}`}
               onClick={() => setTransportFilter('bus')}
             >
-              Swvl & Buses
+              {t('options.buses')}
             </button>
           </div>
         </div>
@@ -291,29 +294,29 @@ export function Options() {
                     <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                       <h4 className="ayn-flight-row__airline">{item.airline}</h4>
                       {item.categoryLabel && (
-                        <span className="ayn-transport-badge">{item.categoryLabel}</span>
+                        <span className="ayn-transport-badge">                        {translate(item.categoryLabel)}</span>
                       )}
                     </div>
-                    <span className="ayn-flight-row__details">{item.details}</span>
+                    <span className="ayn-flight-row__details">{translate(item.details)}</span>
                   </div>
                 </div>
 
                 <div className="ayn-flight-row__middle">
                   <div className="ayn-flight-row__leg">
                     <span className="ayn-flight-row__route">
-                      {item.outbound?.from} &rarr; {item.outbound?.to}
+                      {translateRoute(item.outbound?.from, item.outbound?.to)}
                     </span>
                     <span className="ayn-flight-row__date">
-                      Outbound &bull; {item.outbound?.departure?.split('T')[1]?.slice(0, 5) || 'Morning'}
+                      {t('options.outbound')} &bull; {item.outbound?.departure?.split('T')[1]?.slice(0, 5) || t('time.morning')}
                     </span>
                   </div>
                   {item.return && (
                     <div className="ayn-flight-row__leg">
                       <span className="ayn-flight-row__route">
-                        {item.return?.from} &rarr; {item.return?.to}
+                        {translateRoute(item.return?.from, item.return?.to)}
                       </span>
                       <span className="ayn-flight-row__date">
-                        Return &bull; {item.return?.departure?.split('T')[1]?.slice(0, 5) || 'Evening'}
+                        {t('options.return')} &bull; {item.return?.departure?.split('T')[1]?.slice(0, 5) || t('time.evening')}
                       </span>
                     </div>
                   )}
@@ -334,10 +337,10 @@ export function Options() {
                     {isSelected ? (
                       <>
                         <Check size={14} style={{ marginRight: 4 }} />
-                        Selected
+                        {t('options.selected')}
                       </>
                     ) : (
-                      'Select'
+                      t('options.select')
                     )}
                   </Button>
                 </div>
@@ -350,10 +353,10 @@ export function Options() {
       {/* Footer Navigation */}
       <div className="ayn-options-page__footer">
         <Button variant="secondary" onClick={() => navigate(`/plan/${id}`)}>
-          Skip to itinerary
+          {t('options.skip')}
         </Button>
         <Button variant="primary" onClick={handleContinue} disabled={saving}>
-          {saving ? 'Saving...' : 'Continue to Itinerary'}
+          {saving ? t('common.saving') : t('options.continue')}
           <ArrowRight size={16} style={{ marginLeft: 8 }} />
         </Button>
       </div>
