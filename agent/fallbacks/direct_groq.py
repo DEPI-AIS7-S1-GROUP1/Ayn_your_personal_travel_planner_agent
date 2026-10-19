@@ -31,7 +31,7 @@ def run_direct_groq_fallback(
     if not api_key or api_key.startswith("gsk_your"):
         raise ValueError("GROQ_API_KEY is not configured")
 
-    client = Groq(api_key=api_key, timeout=25.0)
+    client = Groq(api_key=api_key, timeout=float(os.getenv("GROQ_REQUEST_TIMEOUT_S", "25")))
     budget = trip["total_budget"]
     currency = trip.get("currency", "EGP")
 
@@ -80,7 +80,7 @@ def run_direct_groq_fallback(
         ],
         response_format={"type": "json_object"},
         temperature=0.2,
-        max_tokens=4096,
+        max_tokens=max(256, int(os.getenv("GROQ_MAX_OUTPUT_TOKENS", "950"))),
     )
 
     raw_content = response.choices[0].message.content

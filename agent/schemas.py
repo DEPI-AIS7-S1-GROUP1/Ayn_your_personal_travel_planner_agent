@@ -82,11 +82,13 @@ class Agent1Output(BaseModel):
 
 
 class VerifiedPlace(BaseModel):
-    """A single real place found by the Destination Searcher."""
+    """A place candidate with optional internal search evidence provenance."""
     name: str
     category: CategoryEnum
     description: str
     estimated_cost: int = Field(ge=0)
+    source_url: Optional[str] = None
+    evidence_status: Literal["source_found", "unverified"] = "unverified"
 
 
 class Agent2Output(BaseModel):
