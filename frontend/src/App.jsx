@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { BrowserRouter, Routes, Route, useNavigate, useLocation } from 'react-router-dom';
 import { Navbar, Footer, AuthModal, ErrorBoundary } from './components';
 import { Home } from './pages/Home';
@@ -11,6 +11,7 @@ import { Rating } from './pages/Rating';
 import { Survey } from './pages/Survey';
 import { ComponentsTestPage } from './pages/ComponentsTest';
 import { AuthProvider, useAuth } from './context/AuthContext';
+import { LanguageProvider } from './context/LanguageContext.jsx';
 import './App.css';
 
 function AppLayout() {
@@ -89,11 +90,13 @@ function AppLayout() {
 
 export function App() {
   return (
-    <AuthProvider>
-      <BrowserRouter>
-        <AppLayout />
-      </BrowserRouter>
-    </AuthProvider>
+    <LanguageProvider>
+      <AuthProvider>
+        <BrowserRouter>
+          <AppLayout />
+        </BrowserRouter>
+      </AuthProvider>
+    </LanguageProvider>
   );
 }
 

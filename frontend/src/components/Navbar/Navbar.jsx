@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { MapPin, Menu, X } from 'lucide-react';
 import { Button } from '../Button';
+import { useLanguage } from '../../context/LanguageContext.js';
 import './Navbar.css';
 
 /**
@@ -29,6 +30,7 @@ export function Navbar({
 }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
+  const { language, setLanguage, t } = useLanguage();
 
   const navigate = useNavigate();
   const location = useLocation();
@@ -57,6 +59,7 @@ export function Navbar({
   };
 
   const initial = user?.name ? user.name.charAt(0).toUpperCase() : 'S';
+  const handleLanguageChange = (nextLanguage) => setLanguage(nextLanguage);
 
   return (
     <header className={`ayn-navbar-wrapper ${className}`}>
@@ -66,7 +69,7 @@ export function Navbar({
           type="button"
           className="ayn-wordmark"
           onClick={() => handleNavClick('/')}
-          aria-label="Ayn Home"
+          aria-label={t('navbar.homeAriaLabel')}
         >
           <span className="ayn-wordmark__pin">
             <MapPin size={22} fill="var(--color-sun)" stroke="var(--color-sun)" />
@@ -78,7 +81,7 @@ export function Navbar({
         {/* Center Links */}
         <nav
           className={`ayn-navbar__links ${mobileNavOpen ? 'ayn-navbar__links--mobile-open' : ''}`}
-          aria-label="Main Navigation"
+          aria-label={t('navbar.mainNavigation')}
         >
           {/* Home */}
           <button
@@ -86,7 +89,7 @@ export function Navbar({
             className={`ayn-navbar__link ${location.pathname === '/' && !location.hash ? 'ayn-navbar__link--active' : ''}`}
             onClick={() => handleNavClick('/')}
           >
-            Home
+            {t('navbar.home')}
           </button>
 
           {isLoggedIn ? (
@@ -97,7 +100,7 @@ export function Navbar({
                 onClick={() => handleNavClick('/destination')}
                 style={{ height: '36px', padding: '0 16px', fontSize: '14px' }}
               >
-                Plan a trip
+                {t('navbar.planTrip')}
               </Button>
 
               {/* Your trips */}
@@ -106,7 +109,7 @@ export function Navbar({
                 className={`ayn-navbar__link ${location.pathname === '/trips' ? 'ayn-navbar__link--active' : ''}`}
                 onClick={() => handleNavClick('/trips')}
               >
-                Your trips
+                {t('navbar.yourTrips')}
               </button>
 
               {/* Components test page: DEV ONLY */}
@@ -116,7 +119,7 @@ export function Navbar({
                   className={`ayn-navbar__link ${location.pathname === '/components' ? 'ayn-navbar__link--active' : ''}`}
                   onClick={() => handleNavClick('/components')}
                 >
-                  Components
+                  {t('navbar.components')}
                 </button>
               )}
             </>
@@ -128,7 +131,7 @@ export function Navbar({
                 className="ayn-navbar__link"
                 onClick={() => scrollToSection('features')}
               >
-                How it works
+                {t('navbar.howItWorks')}
               </button>
 
               {/* About -> scrolls to about */}
@@ -137,7 +140,7 @@ export function Navbar({
                 className="ayn-navbar__link"
                 onClick={() => scrollToSection('about')}
               >
-                About
+                {t('navbar.about')}
               </button>
             </>
           )}
@@ -145,6 +148,27 @@ export function Navbar({
 
         {/* Right Actions */}
         <div className="ayn-navbar__actions">
+          <div className="ayn-language-toggle" role="group" aria-label={t('language.label')}>
+            <button
+              type="button"
+              className={`ayn-language-toggle__option ${language === 'en' ? 'ayn-language-toggle__option--active' : ''}`}
+              onClick={() => handleLanguageChange('en')}
+              aria-label={t('language.switchToEnglish')}
+              aria-pressed={language === 'en'}
+            >
+              {t('language.english')}
+            </button>
+            <span className="ayn-language-toggle__divider" aria-hidden="true">|</span>
+            <button
+              type="button"
+              className={`ayn-language-toggle__option ${language === 'ar' ? 'ayn-language-toggle__option--active' : ''}`}
+              onClick={() => handleLanguageChange('ar')}
+              aria-label={t('language.switchToArabic')}
+              aria-pressed={language === 'ar'}
+            >
+              {t('language.arabic')}
+            </button>
+          </div>
           {isLoggedIn ? (
             <div style={{ position: 'relative' }}>
               <button
@@ -152,7 +176,7 @@ export function Navbar({
                 className="ayn-navbar__avatar-btn"
                 onClick={() => setMenuOpen(!menuOpen)}
                 aria-expanded={menuOpen}
-                aria-label="User profile menu"
+                aria-label={t('navbar.profileMenu')}
               >
                 {initial}
               </button>
@@ -167,7 +191,7 @@ export function Navbar({
                       handleNavClick('/profile');
                     }}
                   >
-                    My profile
+                    {t('navbar.myProfile')}
                   </button>
                   <button
                     type="button"
@@ -177,7 +201,7 @@ export function Navbar({
                       handleNavClick('/trips');
                     }}
                   >
-                    Your trips
+                    {t('navbar.yourTrips')}
                   </button>
                   <button
                     type="button"
@@ -187,7 +211,7 @@ export function Navbar({
                       onLogout?.();
                     }}
                   >
-                    Log out
+                    {t('navbar.logOut')}
                   </button>
                 </div>
               )}
@@ -199,14 +223,14 @@ export function Navbar({
                 className="ayn-navbar__link"
                 onClick={() => onOpenLogin ? onOpenLogin() : handleNavClick('/login')}
               >
-                Log in
+                {t('navbar.logIn')}
               </button>
               <Button
                 variant="primary"
                 onClick={() => onOpenSignup ? onOpenSignup() : handleNavClick('/signup')}
                 style={{ height: '36px', padding: '0 16px', fontSize: '14px' }}
               >
-                Sign up
+                {t('navbar.signUp')}
               </Button>
             </>
           )}
@@ -216,7 +240,7 @@ export function Navbar({
             type="button"
             className="ayn-navbar__mobile-toggle"
             onClick={() => setMobileNavOpen(!mobileNavOpen)}
-            aria-label={mobileNavOpen ? 'Close menu' : 'Open menu'}
+            aria-label={mobileNavOpen ? t('navbar.closeMenu') : t('navbar.openMenu')}
           >
             {mobileNavOpen ? <X size={24} /> : <Menu size={24} />}
           </button>

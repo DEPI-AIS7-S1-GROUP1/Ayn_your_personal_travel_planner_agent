@@ -1,5 +1,5 @@
-import React from 'react';
 import { MapPin } from 'lucide-react';
+import { useLanguage } from '../../context/LanguageContext.js';
 import './Footer.css';
 
 /**
@@ -8,6 +8,8 @@ import './Footer.css';
  * @param {(linkKey: string) => void} [onNavigate]
  */
 export function Footer({ onNavigate, className = '' }) {
+  const { t } = useLanguage();
+
   return (
     <footer className={`ayn-footer-wrapper ${className}`}>
       <div className="ayn-footer">
@@ -22,45 +24,45 @@ export function Footer({ onNavigate, className = '' }) {
               <span className="ayn-wordmark__ar">أين</span>
             </div>
             <p className="ayn-footer__tagline">
-              Just tell us where. We&apos;ll cover the rest.
+              {t('footer.tagline')}
             </p>
           </div>
 
           {/* Link columns */}
           <div className="ayn-footer__links-group">
             <div className="ayn-footer__col">
-              <span className="ayn-footer__col-title">Explore</span>
+              <span className="ayn-footer__col-title">{t('footer.explore')}</span>
               <button type="button" className="ayn-footer__link" onClick={() => onNavigate?.('home')}>
-                Home
+                {t('navbar.home')}
               </button>
               <button type="button" className="ayn-footer__link" onClick={() => onNavigate?.('about')}>
-                About Ayn
+                {t('footer.aboutAyn')}
               </button>
               <button type="button" className="ayn-footer__link" onClick={() => onNavigate?.('features')}>
-                Features
+                {t('footer.features')}
               </button>
             </div>
 
             <div className="ayn-footer__col">
-              <span className="ayn-footer__col-title">Travel</span>
+              <span className="ayn-footer__col-title">{t('footer.travel')}</span>
               <button type="button" className="ayn-footer__link" onClick={() => onNavigate?.('destination')}>
-                Destination
+                {t('footer.destination')}
               </button>
               <button type="button" className="ayn-footer__link" onClick={() => onNavigate?.('survey')}>
-                Survey
+                {t('footer.survey')}
               </button>
               <button type="button" className="ayn-footer__link" onClick={() => onNavigate?.('trips')}>
-                Your trips
+                {t('navbar.yourTrips')}
               </button>
             </div>
 
             <div className="ayn-footer__col">
-              <span className="ayn-footer__col-title">System</span>
+              <span className="ayn-footer__col-title">{t('footer.system')}</span>
               <button type="button" className="ayn-footer__link" onClick={() => onNavigate?.('components')}>
-                Component Library
+                {t('footer.componentLibrary')}
               </button>
               <span className="ayn-footer__link" style={{ cursor: 'default' }}>
-                Egypt MVP v4.1
+                {t('footer.version')}
               </span>
             </div>
           </div>
@@ -68,10 +70,10 @@ export function Footer({ onNavigate, className = '' }) {
 
         <div className="ayn-footer__bottom">
           <p className="ayn-footer__copyright">
-            &copy; 2026 Ayn. Built for authentic Egyptian travel experiences.
+            {t('footer.copyright')}
           </p>
           <p className="ayn-footer__credit">
-            Cairo &bull; Alexandria &bull; Luxor &bull; Aswan &bull; Sharm El Sheikh &bull; Hurghada &bull; Dahab
+            {t('footer.cities')}
           </p>
         </div>
       </div>
