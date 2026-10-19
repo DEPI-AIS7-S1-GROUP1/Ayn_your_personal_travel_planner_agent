@@ -6,7 +6,7 @@ and produces 2-3 targeted search queries for the destination.
 """
 
 from crewai import Agent
-from agent.llm_config import get_groq_llm
+from agent.llm_config import get_gemini_llm
 
 
 def create_context_agent() -> Agent:
@@ -23,7 +23,7 @@ def create_context_agent() -> Agent:
             "things the user explicitly dislikes. You are efficient and "
             "produce minimal, structured output."
         ),
-        llm=get_groq_llm(temperature=0.2, agent_name="context"),
+        llm=get_gemini_llm(temperature=0.2, agent_name="context"),
         verbose=True,
         allow_delegation=False,
     )

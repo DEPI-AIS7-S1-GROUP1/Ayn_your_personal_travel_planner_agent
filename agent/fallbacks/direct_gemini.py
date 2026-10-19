@@ -31,12 +31,10 @@ def run_direct_gemini_fallback(
     from google import genai
     from google.genai import types
 
-    model_name = os.getenv("GEMINI_MODEL", "gemini-flash-lite-latest")
-    if model_name in ("gemini-1.5-flash", "gemini-2.5-flash", "gemini-flash-latest"):
-        model_name = "gemini-flash-lite-latest"
+    model_name = os.getenv("GEMINI_MODEL", "gemini-3.8-flash").removeprefix("gemini/")
 
     http_options = types.HttpOptions(
-        timeout=15000,
+        timeout=int(float(os.getenv("GEMINI_REQUEST_TIMEOUT_S", "20")) * 1000),
     )
     client = genai.Client(api_key=api_key.strip(), http_options=http_options)
 

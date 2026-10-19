@@ -25,12 +25,17 @@ def slow_mock_fn(profile: dict, trip: dict):
 
 def main():
     print("[RUN] Testing timeout with slow_mock_fn (timeout=2s)...")
+    started = time.monotonic()
     try:
         _run_tier_with_timeout(slow_mock_fn, {}, {}, timeout_s=2)
         print("[FAIL] Function should have timed out but completed!")
         sys.exit(1)
     except TimeoutError as exc:
-        print(f"[OK] Timeout triggered correctly: {exc}")
+        elapsed = time.monotonic() - started
+        if elapsed >= 5:
+            print(f"[FAIL] Timed-out worker blocked the caller for {elapsed:.2f}s")
+            sys.exit(1)
+        print(f"[OK] Worker stopped before returning; caller resumed after {elapsed:.2f}s: {exc}")
         sys.exit(0)
 
 

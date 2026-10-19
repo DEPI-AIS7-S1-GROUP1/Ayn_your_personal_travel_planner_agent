@@ -1,12 +1,12 @@
-"""Groq LLM configuration for CrewAI agents.
+"""Provider configuration for CrewAI agents.
 
 Supports a multi-key architecture where each CrewAI agent uses its own
 dedicated Groq API key (GROQ_API_KEY_CONTEXT, GROQ_API_KEY_SEARCH,
 GROQ_API_KEY_PLANNER) to multiply free-tier quotas.  Falls back to the
 shared GROQ_API_KEY when a per-agent key is absent or empty.
 
-Change this file to swap providers (e.g. openai/gpt-4o) without
-touching any agent or task code.
+Gemini is the primary CrewAI provider; Groq remains available as a provider
+factory for explicit fallback use. Provider details stay out of agent code.
 """
 
 import os
@@ -26,6 +26,33 @@ _AGENT_KEY_ENV: dict[str, str] = {
     "search":  "GROQ_API_KEY_SEARCH",
     "planner": "GROQ_API_KEY_PLANNER",
 }
+
+
+def _configured_key(env_var: str, placeholder_prefix: str) -> str | None:
+    value = os.getenv(env_var, "").strip()
+    if not value or value.startswith(placeholder_prefix):
+        return None
+    return value
+
+
+def get_gemini_llm(temperature: float = 0.3, agent_name: str | None = None) -> LLM:
+    """Return a CrewAI/LiteLLM Gemini instance using the Google GenAI backend."""
+    api_key = _configured_key("GEMINI_API_KEY", "AIzaSy_your")
+    if not api_key:
+        raise ValueError("GEMINI_API_KEY is not configured")
+
+    model_name = os.getenv("GEMINI_MODEL", "gemini-3.8-flash").strip()
+    if not model_name:
+        raise ValueError("GEMINI_MODEL must not be empty")
+    full_model = model_name if model_name.startswith("gemini/") else f"gemini/{model_name}"
+    logger.info("Creating Gemini LLM: model=%s agent=%s", full_model, agent_name or "shared")
+    return LLM(
+        model=full_model,
+        api_key=api_key,
+        temperature=temperature,
+        max_tokens=4096,
+        timeout=float(os.getenv("GEMINI_REQUEST_TIMEOUT_S", "20")),
+    )
 
 
 def _resolve_groq_key(agent_name: str | None = None) -> str | None:

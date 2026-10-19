@@ -11,11 +11,15 @@ import sys
 import json
 import logging
 import argparse
-import concurrent.futures
+import multiprocessing
+import queue
+import time
 from pathlib import Path
 from datetime import date
 
 from dotenv import load_dotenv
+
+load_dotenv(Path(__file__).resolve().parent.parent / ".env", override=False)
 
 # Load .env before any other imports that need API keys
 # Force UTF-8 output encoding on Windows console
@@ -142,17 +146,49 @@ def run_crewai_pipeline(profile: dict, trip: dict) -> FinalPlanResponse:
 # ---------------------------------------------------------------------------
 
 GLOBAL_TIMEOUT_S = int(os.getenv("AGENT_GLOBAL_TIMEOUT_S", "40"))
+TOTAL_TIMEOUT_S = int(os.getenv("AGENT_TOTAL_TIMEOUT_S", "75"))
+
+
+def _tier_worker(result_queue, fn, args):
+    """Process entry point returning JSON-safe plan data or a safe error."""
+    try:
+        result = fn(*args)
+        result_queue.put((True, result.model_dump(mode="json", by_alias=True)))
+    except BaseException as exc:
+        result_queue.put((False, type(exc).__name__, str(exc)[:1000]))
 
 
 def _run_tier_with_timeout(fn, *args, timeout_s: int | None = None):
-    """Run fn(*args) in a worker thread; raise TimeoutError if it exceeds timeout_s."""
+    """Run a tier in a killable process with a hard wall deadline.
+
+    Terminating a local worker cannot recall a request already accepted by a
+    remote provider, so network timeouts remain configured at provider level.
+    """
     timeout = timeout_s if timeout_s is not None else GLOBAL_TIMEOUT_S
-    with concurrent.futures.ThreadPoolExecutor(max_workers=1) as ex:
-        future = ex.submit(fn, *args)
-        try:
-            return future.result(timeout=timeout)
-        except concurrent.futures.TimeoutError:
-            raise TimeoutError(f"Tier execution exceeded {timeout}s deadline")
+    ctx = multiprocessing.get_context("spawn")
+    result_queue = ctx.Queue(maxsize=1)
+    process = ctx.Process(target=_tier_worker, args=(result_queue, fn, args), daemon=True)
+    process.start()
+    process.join(timeout)
+    if process.is_alive():
+        process.terminate()
+        process.join(2)
+        if process.is_alive() and hasattr(process, "kill"):
+            process.kill()
+            process.join(2)
+        result_queue.close()
+        raise TimeoutError(f"Tier execution exceeded {timeout}s deadline; worker process terminated")
+    try:
+        succeeded, *payload = result_queue.get(timeout=1)
+    except queue.Empty as exc:
+        result_queue.close()
+        raise RuntimeError(f"Tier worker exited with code {process.exitcode} without a result") from exc
+    finally:
+        result_queue.close()
+    if not succeeded:
+        error_type, message = payload
+        raise RuntimeError(f"{error_type}: {message}")
+    return FinalPlanResponse.model_validate(payload[0])
 
 
 def generate_plan_from_dict(
@@ -171,53 +207,77 @@ def generate_plan_from_dict(
         t_dict["language"] = trip["language"]
 
     tiers = [force_tier] if force_tier else [1, 2, 3]
+    deadline = time.monotonic() + TOTAL_TIMEOUT_S
 
     for tier in tiers:
         try:
+            remaining_s = deadline - time.monotonic()
+            if tier != 3 and remaining_s <= 0:
+                raise TimeoutError(f"Overall generation deadline of {TOTAL_TIMEOUT_S}s exceeded")
             if tier == 1:
                 logger.info("🚀 Tier 1: Starting primary pipeline (CrewAI / Gemini)...")
                 tavily_key = os.getenv("TAVILY_API_KEY", "")
-                if CREWAI_AVAILABLE and tavily_key and not tavily_key.startswith("tvly_your"):
+                if CREWAI_AVAILABLE:
                     try:
                         plan = _run_tier_with_timeout(
-                            run_crewai_pipeline, p_dict, t_dict, timeout_s=GLOBAL_TIMEOUT_S
+                            run_crewai_pipeline, p_dict, t_dict,
+                            timeout_s=max(1, min(GLOBAL_TIMEOUT_S, int(remaining_s))),
                         )
-                        tier_name = "crewai"
+                        tier_name = "crewai_gemini"
                     except Exception as crew_err:
                         logger.warning(
-                            "CrewAI pipeline failed or timed out (%s), trying direct Gemini: %s",
+                            "CrewAI/Gemini pipeline failed; proceeding to configured fallback (%s): %s",
                             type(crew_err).__name__,
                             crew_err,
                         )
-                        plan = _run_tier_with_timeout(
-                            run_direct_gemini_fallback, p_dict, t_dict, timeout_s=20
-                        )
-                        tier_name = "gemini"
+                        raise crew_err
                 else:
                     plan = _run_tier_with_timeout(
-                        run_direct_gemini_fallback, p_dict, t_dict, timeout_s=20
+                        run_direct_gemini_fallback, p_dict, t_dict,
+                        timeout_s=max(1, min(int(os.getenv("AGENT_GEMINI_TIMEOUT_S", "20")), int(remaining_s))),
                     )
-                    tier_name = "gemini"
+                    tier_name = "direct_gemini_unverified"
             elif tier == 2:
                 logger.info("⚡ Tier 2: Direct Groq fallback...")
                 plan = _run_tier_with_timeout(
-                    run_direct_groq_fallback, p_dict, t_dict, timeout_s=30
+                    run_direct_groq_fallback, p_dict, t_dict,
+                    timeout_s=max(1, min(int(os.getenv("AGENT_GROQ_TIMEOUT_S", "30")), int(remaining_s))),
                 )
-                tier_name = "groq"
+                tier_name = "groq_unverified"
             elif tier == 3:
                 logger.info("🏗️  Tier 3: Deterministic mock builder...")
                 plan = build_mock_plan(p_dict, t_dict)
-                tier_name = "mock"
+                tier_name = "mock_unverified"
             else:
                 continue
 
             plan = post_process(plan, profile=p_dict)
             plan.search_context = tier_name
+            model_name = (os.getenv("GEMINI_MODEL", "gemini-3.8-flash") if "gemini" in tier_name
+                          else os.getenv("GROQ_MODEL", "qwen/qwen3.8-27b") if tier_name == "groq_unverified"
+                          else "deterministic")
+            logger.info("Tier %d succeeded: provider=%s model=%s", tier, tier_name, model_name)
             logger.info("✅ Tier %d succeeded (%s)", tier, tier_name)
             return plan
 
         except Exception as exc:
             logger.warning("⚠️  Tier %d failed: %s", tier, exc)
+            if tier != tiers[-1]:
+                logger.info("Fallback transition: tier %d -> tier %d", tier, tiers[tiers.index(tier) + 1])
+            message = str(exc)
+            reason = ("schema_validation" if "ValidationError" in message else
+                      "malformed_json" if "JSONDecodeError" in message else
+                      "timeout" if isinstance(exc, TimeoutError) else
+                      "model_not_found_or_unavailable" if any(code in message for code in ("404", "NOT_FOUND")) else
+                      "provider_unavailable" if any(code in message for code in ("503", "UNAVAILABLE")) else
+                      "provider_error" if any(name in message for name in (
+                          "APIConnectionError", "ClientError", "ServerError", "RateLimitError",
+                      )) else "pipeline_error")
+            failed_provider = "Gemini" if tier == 1 else "Groq" if tier == 2 else "deterministic"
+            failed_model = (os.getenv("GEMINI_MODEL", "gemini-3.8-flash") if tier == 1 else
+                            os.getenv("GROQ_MODEL", "qwen/qwen3.8-27b") if tier == 2 else "n/a")
+            logger.warning("Tier %d failed: provider=%s model=%s class=%s reason=%s",
+                           tier, failed_provider, failed_model, type(exc).__name__, reason)
             if tier == tiers[-1]:
                 logger.error("❌ All tiers exhausted. No plan generated.")
                 raise

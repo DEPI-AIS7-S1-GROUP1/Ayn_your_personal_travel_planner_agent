@@ -6,7 +6,7 @@ Excludes anything that conflicts with user constraints.
 """
 
 from crewai import Agent
-from agent.llm_config import get_groq_llm
+from agent.llm_config import get_gemini_llm
 from agent.tools.tavily_tool import search_destination
 
 
@@ -27,7 +27,7 @@ def create_search_agent() -> Agent:
             "You are strictly budget-conscious and token-efficient — you execute "
             "only 2 to 3 focused queries and never make redundant search calls."
         ),
-        llm=get_groq_llm(temperature=0.3, agent_name="search"),
+        llm=get_gemini_llm(temperature=0.3, agent_name="search"),
         tools=[search_destination],
         max_iter=3,
         verbose=True,
