@@ -25,7 +25,7 @@ from app.database import Base, engine, SessionLocal
 from app.security import hash_password
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
-SAMPLE_PLAN_PATH = PROJECT_ROOT / "mock-data" / "3-day-sharm-plan.json"
+SAMPLE_PLAN_PATH = PROJECT_ROOT / "mock-data" / "plan-sharm-el-sheikh.json"
 PROFILE_PATH = PROJECT_ROOT / "mock-data" / "profile.json"
 
 
