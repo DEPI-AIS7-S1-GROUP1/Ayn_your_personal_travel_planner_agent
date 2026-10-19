@@ -36,8 +36,6 @@ export function Navbar({
   const location = useLocation();
 
   const isLoggedIn = !!user?.loggedIn;
-  const isDev = import.meta.env.DEV;
-
   const scrollToSection = (sectionId) => {
     setMobileNavOpen(false);
     if (location.pathname !== '/') {
@@ -113,15 +111,6 @@ export function Navbar({
               </button>
 
               {/* Components test page: DEV ONLY */}
-              {isDev && (
-                <button
-                  type="button"
-                  className={`ayn-navbar__link ${location.pathname === '/components' ? 'ayn-navbar__link--active' : ''}`}
-                  onClick={() => handleNavClick('/components')}
-                >
-                  {t('navbar.components')}
-                </button>
-              )}
             </>
           ) : (
             <>

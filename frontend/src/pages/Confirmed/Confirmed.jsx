@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import {
   CheckCircle2,
@@ -16,13 +16,14 @@ import {
 } from 'lucide-react';
 import { Button } from '../../components/Button';
 import api from '../../services/api';
+import { useLanguage } from '../../context/LanguageContext.js';
 import './Confirmed.css';
 
-function formatDisplayDate(dateStr) {
+function formatDisplayDate(dateStr, language) {
   if (!dateStr) return '';
   try {
     const d = new Date(dateStr);
-    return d.toLocaleDateString('en-GB', {
+    return d.toLocaleDateString(language === 'ar' ? 'ar-EG' : 'en-GB', {
       weekday: 'short',
       day: 'numeric',
       month: 'short',
@@ -33,16 +34,16 @@ function formatDisplayDate(dateStr) {
   }
 }
 
-function getSlotLabel(slot) {
+function getSlotLabel(slot, t) {
   switch (slot?.toLowerCase()) {
     case 'morning':
-      return 'Morning (صباحاً)';
+      return t('time.morning');
     case 'afternoon':
-      return 'Afternoon (ظهراً)';
+      return t('time.afternoon');
     case 'evening':
-      return 'Evening (مساءً)';
+      return t('time.evening');
     default:
-      return slot || 'Daytime';
+      return slot || t('confirmed.daytime');
   }
 }
 
@@ -62,6 +63,7 @@ function getCategoryIcon(cat) {
 }
 
 export function Confirmed() {
+  const { language, t, translate } = useLanguage();
   const { id } = useParams();
   const navigate = useNavigate();
 
@@ -144,7 +146,7 @@ export function Confirmed() {
     return (
       <div className="ayn-confirmed-page">
         <div className="ayn-confirmed-card">
-          <h2>Loading confirmation...</h2>
+          <h2>{t('confirmed.loading')}</h2>
         </div>
       </div>
     );
@@ -154,10 +156,10 @@ export function Confirmed() {
     return (
       <div className="ayn-confirmed-page">
         <div className="ayn-confirmed-card">
-          <h2>Plan not found</h2>
+          <h2>{t('confirmed.notFound')}</h2>
           <p>{error}</p>
           <Button variant="primary" onClick={() => navigate('/trips')}>
-            Back to trips
+            {t('draft.backToTrips')}
           </Button>
         </div>
       </div>
@@ -179,15 +181,15 @@ export function Confirmed() {
         <div className="ayn-confirmed-hero__icon">
           <CheckCircle2 size={48} strokeWidth={2} color="var(--color-green)" />
         </div>
-        <h1 className="ayn-confirmed-hero__title">Your trip is confirmed!</h1>
+        <h1 className="ayn-confirmed-hero__title">{t('confirmed.title')}</h1>
         <p className="ayn-confirmed-hero__subtitle">
-          {destCity}, Egypt &bull; {formatDisplayDate(plan.start_date || plan.itinerary?.[0]?.date)} to{' '}
-          {formatDisplayDate(plan.end_date || plan.itinerary?.[plan.itinerary.length - 1]?.date)}
+          {translate(destCity)}, {t('destination.egypt')} &bull; {formatDisplayDate(plan.start_date || plan.itinerary?.[0]?.date, language)} {t('trips.to')}{' '}
+          {formatDisplayDate(plan.end_date || plan.itinerary?.[plan.itinerary.length - 1]?.date, language)}
         </p>
         <div className="ayn-confirmed-trip-pills">
-          <span className="ayn-pill"><MapPin size={14} /> {destCity}</span>
-          <span className="ayn-pill"><Calendar size={14} /> {plan.itinerary?.length || 0} Days</span>
-          <span className="ayn-pill"><Users size={14} /> {plan.travelers || 2} Travelers</span>
+          <span className="ayn-pill"><MapPin size={14} /> {translate(destCity)}</span>
+          <span className="ayn-pill"><Calendar size={14} /> {plan.itinerary?.length || 0} {t('confirmed.days')}</span>
+          <span className="ayn-pill"><Users size={14} /> {plan.travelers || 2} {t('trip.travelers')}</span>
           <span className="ayn-pill">
             <Coins size={14} /> {plan.currency} {Number(plan.total_budget || 0).toLocaleString()}
           </span>
@@ -197,18 +199,18 @@ export function Confirmed() {
       <div className="ayn-confirmed-content">
         {/* Card: Take it with you */}
         <div className="ayn-confirmed-card ayn-confirmed-download-card">
-          <h2 className="ayn-confirmed-card__title">Take it with you</h2>
+          <h2 className="ayn-confirmed-card__title">{t('confirmed.takeWithYou')}</h2>
           <p className="ayn-confirmed-card__desc">
-            Download your confirmed schedule to access offline or sync activities to your calendar.
+            {t('confirmed.downloadDescription')}
           </p>
           <div className="ayn-confirmed-card__actions">
             <Button variant="primary" onClick={handleSaveToPhone}>
               <Download size={16} style={{ marginRight: 8 }} />
-              Save to phone (PDF)
+              {t('confirmed.savePhone')}
             </Button>
             <Button variant="secondary" onClick={handleExportICS}>
               <Calendar size={16} style={{ marginRight: 8 }} />
-              Add to calendar (.ics)
+              {t('confirmed.addCalendar')}
             </Button>
           </div>
         </div>
@@ -217,20 +219,20 @@ export function Confirmed() {
         {(selectedHotel || selectedFlight) && (
           <div className="ayn-confirmed-booking-box">
             <h3 className="ayn-confirmed-booking-box__title">
-              Accommodations & Travel Details
+              {t('confirmed.travelDetails')}
             </h3>
             <div className="ayn-confirmed-booking-grid">
               {selectedHotel && (
                 <div className="ayn-booking-item">
                   <div className="ayn-booking-item__icon"><BedDouble size={22} /></div>
                   <div className="ayn-booking-item__content">
-                    <div className="ayn-booking-item__type">Hotel Stay</div>
+                    <div className="ayn-booking-item__type">{t('confirmed.hotelStay')}</div>
                     <div className="ayn-booking-item__name">{selectedHotel.name}</div>
                     <div className="ayn-booking-item__sub">
-                      {selectedHotel.area || destCity} &bull; {selectedHotel.stars || 4} Stars
+                      {translate(selectedHotel.area || destCity)} &bull; {selectedHotel.stars || 4} {t('confirmed.stars')}
                     </div>
                     <div className="ayn-booking-item__price">
-                      {plan.currency} {Number(selectedHotel.total_price || 0).toLocaleString()} total
+                      {plan.currency} {Number(selectedHotel.total_price || 0).toLocaleString()} {t('confirmed.total')}
                     </div>
                   </div>
                 </div>
@@ -239,15 +241,15 @@ export function Confirmed() {
                 <div className="ayn-booking-item">
                   <div className="ayn-booking-item__icon"><Plane size={22} /></div>
                   <div className="ayn-booking-item__content">
-                    <div className="ayn-booking-item__type">Transportation</div>
+                    <div className="ayn-booking-item__type">{t('confirmed.transportation')}</div>
                     <div className="ayn-booking-item__name">
                       {selectedFlight.airline || 'EgyptAir / Intercity Transport'}
                     </div>
                     <div className="ayn-booking-item__sub">
-                      Departure from {selectedFlight.outbound?.from || origin} to {destCity}
+                      {t('confirmed.departureFrom')} {translate(selectedFlight.outbound?.from || origin)} {t('trips.to')} {translate(destCity)}
                     </div>
                     <div className="ayn-booking-item__price">
-                      {plan.currency} {Number(selectedFlight.price || 0).toLocaleString()} total
+                      {plan.currency} {Number(selectedFlight.price || 0).toLocaleString()} {t('confirmed.total')}
                     </div>
                   </div>
                 </div>
@@ -260,10 +262,10 @@ export function Confirmed() {
         <div className="ayn-confirmed-itinerary">
           <div className="ayn-confirmed-itinerary__header">
             <h2 className="ayn-confirmed-itinerary__title">
-              Confirmed Day-by-Day Schedule
+              {t('confirmed.scheduleTitle')}
             </h2>
             <p className="ayn-confirmed-itinerary__desc">
-              Your complete itinerary with activities, time slots, and costs.
+              {t('confirmed.scheduleDescription')}
             </p>
           </div>
 
@@ -272,11 +274,11 @@ export function Confirmed() {
               <div key={day.day} className="ayn-confirmed-day-card">
                 <div className="ayn-confirmed-day-header">
                   <div className="ayn-confirmed-day-meta">
-                    <span className="ayn-confirmed-day-badge">Day {day.day}</span>
-                    <span className="ayn-confirmed-day-date">{formatDisplayDate(day.date)}</span>
+                    <span className="ayn-confirmed-day-badge">{t('trip.day')} {day.day}</span>
+                    <span className="ayn-confirmed-day-date">{formatDisplayDate(day.date, language)}</span>
                   </div>
                   {day.theme && (
-                    <div className="ayn-confirmed-day-theme">{day.theme}</div>
+                    <div className="ayn-confirmed-day-theme">{translate(day.theme)}</div>
                   )}
                 </div>
 
@@ -286,23 +288,23 @@ export function Confirmed() {
                       <div className="ayn-confirmed-act-top">
                         <span className="ayn-confirmed-act-slot-pill">
                           {getCategoryIcon(act.category)}
-                          <span>{getSlotLabel(act.time_slot)}</span>
+                          <span>{getSlotLabel(act.time_slot, t)}</span>
                         </span>
                         {Number(act.estimated_cost) > 0 ? (
                           <span className="ayn-confirmed-act-cost">
                             {plan.currency} {Number(act.estimated_cost).toLocaleString()}
                           </span>
                         ) : (
-                          <span className="ayn-confirmed-act-cost--free">Included / Free</span>
+                          <span className="ayn-confirmed-act-cost--free">{t('confirmed.includedFree')}</span>
                         )}
                       </div>
                       <div className="ayn-confirmed-act-body">
-                        <h4 className="ayn-confirmed-act-title">{act.title}</h4>
+                        <h4 className="ayn-confirmed-act-title">{translate(act.title)}</h4>
                         {act.description && (
-                          <p className="ayn-confirmed-act-desc">{act.description}</p>
+                          <p className="ayn-confirmed-act-desc">{translate(act.description)}</p>
                         )}
                         {act.booking_required && (
-                          <span className="ayn-confirmed-act-tag">Advance Booking Recommended</span>
+                          <span className="ayn-confirmed-act-tag">{t('confirmed.bookingRecommended')}</span>
                         )}
                       </div>
                     </div>
@@ -315,21 +317,21 @@ export function Confirmed() {
 
         {/* Card: After your trip */}
         <div className="ayn-confirmed-card ayn-confirmed-rate-card">
-          <h2 className="ayn-confirmed-card__title">After your trip</h2>
+          <h2 className="ayn-confirmed-card__title">{t('confirmed.afterTrip')}</h2>
           <p className="ayn-confirmed-card__desc">
-            Help Ayn improve future recommendations by telling us what you loved and what could be better.
+            {t('confirmed.afterTripDescription')}
           </p>
           <div className="ayn-confirmed-card__actions">
             <Button variant="secondary" onClick={() => navigate(`/plan/${id}/rate`)}>
               <Star size={16} style={{ marginRight: 8 }} />
-              Rate your trip
+              {t('trips.rateThis')}
             </Button>
           </div>
         </div>
 
         <div className="ayn-confirmed-footer-link">
           <Link to="/trips" className="ayn-confirmed-link">
-            View all your trips &rarr;
+            {t('trips.viewAll')} &rarr;
           </Link>
         </div>
       </div>

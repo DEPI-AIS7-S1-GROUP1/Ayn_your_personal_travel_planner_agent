@@ -58,9 +58,6 @@ export function Footer({ onNavigate, className = '' }) {
 
             <div className="ayn-footer__col">
               <span className="ayn-footer__col-title">{t('footer.system')}</span>
-              <button type="button" className="ayn-footer__link" onClick={() => onNavigate?.('components')}>
-                {t('footer.componentLibrary')}
-              </button>
               <span className="ayn-footer__link" style={{ cursor: 'default' }}>
                 {t('footer.version')}
               </span>
