@@ -122,6 +122,16 @@ def restaurant_names(evidence: list[dict], city: str = "") -> list[str]:
     return names[:MAX_NAMES]
 
 
+_BAR = re.compile(r"\b(bar|pub|lounge|wine|beer|brewery|tavern)\b", re.IGNORECASE)
+
+
+def suitable_names(names: list[str], profile: dict) -> list[str]:
+    """Drop bars and pubs for a halal profile ("Yalla Bar Dahab" is not a halal lunch)."""
+    if "halal" not in (profile.get("dietary_limits") or []):
+        return names
+    return [n for n in names if not _BAR.search(n)]
+
+
 def restaurant_rule_block(evidence: list[dict], trip: dict) -> str:
     """Prompt section for the LLM tiers. Empty when there is no evidence (prompt unchanged)."""
     if not evidence:
@@ -138,7 +148,8 @@ def restaurant_rule_block(evidence: list[dict], trip: dict) -> str:
         'from the sources above in its title, e.g. "Lunch at Shark Restaurant". In an Arabic plan keep '
         'the restaurant name in Latin letters exactly as written, e.g. "غداء في Shark Restaurant". '
         "Mention the area or cuisine in the description when the sources give it. Pick restaurants "
-        "that fit the food likes, food dislikes and dietary limits, and use a different one for each "
+        "that fit the food likes, food dislikes and dietary limits (no bars or pubs when the limits "
+        "include halal), and use a different one for each "
         "meal when there are enough. Never invent a restaurant name; if none fits, use a generic "
         'title such as "Lunch at a local seafood restaurant".\n'
     )

@@ -15,7 +15,7 @@ email-validator==2.3.0           # sign-up email validation
 
 # ── Tests ─────────────────────────────────────────────────────────────────────
 pytest==9.1.1
-httpx==0.28.1                    # FastAPI's test client
+httpx==0.28.1                    # FastAPI's test client; also the agent's hotel photo lookup (Wikimedia)
 
 # ── Core agent framework ──────────────────────────────────────────────────────
 crewai>=0.80.0,<1.0.0           # 3-agent sequential pipeline (Tier 1)

@@ -59,6 +59,12 @@ class RestaurantNameTests(unittest.TestCase):
             self.assertNotIn(junk, names)
         self.assertEqual(len(names), len(set(names)))  # "el Tarboush" twice -> once
 
+    def test_no_bars_for_a_halal_profile(self):
+        names = ["King Chicken", "Yalla Bar Dahab", "Blue Beach Pub", "Al Sharkawy"]
+        self.assertEqual(restaurant_search.suitable_names(names, {"dietary_limits": ["halal"]}),
+                         ["King Chicken", "Al Sharkawy"])
+        self.assertEqual(restaurant_search.suitable_names(names, {"dietary_limits": []}), names)
+
     def test_query_carries_city_and_dietary_limits_only(self):
         query = build_query({"destination": {"city": "Dahab"}},
                             {"dietary_limits": ["halal", "gluten-free"], "food_likes": ["seafood"]})
