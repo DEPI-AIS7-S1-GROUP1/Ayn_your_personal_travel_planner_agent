@@ -24,11 +24,12 @@ from agent.schemas import (
 logger = logging.getLogger(__name__)
 
 
-def build_mock_plan(profile: dict, trip: dict) -> FinalPlanResponse:
+def build_mock_plan(profile: dict, trip: dict, restaurant_names: list[str] | None = None) -> FinalPlanResponse:
     """Build a valid plan deterministically from templates.
 
     Budget split: 40% hotel, 20% food, 25% activities, 15% transport.
     The transport category absorbs rounding remainder to guarantee exact sum.
+    restaurant_names: real names from agent/tools/restaurant_search.py, one per meal in turn.
     """
     start = date.fromisoformat(trip["start_date"])
     end = date.fromisoformat(trip["end_date"])
@@ -43,6 +44,18 @@ def build_mock_plan(profile: dict, trip: dict) -> FinalPlanResponse:
 
     def loc(en: str, ar: str) -> str:
         return ar if lang == "ar" else en
+
+    names = list(restaurant_names or [])
+    meal_index = 0
+
+    def meal_title(meal_en: str, meal_ar: str) -> str:
+        """"Lunch at King Chicken" when the restaurant search found names, else "Lunch in Dahab"."""
+        nonlocal meal_index
+        if not names:
+            return loc(f"{meal_en} in {city}", f"{meal_ar} في {city}")
+        name = names[meal_index % len(names)]
+        meal_index += 1
+        return loc(f"{meal_en} at {name}", f"{meal_ar} في {name}")
 
     # --- Budget split (remainder goes to transport) ---
     hotel = int(budget * 0.40)
@@ -98,7 +111,7 @@ def build_mock_plan(profile: dict, trip: dict) -> FinalPlanResponse:
 
             day_activities.append(ActivityItem(
                 id=f"act_{act_counter:03d}",
-                title=loc(f"Lunch in {city}", f"غداء في {city}"),
+                title=meal_title("Lunch", "غداء"),
                 description=loc(
                     f"A welcoming first meal at a local restaurant in {city}.",
                     f"وجبة ترحيب أولى في مطعم محلي في {city}.",
@@ -152,7 +165,7 @@ def build_mock_plan(profile: dict, trip: dict) -> FinalPlanResponse:
 
             day_activities.append(ActivityItem(
                 id=f"act_{act_counter:03d}",
-                title=loc(f"Farewell lunch in {city}", f"غداء الوداع في {city}"),
+                title=meal_title("Farewell lunch", "غداء الوداع"),
                 description=loc(
                     "A last relaxed meal before heading home.",
                     "وجبة هادئة أخيرة قبل العودة إلى المنزل.",
@@ -193,7 +206,7 @@ def build_mock_plan(profile: dict, trip: dict) -> FinalPlanResponse:
 
             day_activities.append(ActivityItem(
                 id=f"act_{act_counter:03d}",
-                title=loc(f"Lunch in {city}", f"غداء في {city}"),
+                title=meal_title("Lunch", "غداء"),
                 description=loc(
                     "A mid-day meal at a popular local spot.",
                     "وجبة منتصف اليوم في مكان محلي مشهور.",
@@ -220,7 +233,7 @@ def build_mock_plan(profile: dict, trip: dict) -> FinalPlanResponse:
 
                 day_activities.append(ActivityItem(
                     id=f"act_{act_counter:03d}",
-                    title=loc(f"Dinner in {city}", f"عشاء في {city}"),
+                    title=meal_title("Dinner", "عشاء"),
                     description=loc(
                         "Evening meal at a recommended restaurant.",
                         "وجبة مسائية في مطعم موصى به.",

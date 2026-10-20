@@ -49,6 +49,7 @@ from agent.schemas import FinalPlanResponse, UserProfile, TripRequest
 from agent.fallbacks.direct_gemini import run_direct_gemini_fallback
 from agent.fallbacks.direct_groq import run_direct_groq_fallback
 from agent.fallbacks.mock_builder import build_mock_plan
+from agent.tools.restaurant_search import named_meal_count, restaurant_names, search_restaurants
 from agent.validators.post_processor import post_process
 
 # ---------------------------------------------------------------------------
@@ -90,7 +91,7 @@ def save_plan(plan: FinalPlanResponse, path: Path) -> None:
 # Tier 1 — CrewAI Pipeline
 # ---------------------------------------------------------------------------
 
-def run_crewai_pipeline(profile: dict, trip: dict) -> FinalPlanResponse:
+def run_crewai_pipeline(profile: dict, trip: dict, restaurants: list[dict] | None = None) -> FinalPlanResponse:
     """Execute the 3-agent sequential CrewAI pipeline."""
     if not CREWAI_AVAILABLE:
         raise RuntimeError("CrewAI is not installed or available.")
@@ -103,7 +104,7 @@ def run_crewai_pipeline(profile: dict, trip: dict) -> FinalPlanResponse:
     logger.info("Creating tasks...")
     context_task = create_context_task(context_agent, profile, trip)
     search_task = create_search_task(search_agent, context_task, trip)
-    planner_task = create_planner_task(planner_agent, search_task, profile, trip)
+    planner_task = create_planner_task(planner_agent, search_task, profile, trip, restaurants)
 
     logger.info("Kicking off CrewAI pipeline...")
     crew = Crew(
@@ -218,6 +219,11 @@ def generate_plan_from_dict(
     deadline = time.monotonic() + TOTAL_TIMEOUT_S
     gemini_retried = False
 
+    # One restaurant search for every tier, so meals name real places whichever tier answers.
+    # Cached per city for 72 h; [] when Tavily is off or fails, and the plan is built as before.
+    restaurants = search_restaurants(t_dict, p_dict)
+    names = restaurant_names(restaurants, t_dict["destination"]["city"])
+
     i = 0
     while i < len(tiers):
         tier = tiers[i]
@@ -238,7 +244,7 @@ def generate_plan_from_dict(
                 if CREWAI_AVAILABLE:
                     try:
                         plan = _run_tier_with_timeout(
-                            run_crewai_pipeline, p_dict, t_dict,
+                            run_crewai_pipeline, p_dict, t_dict, restaurants,
                             timeout_s=max(1, min(GLOBAL_TIMEOUT_S, int(remaining_s))),
                         )
                         tier_name = "crewai_gemini"
@@ -251,20 +257,20 @@ def generate_plan_from_dict(
                         raise crew_err
                 else:
                     plan = _run_tier_with_timeout(
-                        run_direct_gemini_fallback, p_dict, t_dict,
+                        run_direct_gemini_fallback, p_dict, t_dict, restaurants,
                         timeout_s=max(1, min(int(os.getenv("AGENT_GEMINI_TIMEOUT_S", "20")), int(remaining_s))),
                     )
                     tier_name = "direct_gemini_unverified"
             elif tier == 2:
                 logger.info("⚡ Tier 2: Direct Groq fallback...")
                 plan = _run_tier_with_timeout(
-                    run_direct_groq_fallback, p_dict, t_dict,
+                    run_direct_groq_fallback, p_dict, t_dict, restaurants,
                     timeout_s=max(1, min(int(os.getenv("AGENT_GROQ_TIMEOUT_S", "30")), int(remaining_s))),
                 )
                 tier_name = "groq_unverified"
             elif tier == 3:
                 logger.info("🏗️  Tier 3: Deterministic mock builder...")
-                plan = build_mock_plan(p_dict, t_dict)
+                plan = build_mock_plan(p_dict, t_dict, names)
                 tier_name = "mock_unverified"
             else:
                 continue
@@ -286,6 +292,9 @@ def generate_plan_from_dict(
                           else os.getenv("GROQ_MODEL", "openai/gpt-oss-120b") if tier_name.startswith("groq")
                           else "deterministic")
             logger.info("Tier %d succeeded: provider=%s model=%s", tier, tier_name, model_name)
+            if names:
+                named, meals = named_meal_count(plan.itinerary, names)
+                logger.info("Meals naming a searched restaurant: %d of %d", named, meals)
             logger.info("✅ Tier %d succeeded (%s)", tier, tier_name)
             return plan
 

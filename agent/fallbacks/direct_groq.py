@@ -14,6 +14,7 @@ from agent.arabic import arabic_language_rule_block
 from agent.fallbacks.prompt_rules import compact_schema, days_rule
 from agent.schemas import FinalPlanResponse
 from agent.feedback import feedback_text
+from agent.tools.restaurant_search import restaurant_rule_block
 
 logger = logging.getLogger(__name__)
 
@@ -21,8 +22,11 @@ logger = logging.getLogger(__name__)
 def run_direct_groq_fallback(
     profile: dict,
     trip: dict,
+    restaurants: list[dict] | None = None,
 ) -> FinalPlanResponse:
     """Generate a plan using the Groq SDK directly (no CrewAI).
+
+    restaurants: search evidence from agent/tools/restaurant_search.py, so meals name real places.
 
     Raises
     ------
@@ -67,6 +71,7 @@ def run_direct_groq_fallback(
         f"11. created_at and updated_at: {date.today().isoformat()}\n"
         f"12. {feedback_text(profile)}\n\n"
         f"{arabic_language_rule_block(trip)}\n"
+        f"{restaurant_rule_block(restaurants or [], trip)}\n"
         f"User Profile: {json.dumps(profile)}\n"
         f"Trip Request: {json.dumps(trip)}"
     )
@@ -79,10 +84,14 @@ def run_direct_groq_fallback(
     logger.info("Calling Groq directly with model %s (Tier 2 fallback)...", model_name)
 
     # Room for every day: a 4-day Arabic plan is ~1,200-1,700 output tokens. A fixed 950 cap cut
-    # plans short (3 days of 4) and they failed validation. 6000 keeps prompt + output under the
-    # free tier's 8,000 tokens per minute.
+    # plans short (3 days of 4) and they failed validation. Prompt + output must stay under the
+    # free tier's 8,000 tokens per minute, and the restaurant sources make the prompt longer
+    # (~3 characters per token is a safe estimate for this mostly-English prompt).
     num_days = (date.fromisoformat(trip["end_date"]) - date.fromisoformat(trip["start_date"])).days + 1
-    max_tokens = int(os.getenv("GROQ_MAX_OUTPUT_TOKENS", "0")) or min(6000, 800 + 450 * num_days)
+    prompt_tokens = (len(system_msg) + len(user_msg)) // 3
+    max_tokens = int(os.getenv("GROQ_MAX_OUTPUT_TOKENS", "0")) or min(
+        6000, 800 + 450 * num_days, 7800 - prompt_tokens
+    )
     extra = {"reasoning_effort": "low"} if model_name.startswith("openai/gpt-oss") else {}
 
     response = client.chat.completions.create(

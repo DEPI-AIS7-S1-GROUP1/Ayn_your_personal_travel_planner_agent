@@ -132,8 +132,12 @@ def reset_search_counter() -> None:
         _search_counter = 0
 
 
-def _execute_tavily_search(query: str) -> str:
-    """Return structured search evidence or an explicit classified failure."""
+def _execute_tavily_search(query: str, *, enforce_limit: bool = True) -> str:
+    """Return structured search evidence or an explicit classified failure.
+
+    enforce_limit=False is for the one restaurant search per plan (agent/tools/restaurant_search.py):
+    it runs in the backend process, where the CrewAI allowance counter is never reset.
+    """
     global _search_counter
     query = query.strip()
     if not query:
@@ -150,10 +154,11 @@ def _execute_tavily_search(query: str) -> str:
         return json.dumps({"status": "error", "error_type": "authentication", "message": "TAVILY_API_KEY is not configured."})
 
     with _search_lock:
-        if _search_counter >= MAX_SEARCH_QUERIES:
+        if enforce_limit and _search_counter >= MAX_SEARCH_QUERIES:
             logger.warning("Tavily live query allowance exhausted (%d)", MAX_SEARCH_QUERIES)
             return json.dumps({"status": "error", "error_type": "query_limit", "message": "Live search limit reached; use available evidence and mark unsupported claims unverified."})
-        _search_counter += 1
+        if enforce_limit:
+            _search_counter += 1
         count = _search_counter
 
     depth = SEARCH_DEPTH if SEARCH_DEPTH in {"basic", "advanced", "fast", "ultra-fast"} else "basic"
@@ -185,10 +190,10 @@ def _execute_tavily_search(query: str) -> str:
         })
 
 
-def execute_tavily_search(query: str) -> str:
+def execute_tavily_search(query: str, *, enforce_limit: bool = True) -> str:
     """Serialize search requests so concurrent identical misses do not duplicate API calls."""
     with _query_lock:
-        return _execute_tavily_search(query)
+        return _execute_tavily_search(query, enforce_limit=enforce_limit)
 
 
 @tool("Search for real places and activities")

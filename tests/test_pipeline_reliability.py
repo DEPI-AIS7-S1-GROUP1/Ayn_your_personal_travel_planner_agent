@@ -159,9 +159,10 @@ class PipelineReliabilityTests(unittest.TestCase):
             calls.append(fn)
             if fn is main.run_crewai_pipeline:
                 raise RuntimeError("provider error")
-            return build_mock_plan(*args)
+            return build_mock_plan(*args[:2])
 
-        with patch.object(main, "CREWAI_AVAILABLE", True), patch.object(main, "_run_tier_with_timeout", fake_run):
+        with patch.object(main, "CREWAI_AVAILABLE", True), patch.object(main, "_run_tier_with_timeout", fake_run), \
+                patch.object(main, "search_restaurants", return_value=[]):
             plan = main.generate_plan_from_dict(profile, trip)
         self.assertEqual(calls, [main.run_crewai_pipeline, direct_groq.run_direct_groq_fallback])
         self.assertEqual(plan.search_context, "groq_unverified")
@@ -177,10 +178,11 @@ class PipelineReliabilityTests(unittest.TestCase):
                     calls.append(fn)
                     if fn is main.run_crewai_pipeline:
                         raise RuntimeError(marker)
-                    return build_mock_plan(*args)
+                    return build_mock_plan(*args[:2])
 
                 with patch.object(main, "CREWAI_AVAILABLE", True), \
                         patch.object(main, "_run_tier_with_timeout", fake_run), \
+                        patch.object(main, "search_restaurants", return_value=[]), \
                         self.assertLogs(main.logger, level="WARNING") as logs:
                     plan = main.generate_plan_from_dict(profile, trip)
                 self.assertEqual(plan.search_context, "groq_unverified")
@@ -193,7 +195,8 @@ class PipelineReliabilityTests(unittest.TestCase):
         def fail_provider(fn, *args, **kwargs):
             raise RuntimeError("provider unavailable")
 
-        with patch.object(main, "CREWAI_AVAILABLE", True), patch.object(main, "_run_tier_with_timeout", fail_provider):
+        with patch.object(main, "CREWAI_AVAILABLE", True), patch.object(main, "_run_tier_with_timeout", fail_provider), \
+                patch.object(main, "search_restaurants", return_value=[]):
             plan = main.generate_plan_from_dict(profile, trip)
         self.assertEqual(plan.search_context, "mock_unverified")
 
