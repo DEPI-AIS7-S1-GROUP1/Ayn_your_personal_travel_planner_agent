@@ -30,24 +30,44 @@ CHUNK_ITEMS = 14  # allam-2-7b has a 4,096-token context: input + Arabic output 
 SYSTEM_PROMPT = (
     "Translate the English travel-plan text in each item to natural Modern Standard Arabic, as a "
     "native Egyptian travel writer would: fluent and idiomatic, never word-for-word.\n"
-    "- Copy every placeholder like [[N1]] exactly as it is; it stands for a name.\n"
+    "- Copy every placeholder like [[N1]] or [[G1]] exactly as it is; it stands for a name or a word.\n"
     "- Glossary: halal = حلال, vegetarian = نباتي, vegan = نباتي صرف, gluten-free = خالٍ من الغلوتين, "
     "snorkeling = سنوركلينج, diving = غوص, check-in = تسجيل الوصول, check-out = تسجيل المغادرة, "
     "transfer = انتقال, felucca = فلوكة, koshari = كشري, Blue Hole = البلو هول, souq = سوق.\n"
     'Return JSON {"items": [...]} with the same ids and the same keys, values translated.'
 )
 
-_PLACEHOLDER = re.compile(r"\[\[N(\d+)\]\]")
+_PLACEHOLDER = re.compile(r"\[\[([NG])(\d+)\]\]")
+
+# Words the model still got wrong with the glossary in the prompt ("halal" -> "حلل"), so they
+# never reach it: like names, they become placeholders, and the Arabic is put back here.
+FIXED_TERMS = [
+    (re.compile(r"\bhalal\b", re.IGNORECASE), "حلال"),
+    (re.compile(r"\bkosh(?:a|e)ri\b", re.IGNORECASE), "كشري"),
+    (re.compile(r"\bta'?amey?a\b", re.IGNORECASE), "طعمية"),
+    (re.compile(r"\bfalafel\b", re.IGNORECASE), "فلافل"),
+    (re.compile(r"\bfelucca\b", re.IGNORECASE), "فلوكة"),
+    (re.compile(r"\bfo?ul medames\b", re.IGNORECASE), "فول مدمس"),
+]
 
 
 def _protect(text: str, names: list[str]) -> str:
     for i, name in enumerate(names, start=1):
         text = text.replace(name, f"[[N{i}]]")
+    for i, (pattern, _) in enumerate(FIXED_TERMS, start=1):
+        text = pattern.sub(f"[[G{i}]]", text)
     return text
 
 
 def _restore(text: str, names: list[str]) -> str:
-    return _PLACEHOLDER.sub(lambda m: names[int(m.group(1)) - 1] if int(m.group(1)) <= len(names) else m.group(0), text)
+    def put_back(match):
+        kind, number = match.group(1), int(match.group(2))
+        if kind == "G" and number <= len(FIXED_TERMS):
+            return FIXED_TERMS[number - 1][1]
+        if kind == "N" and number <= len(names):
+            return names[number - 1]
+        return match.group(0)
+    return _PLACEHOLDER.sub(put_back, text)
 
 
 def _arabic_punctuation(text: str) -> str:

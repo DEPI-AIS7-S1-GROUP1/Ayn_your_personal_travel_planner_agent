@@ -147,7 +147,9 @@ def restaurant_rule_block(evidence: list[dict], trip: dict) -> str:
         'RESTAURANT RULE: every activity with category "food" MUST name one specific restaurant '
         'from the sources above in its title, e.g. "Lunch at Shark Restaurant". In an Arabic plan keep '
         'the restaurant name in Latin letters exactly as written, e.g. "غداء في Shark Restaurant". '
-        "Mention the area or cuisine in the description when the sources give it. Pick restaurants "
+        "In the description name one or two dishes to order there that fit the food likes, plus the "
+        'area when the sources give it, e.g. "Try the koshari and ta\'ameya; a local favourite in '
+        'Mashraba." Pick restaurants '
         "that fit the food likes, food dislikes and dietary limits (no bars or pubs when the limits "
         "include halal), and use a different one for each "
         "meal when there are enough. Never invent a restaurant name; if none fits, use a generic "

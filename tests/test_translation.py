@@ -62,6 +62,25 @@ class TranslationTests(unittest.TestCase):
         self.assertTrue(all("،" in t for t in meals), meals)
         self.assertTrue(all("نص عربي" in h.details for h in plan.options.hotels))
 
+    def test_fixed_words_never_reach_the_model(self):
+        # The model wrote "حلل" for "halal": such words are put back by the code, not translated.
+        plan = english_plan()
+        first = plan.itinerary[0].activities[0]
+        first.description = "Halal koshari and ta'ameya at King Chicken."
+        sent = []
+
+        def spy(model, items):
+            sent.extend(items)
+            return fake_translator(model, items)
+
+        with patch.object(translation, "_call", side_effect=spy):
+            translate_plan_to_arabic(plan, ["King Chicken"])
+        blob = json.dumps(sent, ensure_ascii=False).casefold()
+        for word in ("halal", "koshari", "ta'ameya"):
+            self.assertNotIn(word, blob)
+        for arabic in ("حلال", "كشري", "طعمية", "King Chicken"):
+            self.assertIn(arabic, first.description)
+
     def test_a_dropped_or_garbled_item_keeps_its_english(self):
         plan = english_plan()
         first = plan.itinerary[0].activities[0]
