@@ -191,7 +191,7 @@ export function Confirmed() {
           <span className="ayn-pill"><Calendar size={14} /> {plan.itinerary?.length || 0} {t('confirmed.days')}</span>
           <span className="ayn-pill"><Users size={14} /> {plan.travelers || 2} {t('trip.travelers')}</span>
           <span className="ayn-pill">
-            <Coins size={14} /> {plan.currency} {Number(plan.total_budget || 0).toLocaleString()}
+            <Coins size={14} /> {translate(plan.currency)} {Number(plan.total_budget || 0).toLocaleString()}
           </span>
         </div>
       </div>
@@ -205,11 +205,11 @@ export function Confirmed() {
           </p>
           <div className="ayn-confirmed-card__actions">
             <Button variant="primary" onClick={handleSaveToPhone}>
-              <Download size={16} style={{ marginRight: 8 }} />
+              <Download size={16} style={{ marginInlineEnd: 8 }} />
               {t('confirmed.savePhone')}
             </Button>
             <Button variant="secondary" onClick={handleExportICS}>
-              <Calendar size={16} style={{ marginRight: 8 }} />
+              <Calendar size={16} style={{ marginInlineEnd: 8 }} />
               {t('confirmed.addCalendar')}
             </Button>
           </div>
@@ -232,7 +232,7 @@ export function Confirmed() {
                       {translate(selectedHotel.area || destCity)} &bull; {selectedHotel.stars || 4} {t('confirmed.stars')}
                     </div>
                     <div className="ayn-booking-item__price">
-                      {plan.currency} {Number(selectedHotel.total_price || 0).toLocaleString()} {t('confirmed.total')}
+                      {translate(plan.currency)} {Number(selectedHotel.total_price || 0).toLocaleString()} {t('confirmed.total')}
                     </div>
                   </div>
                 </div>
@@ -249,7 +249,7 @@ export function Confirmed() {
                       {t('confirmed.departureFrom')} {translate(selectedFlight.outbound?.from || origin)} {t('trips.to')} {translate(destCity)}
                     </div>
                     <div className="ayn-booking-item__price">
-                      {plan.currency} {Number(selectedFlight.price || 0).toLocaleString()} {t('confirmed.total')}
+                      {translate(plan.currency)} {Number(selectedFlight.price || 0).toLocaleString()} {t('confirmed.total')}
                     </div>
                   </div>
                 </div>
@@ -292,7 +292,7 @@ export function Confirmed() {
                         </span>
                         {Number(act.estimated_cost) > 0 ? (
                           <span className="ayn-confirmed-act-cost">
-                            {plan.currency} {Number(act.estimated_cost).toLocaleString()}
+                            {translate(plan.currency)} {Number(act.estimated_cost).toLocaleString()}
                           </span>
                         ) : (
                           <span className="ayn-confirmed-act-cost--free">{t('confirmed.includedFree')}</span>
@@ -323,7 +323,7 @@ export function Confirmed() {
           </p>
           <div className="ayn-confirmed-card__actions">
             <Button variant="secondary" onClick={() => navigate(`/plan/${id}/rate`)}>
-              <Star size={16} style={{ marginRight: 8 }} />
+              <Star size={16} style={{ marginInlineEnd: 8 }} />
               {t('trips.rateThis')}
             </Button>
           </div>
@@ -331,7 +331,7 @@ export function Confirmed() {
 
         <div className="ayn-confirmed-footer-link">
           <Link to="/trips" className="ayn-confirmed-link">
-            {t('trips.viewAll')} &rarr;
+            {t('trips.viewAll')} {language === 'ar' ? '←' : '→'}
           </Link>
         </div>
       </div>

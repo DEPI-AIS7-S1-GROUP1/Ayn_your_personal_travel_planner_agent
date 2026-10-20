@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { MapPin, Menu, X } from 'lucide-react';
+import { Menu, X } from 'lucide-react';
 import { Button } from '../Button';
 import { useLanguage } from '../../context/LanguageContext.js';
+import aynLogo from '../../assets/Ayn_logo.png';
 import './Navbar.css';
 
 /**
@@ -69,11 +70,7 @@ export function Navbar({
           onClick={() => handleNavClick('/')}
           aria-label={t('navbar.homeAriaLabel')}
         >
-          <span className="ayn-wordmark__pin">
-            <MapPin size={22} fill="var(--color-sun)" stroke="var(--color-sun)" />
-          </span>
-          <span className="ayn-wordmark__en">Ayn</span>
-          <span className="ayn-wordmark__ar">أين</span>
+          <img src={aynLogo} alt="Ayn" className="ayn-brand-logo" />
         </button>
 
         {/* Center Links */}

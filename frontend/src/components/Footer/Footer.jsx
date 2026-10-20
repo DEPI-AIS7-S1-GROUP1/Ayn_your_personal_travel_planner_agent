@@ -1,5 +1,5 @@
-import { MapPin } from 'lucide-react';
 import { useLanguage } from '../../context/LanguageContext.js';
+import aynLogo from '../../assets/Ayn_logo.png';
 import './Footer.css';
 
 /**
@@ -16,13 +16,14 @@ export function Footer({ onNavigate, className = '' }) {
         <div className="ayn-footer__top">
           {/* Brand & Tagline */}
           <div className="ayn-footer__brand">
-            <div className="ayn-wordmark" onClick={() => onNavigate?.('home')} style={{ display: 'inline-flex' }}>
-              <span className="ayn-wordmark__pin">
-                <MapPin size={20} fill="var(--color-sun)" stroke="var(--color-sun)" />
-              </span>
-              <span className="ayn-wordmark__en">Ayn</span>
-              <span className="ayn-wordmark__ar">أين</span>
-            </div>
+            <button
+              type="button"
+              className="ayn-wordmark ayn-wordmark--footer"
+              onClick={() => onNavigate?.('home')}
+              aria-label="Ayn Home"
+            >
+              <img src={aynLogo} alt="Ayn" className="ayn-brand-logo ayn-brand-logo--footer" />
+            </button>
             <p className="ayn-footer__tagline">
               {t('footer.tagline')}
             </p>
