@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Button } from '../Button';
+import { CountUp } from '../CountUp/CountUp';
 import { useLanguage } from '../../context/LanguageContext.js';
 import './BudgetStackedBar.css';
 
@@ -67,7 +68,7 @@ export function BudgetStackedBar({
       <div className="ayn-budget-card__header">
         <h3 className="ayn-budget-card__title">{t('budget.title')}</h3>
         <span className="ayn-budget-card__total tabular-nums">
-          {currency} {totalBudget.toLocaleString()}
+          {currency} <CountUp value={totalBudget} />
         </span>
       </div>
 

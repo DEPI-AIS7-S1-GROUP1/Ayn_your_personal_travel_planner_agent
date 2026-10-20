@@ -147,6 +147,8 @@ def run_crewai_pipeline(profile: dict, trip: dict) -> FinalPlanResponse:
 
 GLOBAL_TIMEOUT_S = int(os.getenv("AGENT_GLOBAL_TIMEOUT_S", "40"))
 TOTAL_TIMEOUT_S = int(os.getenv("AGENT_TOTAL_TIMEOUT_S", "75"))
+GEMINI_RETRY_DELAY_S = float(os.getenv("AGENT_GEMINI_RETRY_DELAY_S", "2"))
+GEMINI_RETRY_MIN_REMAINING_S = 45  # a retry must still leave time for Tier 2
 
 
 def _tier_worker(result_queue, fn, args):
@@ -191,6 +193,12 @@ def _run_tier_with_timeout(fn, *args, timeout_s: int | None = None):
     return FinalPlanResponse.model_validate(payload[0])
 
 
+def _key_configured(name: str) -> bool:
+    """True when an API key looks real (not empty, not an .env.example placeholder)."""
+    value = os.getenv(name, "").strip()
+    return bool(value) and "your" not in value.lower()
+
+
 def generate_plan_from_dict(
     profile: dict,
     trip: dict,
@@ -208,12 +216,22 @@ def generate_plan_from_dict(
 
     tiers = [force_tier] if force_tier else [1, 2, 3]
     deadline = time.monotonic() + TOTAL_TIMEOUT_S
+    gemini_retried = False
 
-    for tier in tiers:
+    i = 0
+    while i < len(tiers):
+        tier = tiers[i]
+        i += 1
         try:
             remaining_s = deadline - time.monotonic()
             if tier != 3 and remaining_s <= 0:
                 raise TimeoutError(f"Overall generation deadline of {TOTAL_TIMEOUT_S}s exceeded")
+            # A tier without its key is skipped before a worker process starts: starting one
+            # (and importing CrewAI) takes ~15 s just to learn the key is missing.
+            if tier == 1 and not force_tier and not _key_configured("GEMINI_API_KEY"):
+                raise ValueError("GEMINI_API_KEY is not configured")
+            if tier == 2 and not force_tier and not _key_configured("GROQ_API_KEY"):
+                raise ValueError("GROQ_API_KEY is not configured")
             if tier == 1:
                 logger.info("🚀 Tier 1: Starting primary pipeline (CrewAI / Gemini)...")
                 tavily_key = os.getenv("TAVILY_API_KEY", "")
@@ -251,10 +269,21 @@ def generate_plan_from_dict(
             else:
                 continue
 
-            plan = post_process(plan, profile=p_dict)
+            plan = post_process(plan, profile=p_dict, language=t_dict.get("language", "en"))
+            # The Options page needs flights and hotels; an LLM can return empty lists and still
+            # pass the schema (seen with Groq in Arabic). Fill only what is missing from the
+            # deterministic builder and say so in the tier name.
+            if tier != 3 and (not plan.options.flights or not plan.options.hotels):
+                fallback_options = build_mock_plan(p_dict, t_dict).options
+                if not plan.options.flights:
+                    plan.options.flights = fallback_options.flights
+                if not plan.options.hotels:
+                    plan.options.hotels = fallback_options.hotels
+                tier_name += "+mock_options"
+                logger.warning("Tier %d returned no flights or hotels; filled them from the mock builder", tier)
             plan.search_context = tier_name
             model_name = (os.getenv("GEMINI_MODEL", "gemini-3.8-flash") if "gemini" in tier_name
-                          else os.getenv("GROQ_MODEL", "qwen/qwen3.8-27b") if tier_name == "groq_unverified"
+                          else os.getenv("GROQ_MODEL", "qwen/qwen3.8-27b") if tier_name.startswith("groq")
                           else "deterministic")
             logger.info("Tier %d succeeded: provider=%s model=%s", tier, tier_name, model_name)
             logger.info("✅ Tier %d succeeded (%s)", tier, tier_name)
@@ -262,8 +291,18 @@ def generate_plan_from_dict(
 
         except Exception as exc:
             logger.warning("⚠️  Tier %d failed: %s", tier, exc)
-            if tier != tiers[-1]:
-                logger.info("Fallback transition: tier %d -> tier %d", tier, tiers[tiers.index(tier) + 1])
+            # Gemini's 503 ("high demand") is usually over within seconds: one short retry of
+            # Tier 1 before falling back, when enough of the overall deadline is left.
+            if (tier == 1 and not force_tier and not gemini_retried
+                    and any(code in str(exc) for code in ("503", "UNAVAILABLE"))
+                    and deadline - time.monotonic() > GEMINI_RETRY_MIN_REMAINING_S):
+                gemini_retried = True
+                logger.info("Tier 1 got 503; retrying once in %ss", GEMINI_RETRY_DELAY_S)
+                time.sleep(GEMINI_RETRY_DELAY_S)
+                i -= 1
+                continue
+            if i < len(tiers):
+                logger.info("Fallback transition: tier %d -> tier %d", tier, tiers[i])
             message = str(exc)
             reason = ("schema_validation" if "ValidationError" in message else
                       "malformed_json" if "JSONDecodeError" in message else
@@ -278,7 +317,7 @@ def generate_plan_from_dict(
                             os.getenv("GROQ_MODEL", "qwen/qwen3.8-27b") if tier == 2 else "n/a")
             logger.warning("Tier %d failed: provider=%s model=%s class=%s reason=%s",
                            tier, failed_provider, failed_model, type(exc).__name__, reason)
-            if tier == tiers[-1]:
+            if i >= len(tiers):
                 logger.error("❌ All tiers exhausted. No plan generated.")
                 raise
 

@@ -13,7 +13,7 @@ from agent.schemas import FinalPlanResponse
 logger = logging.getLogger(__name__)
 
 
-def post_process(plan: FinalPlanResponse, profile: dict | None = None) -> FinalPlanResponse:
+def post_process(plan: FinalPlanResponse, profile: dict | None = None, language: str = "en") -> FinalPlanResponse:
     """Auto-repair and validate a plan. Returns the cleaned plan.
 
     Repairs applied:
@@ -100,8 +100,12 @@ def post_process(plan: FinalPlanResponse, profile: dict | None = None) -> FinalP
                 blob = normalize_arabic(f"{act.get('title', '')} {act.get('description', '')}")
                 if any(d in blob for d in dislikes):
                     old_title = act.get("title")
-                    act["title"] = "Local meal that respects dietary preferences"
-                    act["description"] = "A restaurant option chosen to avoid listed food dislikes."
+                    if language == "ar":
+                        act["title"] = "وجبة محلية تناسب تفضيلاتك الغذائية"
+                        act["description"] = "مطعم مختار بحيث يتجنب الأكلات التي لا تحبها."
+                    else:
+                        act["title"] = "Local meal that respects dietary preferences"
+                        act["description"] = "A restaurant option chosen to avoid listed food dislikes."
                     logger.warning("Replaced dislike-violating meal: %s", old_title)
 
     # --- 5. Final validation (raises on unfixable issues) ---

@@ -50,3 +50,104 @@
   color: var(--color-text-muted);
   margin-bottom: 12px;
 }
+
+.ayn-generating-card {
+  animation: ayn-pop-in var(--motion-medium) var(--ease-out) both;
+}
+
+/* Plane crossing a dotted route */
+.ayn-generating-card__route {
+  display: block;
+  width: 100%;
+  max-width: 320px;
+  margin: 0 auto 16px;
+  overflow: visible;
+}
+
+.ayn-generating-card__path {
+  fill: none;
+  stroke: var(--color-border);
+  stroke-width: 2;
+  stroke-dasharray: 2 7;
+  stroke-linecap: round;
+}
+
+.ayn-generating-card__pin {
+  fill: var(--color-surface);
+  stroke: var(--color-text-muted);
+  stroke-width: 2;
+}
+
+.ayn-generating-card__pin--end {
+  stroke: var(--color-terracotta);
+}
+
+.ayn-generating-card__plane {
+  fill: var(--color-primary);
+  offset-path: path('M16 74 Q160 -14 304 74');
+  offset-rotate: auto;
+  animation: ayn-fly 3.2s ease-in-out infinite;
+}
+
+/* The route reads right-to-left in Arabic. */
+[dir='rtl'] .ayn-generating-card__route {
+  transform: scaleX(-1);
+}
+
+/* Agent steps */
+.ayn-generating-steps {
+  list-style: none;
+  margin: 20px auto 4px;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-width: 320px;
+  text-align: start;
+}
+
+.ayn-generating-steps__item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 14px;
+  color: var(--color-text-muted);
+  transition: color var(--motion-medium) ease;
+}
+
+.ayn-generating-steps__mark {
+  flex: none;
+  display: inline-grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 2px solid var(--color-border);
+  font-size: 12px;
+  font-weight: 700;
+  transition: background-color var(--motion-medium) ease, border-color var(--motion-medium) ease,
+    color var(--motion-medium) ease;
+}
+
+.ayn-generating-steps__item--active {
+  color: var(--color-text);
+  font-weight: 600;
+}
+
+.ayn-generating-steps__item--active .ayn-generating-steps__mark {
+  border-color: var(--color-primary);
+  border-top-color: transparent;
+  color: var(--color-primary);
+  animation: ayn-spin 1s linear infinite;
+}
+
+.ayn-generating-steps__item--done {
+  color: var(--color-text);
+}
+
+.ayn-generating-steps__item--done .ayn-generating-steps__mark {
+  background-color: var(--color-green);
+  border-color: var(--color-green);
+  color: var(--color-on-primary);
+  animation: ayn-pop-in var(--motion-medium) var(--ease-spring);
+}

@@ -1,5 +1,5 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import api from '../services/api';
+import { createContext, useContext, useState, useEffect } from 'react';
+import api, { SESSION_EXPIRED_EVENT } from '../services/api';
 
 const AuthContext = createContext(null);
 
@@ -23,6 +23,17 @@ export function AuthProvider({ children }) {
 
   const [authError, setAuthError] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [sessionExpired, setSessionExpired] = useState(false);
+
+  // api.js fires this when the server rejects the saved token (expired or signed with an old key).
+  useEffect(() => {
+    const onExpired = () => {
+      setUser({ loggedIn: false });
+      setSessionExpired(true);
+    };
+    window.addEventListener(SESSION_EXPIRED_EVENT, onExpired);
+    return () => window.removeEventListener(SESSION_EXPIRED_EVENT, onExpired);
+  }, []);
 
   useEffect(() => {
     if (user && user.loggedIn) {
@@ -47,6 +58,7 @@ export function AuthProvider({ children }) {
         loggedIn: true,
       };
       setUser(userObj);
+      setSessionExpired(false);
       return userObj;
     } catch (err) {
       setAuthError(err.message || 'Login failed');
@@ -97,6 +109,8 @@ export function AuthProvider({ children }) {
         logout,
         authError,
         loading,
+        sessionExpired,
+        clearSessionExpired: () => setSessionExpired(false),
       }}
     >
       {children}
@@ -104,6 +118,7 @@ export function AuthProvider({ children }) {
   );
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export function useAuth() {
   const context = useContext(AuthContext);
   if (!context) {

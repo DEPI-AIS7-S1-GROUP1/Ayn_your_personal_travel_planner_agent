@@ -6,6 +6,8 @@
  */
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api';
+const AUTH_ENDPOINTS = ['/login', '/signup'];
+export const SESSION_EXPIRED_EVENT = 'ayn:session-expired';
 
 class ApiClient {
   constructor() {
@@ -45,7 +47,7 @@ class ApiClient {
     let response;
     try {
       response = await fetch(url, config);
-    } catch (_err) {
+    } catch {
       // Network failure
       const error = new Error('Network error: Cannot connect to the server.');
       error.status = 502;
@@ -59,6 +61,14 @@ class ApiClient {
       data = await response.json();
     } else {
       data = await response.text();
+    }
+
+    // An expired or invalid token: forget it and tell the app, so the user is asked to log in
+    // again instead of every page failing silently. Login/signup 401s are wrong passwords.
+    if (response.status === 401 && token && !AUTH_ENDPOINTS.includes(endpoint)) {
+      this.setToken(null);
+      localStorage.removeItem('ayn_user');
+      window.dispatchEvent(new CustomEvent(SESSION_EXPIRED_EVENT));
     }
 
     if (!response.ok) {

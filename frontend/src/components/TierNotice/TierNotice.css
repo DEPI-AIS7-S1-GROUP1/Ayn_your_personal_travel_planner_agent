@@ -1,0 +1,20 @@
+.ayn-tier-notice {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--color-border);
+  border-inline-start: 4px solid var(--color-sun);
+  border-radius: var(--radius-input);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-size: 14px;
+  line-height: 22px;
+  animation: ayn-fade-up var(--motion-medium) var(--ease-out) both;
+}
+
+.ayn-tier-notice__icon {
+  flex: none;
+  margin-top: 2px;
+  color: var(--color-brown);
+}

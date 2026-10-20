@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { CardGridSkeleton } from '../../components/Skeleton/Skeleton';
 import { Button } from '../../components/Button';
 import { PersonIllustration } from '../../components/Illustration';
 import api from '../../services/api';
@@ -51,7 +52,7 @@ export function Trips() {
     return (
       <div className="ayn-trips-page">
         <h1 className="ayn-trips-page__title">{t('trips.title')}</h1>
-        <p>{t('trips.loading')}</p>
+        <CardGridSkeleton count={3} label={t('trips.loading')} />
       </div>
     );
   }

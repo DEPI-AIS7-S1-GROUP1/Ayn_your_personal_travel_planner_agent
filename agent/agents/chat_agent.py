@@ -614,7 +614,7 @@ def _call_gemini(system_prompt: str, user_content: str) -> dict[str, Any] | None
         from google import genai
         from google.genai import types
 
-        model_name = os.getenv("GEMINI_MODEL", "gemini-flash-lite-latest")
+        model_name = os.getenv("GEMINI_MODEL", "gemini-3.8-flash").removeprefix("gemini/")
         if model_name in ("gemini-1.5-flash", "gemini-2.5-flash", "gemini-flash-latest"):
             model_name = "gemini-flash-lite-latest"
 
@@ -654,7 +654,8 @@ def _call_groq(system_prompt: str, user_content: str) -> dict[str, Any] | None:
 
     try:
         from groq import Groq
-        client = Groq(api_key=api_key)
+        # Without an explicit timeout the SDK can wait minutes; the user is waiting on this reply.
+        client = Groq(api_key=api_key, timeout=float(os.getenv("GROQ_REQUEST_TIMEOUT_S", "25")), max_retries=1)
         model_name = os.getenv("GROQ_MODEL", "qwen/qwen3.8-27b")
         if model_name.startswith("groq/"):
             model_name = model_name[5:]
@@ -677,6 +678,107 @@ def _call_groq(system_prompt: str, user_content: str) -> dict[str, Any] | None:
         return None
 
 
+_LENGTH_CHANGE_PATTERN = (
+    # "Make it 5 days", "extend the trip", "end date 2026-11-14", "خليها 5 أيام", "أطول".
+    # A bare "day" is not enough: "make day 2 calmer" must not move the dates.
+    r"\b(?:\d+\s*(?:days?|nights?)|longer|shorter|extend\w*|end\s+date|start\s+date|"
+    r"\d{4}-\d{2}-\d{2})\b|(?:\d+\s*(?:يوم|أيام|ايام|ليال)|أطول|اطول|أقصر|اقصر|مدة)"
+)
+_CATEGORIES = ("hotel", "food", "activities", "transport")
+
+
+def validate_llm_update(
+    result: dict, plan: dict, trip: dict, message: str, requested_total: int | None
+) -> tuple[dict, dict] | None:
+    """Check an LLM "updated" reply against the request before it is used.
+
+    The guards only read the user's message; this reads the model's answer. Returns the
+    (plan, trip) to use, repaired where the fix is mechanical, or None when the reply must
+    be discarded (the deterministic refinement is used instead):
+      - total_budget may change only when the user gave an explicit new amount;
+      - dates may change only when the message asks for a different length;
+      - the itinerary must have one entry per day of the (possibly new) date range;
+      - the budget split must be four non-negative integers summing to the total;
+      - each category's activity costs are scaled down to fit its share (as the planner does).
+    """
+    from datetime import date as _date, timedelta as _timedelta
+
+    updated_p = result.get("plan")
+    if not isinstance(updated_p, dict):
+        return None
+    llm_trip = result.get("trip") if isinstance(result.get("trip"), dict) else {}
+
+    current_total = trip.get("total_budget") or plan.get("total_budget")
+    expected_total = requested_total if requested_total is not None else current_total
+    claimed_total = llm_trip.get("total_budget", updated_p.get("total_budget", expected_total))
+    if claimed_total != expected_total:
+        logger.warning("Discarding LLM update: total_budget %s, expected %s", claimed_total, expected_total)
+        return None
+
+    start_s = llm_trip.get("start_date", trip.get("start_date"))
+    end_s = llm_trip.get("end_date", trip.get("end_date"))
+    if (start_s, end_s) != (trip.get("start_date"), trip.get("end_date")) and not regex_search(
+        _LENGTH_CHANGE_PATTERN, message.lower()
+    ):
+        logger.warning("Discarding LLM update: dates changed without a length request")
+        return None
+    try:
+        start, end = _date.fromisoformat(start_s), _date.fromisoformat(end_s)
+    except (TypeError, ValueError):
+        return None
+    if start > end or (end - start).days + 1 > 14:
+        return None
+
+    itinerary = updated_p.get("itinerary")
+    num_days = (end - start).days + 1
+    if not isinstance(itinerary, list) or len(itinerary) != num_days:
+        logger.warning("Discarding LLM update: %s days for a %s-day trip",
+                       len(itinerary) if isinstance(itinerary, list) else "no", num_days)
+        return None
+    for i, day in enumerate(itinerary):
+        if not isinstance(day, dict) or not isinstance(day.get("activities"), list) or not day["activities"]:
+            return None
+        day["day"] = i + 1
+        day["date"] = (start + _timedelta(days=i)).isoformat()
+        for act in day["activities"]:
+            if not isinstance(act, dict) or act.get("category") not in _CATEGORIES:
+                return None
+            if act.get("time_slot") not in ("morning", "afternoon", "evening"):
+                return None
+            try:
+                act["estimated_cost"] = max(0, int(round(float(act.get("estimated_cost", 0)))))
+            except (TypeError, ValueError):
+                return None
+
+    bs = updated_p.get("budget_split")
+    if not isinstance(bs, dict):
+        return None
+    try:
+        bs = {c: int(bs.get(c, 0)) for c in _CATEGORIES}
+    except (TypeError, ValueError):
+        return None
+    if any(v < 0 for v in bs.values()):
+        return None
+    diff = expected_total - sum(bs.values())
+    if diff:
+        largest = max(_CATEGORIES, key=lambda c: bs[c])
+        if bs[largest] + diff < 0:
+            return None
+        bs[largest] += diff
+    for category in _CATEGORIES:
+        acts = [a for d in itinerary for a in d["activities"] if a["category"] == category]
+        spent = sum(a["estimated_cost"] for a in acts)
+        if spent > bs[category]:
+            for act in acts:
+                act["estimated_cost"] = act["estimated_cost"] * bs[category] // spent
+
+    updated_p["budget_split"] = bs
+    updated_p["itinerary"] = itinerary
+    updated_p["total_budget"] = expected_total
+    new_trip = {**trip, "total_budget": expected_total, "start_date": start.isoformat(), "end_date": end.isoformat()}
+    return updated_p, new_trip
+
+
 def run_llm_chat(
     plan: dict,
     trip: dict,
@@ -684,6 +786,7 @@ def run_llm_chat(
     history: list[dict],
     message: str,
     search_context: dict | None = None,
+    requested_total: int | None = None,
 ) -> dict[str, Any]:
     """Execute LLM refinement with Gemini (primary) -> Groq (backup) -> Mock."""
     system_prompt, user_content = _build_prompt_content(plan, trip, profile, history, message)
@@ -704,25 +807,17 @@ def run_llm_chat(
             }
 
         if action == "updated" and result.get("plan"):
-            updated_p = result["plan"]
-            bs = updated_p.get("budget_split", {})
-            total = updated_p.get("total_budget", plan.get("total_budget", 0))
-            if sum(bs.values()) != total:
-                hotel = bs.get("hotel", 0)
-                food = bs.get("food", 0)
-                acts = bs.get("activities", 0)
-                bs["transport"] = total - hotel - food - acts
-                updated_p["budget_split"] = bs
-
-            sanitize_plan_dietary(updated_p, profile)
-
-            return {
-                "action": "updated",
-                "message": result.get("message", "Done. I updated your plan."),
-                "changes": result.get("changes", []),
-                "plan": updated_p,
-                "trip": result.get("trip") or trip,
-            }
+            checked = validate_llm_update(result, plan, trip, message, requested_total)
+            if checked is not None:
+                updated_p, updated_t = checked
+                sanitize_plan_dietary(updated_p, profile)
+                return {
+                    "action": "updated",
+                    "message": result.get("message", "Done. I updated your plan."),
+                    "changes": result.get("changes", []),
+                    "plan": updated_p,
+                    "trip": updated_t,
+                }
 
     # Fallback to deterministic rule-based refinement
     return chat_mock(plan, trip, profile, history, message, search_context)
@@ -755,7 +850,7 @@ def chat(
 
     # Guard 2: Budget format
     curr_code = trip.get("currency") or plan.get("currency") or "EGP"
-    bg_triggered, bg_msg, _, _ = check_budget_change_guard(message, curr_code)
+    bg_triggered, bg_msg, requested_total, _ = check_budget_change_guard(message, curr_code)
     if bg_triggered:
         return {
             "action": "needs_clarification",
@@ -779,4 +874,4 @@ def chat(
     if force_mock:
         return chat_mock(plan, trip, profile, history, message, search_context)
 
-    return run_llm_chat(plan, trip, profile, history, message, search_context)
+    return run_llm_chat(plan, trip, profile, history, message, search_context, requested_total=requested_total)

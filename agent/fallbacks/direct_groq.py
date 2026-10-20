@@ -11,6 +11,7 @@ from datetime import date
 
 from groq import Groq
 from agent.arabic import arabic_language_rule_block
+from agent.fallbacks.prompt_rules import compact_schema, days_rule
 from agent.schemas import FinalPlanResponse
 from agent.feedback import feedback_text
 
@@ -44,8 +45,9 @@ def run_direct_groq_fallback(
     user_msg = (
         f"Generate a complete travel plan as valid JSON.\n\n"
         f"SCHEMA (follow exactly):\n"
-        f"{json.dumps(FinalPlanResponse.model_json_schema(), indent=2)}\n\n"
+        f"{compact_schema()}\n\n"
         f"CRITICAL RULES:\n"
+        f"0. {days_rule(trip)}\n"
         f"1. Efficient Plan Generation: Construct and output the itinerary directly and "
         f"concisely according to the specified Pydantic schema. Avoid long descriptions, "
         f"conversational filler, or unnecessary prose to keep token consumption minimal "

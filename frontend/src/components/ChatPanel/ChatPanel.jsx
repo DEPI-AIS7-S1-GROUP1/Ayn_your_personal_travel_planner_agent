@@ -62,9 +62,11 @@ export function ChatPanel({
     ]);
   }, [planId, planStatus, t]);
 
-  // Auto-scroll to bottom of messages
+  // Auto-scroll the message list (only the list: scrollIntoView also scrolled the whole page
+  // down to the chat when a plan opened).
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    const list = messagesEndRef.current?.parentElement;
+    if (list) list.scrollTo({ top: list.scrollHeight, behavior: 'smooth' });
   }, [messages, isUpdating]);
 
   // On 409 state, panel is completely hidden per DESIGN.md §5.3
@@ -162,8 +164,9 @@ export function ChatPanel({
 
         {/* Loading state indicator */}
         {isUpdating && (
-          <div className="ayn-chat-panel__status">
+          <div className="ayn-chat-panel__status" role="status">
             {t('chat.updating')}
+            <span className="ayn-typing" aria-hidden="true"><span /><span /><span /></span>
           </div>
         )}
 
