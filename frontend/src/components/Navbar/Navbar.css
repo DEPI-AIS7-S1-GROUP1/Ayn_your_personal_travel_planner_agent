@@ -30,6 +30,19 @@
   padding: 0;
 }
 
+.ayn-brand-logo {
+  height: 70px;
+  max-height: 70px;
+  width: auto;
+  object-fit: contain;
+  display: block;
+  transition: transform 0.2s ease, opacity 0.2s ease;
+}
+
+.ayn-wordmark:hover .ayn-brand-logo {
+  transform: scale(1.04);
+}
+
 .ayn-wordmark__pin {
   color: var(--color-sun);
   display: flex;

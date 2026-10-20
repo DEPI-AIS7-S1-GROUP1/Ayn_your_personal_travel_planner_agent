@@ -30,6 +30,29 @@
   max-width: 340px;
 }
 
+.ayn-wordmark--footer {
+  display: inline-flex;
+  align-items: center;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  align-self: flex-start;
+}
+
+.ayn-brand-logo--footer {
+  height: 52px;
+  max-height: 52px;
+  width: auto;
+  object-fit: contain;
+  display: block;
+  transition: transform 0.2s ease;
+}
+
+.ayn-wordmark--footer:hover .ayn-brand-logo--footer {
+  transform: scale(1.04);
+}
+
 .ayn-footer__tagline {
   font-family: var(--font-body);
   font-size: 14px;
