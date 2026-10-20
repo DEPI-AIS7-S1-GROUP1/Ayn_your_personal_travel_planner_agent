@@ -334,6 +334,24 @@ function translateValue(value, language) {
   return value;
 }
 
+// Arabic currency names, written after the amount: "600 دولار" rather than "$ 600" or "USD 600",
+// which read backwards in a right-to-left sentence.
+const CURRENCY_AR = { EGP: 'جنيه', USD: 'دولار', EUR: 'يورو', GBP: 'جنيه إسترليني', SAR: 'ريال', AED: 'درهم' };
+
+function formatMoney(amount, currency, language) {
+  const number = Number(amount || 0).toLocaleString('en-US');
+  if (language === 'ar') return `${number} ${CURRENCY_AR[currency] || currency || ''}`.trim();
+  return `${currency || ''} ${number}`.trim();
+}
+
+const warnedKeys = new Set();
+function warnMissing(key) {
+  // Development only: lists the texts that still have no Arabic version.
+  if (warnedKeys.has(key)) return;
+  warnedKeys.add(key);
+  console.warn(`[i18n] No Arabic text for "${key}"`);
+}
+
 function getInitialLanguage() {
   try {
     const storedLanguage = window.localStorage.getItem(LANGUAGE_STORAGE_KEY);
@@ -359,18 +377,35 @@ export function LanguageProvider({ children }) {
     }
   }, [language]);
 
-  const value = useMemo(() => ({
-    lang: language,
-    language,
-    setLanguage,
-    t: (key, fallback = key) =>
-      dictionaries[language]?.[key] ??
-      dictionaries[language]?._ui?.[key] ??
-      dictionaries.en?.[key] ??
-      dictionaries.en?._ui?.[key] ??
-      fallback,
-    translate: (value) => translateValue(value, language),
-  }), [language]);
+  const value = useMemo(() => {
+    const t = (key, fallback = key) => {
+      const found = dictionaries[language]?.[key] ?? dictionaries[language]?._ui?.[key];
+      if (found === undefined && import.meta.env.DEV && language === 'ar') warnMissing(key);
+      return found ?? dictionaries.en?.[key] ?? dictionaries.en?._ui?.[key] ?? fallback;
+    };
+    // A whole sentence with its values filled in, so each language keeps its own word order:
+    // tf('trips.dateRange', { from, to }) -> "من ١١ نوفمبر إلى ١٤ نوفمبر".
+    const tf = (key, vars = {}) =>
+      String(t(key)).replace(/\{(\w+)\}/g, (match, name) => (name in vars ? String(vars[name]) : match));
+    // A number with its noun: Arabic has six plural forms ("مسافر واحد", "مسافران", "3 مسافرين",
+    // "11 مسافرًا"), so "2 travelers" cannot be built as number + word.
+    const tn = (key, count) => {
+      const rule = new Intl.PluralRules(language === 'ar' ? 'ar' : 'en').select(count);
+      const form = dictionaries[language]?.[`${key}.${rule}`] ?? t(`${key}.other`);
+      return form.replace('{count}', Number(count).toLocaleString('en-US'));
+    };
+    return {
+      lang: language,
+      language,
+      setLanguage,
+      t,
+      tf,
+      tn,
+      money: (amount, currency) => formatMoney(amount, currency, language),
+      currencyLabel: (currency) => (language === 'ar' ? CURRENCY_AR[currency] || currency : currency),
+      translate: (value) => translateValue(value, language),
+    };
+  }, [language]);
 
   return <LanguageContext.Provider value={value}>{children}</LanguageContext.Provider>;
 }

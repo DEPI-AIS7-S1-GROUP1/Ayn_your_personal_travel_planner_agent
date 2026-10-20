@@ -35,7 +35,7 @@ export function BudgetStackedBar({
   onCancel,
   className = ''
 }) {
-  const { t } = useLanguage();
+  const { t, tf, money, currencyLabel, language } = useLanguage();
   const [draftSplit, setDraftSplit] = useState(budgetSplit);
 
   useEffect(() => {
@@ -68,7 +68,10 @@ export function BudgetStackedBar({
       <div className="ayn-budget-card__header">
         <h3 className="ayn-budget-card__title">{t('budget.title')}</h3>
         <span className="ayn-budget-card__total tabular-nums">
-          {currency} <CountUp value={totalBudget} />
+          {/* The amount comes first in Arabic: "1,500 دولار". */}
+          {language === 'ar'
+            ? <><CountUp value={totalBudget} /> {currencyLabel(currency)}</>
+            : <>{currency} <CountUp value={totalBudget} /></>}
         </span>
       </div>
 
@@ -118,7 +121,7 @@ export function BudgetStackedBar({
                   ) : (
                     <>
                       <span className="ayn-budget-legend__amount tabular-nums">
-                        {currency} {allocatedAmount.toLocaleString()}
+                        {money(allocatedAmount, currency)}
                       </span>
                       <span className="ayn-budget-legend__percent tabular-nums">
                         ({percentage}%)
@@ -131,7 +134,10 @@ export function BudgetStackedBar({
               {/* Planned vs allocated recommended line */}
               {plannedAmount !== undefined && (
                 <div className="ayn-budget-legend__sub tabular-nums">
-                  {t('budget.planned')} {plannedAmount.toLocaleString()} {t('budget.of')} {allocatedAmount.toLocaleString()}
+                  {tf('budget.plannedOf', {
+                    planned: plannedAmount.toLocaleString('en-US'),
+                    allocated: allocatedAmount.toLocaleString('en-US'),
+                  })}
                 </div>
               )}
             </div>
@@ -148,8 +154,8 @@ export function BudgetStackedBar({
             }`}
           >
             {remaining === 0 && t('budget.balanced')}
-            {remaining > 0 && `${remaining.toLocaleString()} ${t('budget.leftToAssign')}`}
-            {remaining < 0 && `${t('budget.overBy')} ${Math.abs(remaining).toLocaleString()}`}
+            {remaining > 0 && tf('budget.leftAmount', { amount: remaining.toLocaleString('en-US') })}
+            {remaining < 0 && tf('budget.overByAmount', { amount: Math.abs(remaining).toLocaleString('en-US') })}
           </div>
 
           <div className="ayn-budget-card__actions">
