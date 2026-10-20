@@ -68,173 +68,270 @@ const transportTranslations = {
   'High-comfort intercity mini-coach, reserved seating, onboard Wi-Fi, AC.': 'حافلة صغيرة مريحة بين المدن، بمقاعد محجوزة وواي فاي وتكييف.',
   'First-class reclining seats, individual media screens, complimentary refreshments.': 'مقاعد من الدرجة الأولى قابلة للإمالة، وشاشات فردية ومشروبات مجانية.'
 };
+const currencyTranslations = {
+  EGP: 'ج.م',
+  USD: '$',
+  EUR: '€',
+  GBP: '£',
+  SAR: 'ر.س',
+  AED: 'د.إ'
+};
+
 const activityTranslations = {
+  // Hotel check-in & check-out
+  'Hotel Check-in': 'تسجيل الوصول إلى الفندق',
+  'Hotel check-in': 'تسجيل الوصول إلى الفندق',
+  'Arrival and Hotel Check-in': 'الوصول وتسجيل الدخول إلى الفندق',
+  'Arrive and check into the hotel.': 'الوصول وتسجيل الدخول إلى الفندق.',
+  'Arrive and check into the hotel': 'الوصول وتسجيل الدخول إلى الفندق',
+  'Drop the bags, freshen up and settle in.': 'اترك الأمتعة وانتعش واستقر في الغرفة.',
+  'Drop the bags, freshen up and settle in': 'اترك الأمتعة وانتعش واستقر في الغرفة',
+  'Hotel Check-out': 'تسجيل المغادرة من الفندق',
+  'Hotel check-out': 'تسجيل المغادرة من الفندق',
+  'Departure and Hotel Check-out': 'المغادرة وتسجيل الخروج من الفندق',
+  'Check out and prepare for departure.': 'تسجيل المغادرة والاستعداد للسفر.',
+  'Check out and prepare for departure': 'تسجيل المغادرة والاستعداد للسفر',
+  'Leave bags with reception until departure.': 'اترك الأمتعة عند الاستقبال حتى موعد المغادرة.',
+  'Leave bags with reception until departure': 'اترك الأمتعة عند الاستقبال حتى موعد المغادرة',
+  'Airport Transfer': 'الانتقال إلى المطار',
+  'Airport transfer': 'الانتقال إلى المطار',
+  'Airport transfer to the hotel': 'الانتقال من المطار إلى الفندق',
+  'Transfer to the airport': 'الانتقال إلى المطار',
+
+  // Meals & Dining
+  'Breakfast at Hotel': 'إفطار في الفندق',
+  'Breakfast at hotel': 'إفطار في الفندق',
+  'Buffet breakfast at the hotel.': 'بوفيه إفطار في الفندق.',
+  'Buffet breakfast at the hotel': 'بوفيه إفطار في الفندق',
+  'Final breakfast before departure.': 'إفطار أخير قبل المغادرة.',
+  'Final breakfast before departure': 'إفطار أخير قبل المغادرة',
+  'Lunch at Local Restaurant': 'غداء في مطعم محلي',
+  'Lunch at local restaurant': 'غداء في مطعم محلي',
+  'Traditional Egyptian Lunch': 'غداء مصري تقليدي',
+  'Enjoy traditional Egyptian cuisine.': 'استمتع بالمأكولات المصرية التقليدية.',
+  'Enjoy traditional Egyptian cuisine': 'استمتع بالمأكولات المصرية التقليدية',
+  'Dinner at Seafood Grill': 'عشاء في مطعم مأكولات بحرية مشوية',
+  'Dinner at seafood grill': 'عشاء في مطعم مأكولات بحرية مشوية',
+  'Fresh seafood dinner by the beach.': 'عشاء مأكولات بحرية طازجة على الشاطئ.',
+  'Fresh seafood dinner by the beach': 'عشاء مأكولات بحرية طازجة على الشاطئ',
+  'Gluten-Free Dinner': 'عشاء خالٍ من الغلوتين',
+  'Enjoy a vegetarian, gluten-free meal at a local Mediterranean restaurant.': 'استمتع بوجبة نباتية خالية من الغلوتين في مطعم متوسطي محلي.',
+  'Enjoy a vegetarian, gluten-free meal at a local Mediterranean restaurant': 'استمتع بوجبة نباتية خالية من الغلوتين في مطعم متوسطي محلي.',
+  'Egyptian Cooking Class': 'درس طبخ مصري',
+  'A mid-day meal at a popular local spot.': 'وجبة منتصف اليوم في مكان محلي مشهور.',
+  'Evening meal at a recommended restaurant.': 'وجبة مسائية في مطعم موصى به.',
+  'A last relaxed meal before heading home.': 'وجبة هادئة أخيرة قبل العودة إلى المنزل.',
+
+  // Diving & Water Activities
+  'Scuba Diving': 'الغوص',
+  'Scuba Diving Intro': 'مقدمة في الغوص',
+  'Intro Scuba Diving': 'مقدمة في الغوص',
+  'Begin diving course in the Red Sea.': 'بدء دورة الغوص في البحر الأحمر.',
+  'Begin diving course in the Red Sea': 'بدء دورة الغوص في البحر الأحمر',
+  'Advanced Diving Trip': 'رحلة غوص متقدمة',
+  'Explore coral reefs with a guide.': 'استكشاف الشعاب المرجانية مع مرشد.',
+  'Explore coral reefs with a guide': 'استكشاف الشعاب المرجانية مع مرشد',
+  'Snorkeling Trip': 'رحلة غوص سطحي',
+  'Beach Day': 'يوم على الشاطئ',
+
+  // Sightseeing & Tours
   'Desert Safari Adventure': 'مغامرة سفاري في الصحراء',
   'Quad biking through the Eastern Desert hills for photography enthusiasts.': 'ركوب الدراجات الرباعية بين تلال الصحراء الشرقية لمحبي التصوير.',
   'Nile River Cruise': 'رحلة نيلية',
   'Sunset Felucca Ride': 'رحلة فلوكة عند الغروب',
-  'Egyptian Cooking Class': 'درس طبخ مصري',
   'Local Market Visit': 'زيارة السوق المحلي',
-  'Traditional Egyptian Lunch': 'غداء مصري تقليدي',
-  'Beach Day': 'يوم على الشاطئ',
-  'Snorkeling Trip': 'رحلة غوص سطحي',
-  'Scuba Diving': 'الغوص',
   'Hot Air Balloon Ride': 'رحلة بالمنطاد الهوائي',
   'Walking Tour': 'جولة سيرًا على الأقدام',
   'Free Time': 'وقت حر',
-  'Airport Transfer': 'الانتقال من المطار',
-  'Arrival and Hotel Check-in': 'الوصول وتسجيل الدخول إلى الفندق',
-  'Departure and Hotel Check-out': 'المغادرة وتسجيل الخروج من الفندق'
-  ,'Arrive in your resort and check into your resort.': 'الوصول إلى المنتجع وتسجيل الدخول إليه.',
-  'Arrive in your resort': 'الوصول إلى المنتجع',
-  'and check into your resort': 'وتسجيل الدخول إلى المنتجع',
-  'and check in': 'وتسجيل الدخول',
-  'Arrive in your resort and check in': 'الوصول إلى المنتجع وتسجيل الدخول',
   'Downtown Exploration': 'استكشاف وسط المدينة',
   'Stroll around Tamr Henna square and take photos of the architecture.': 'تنزه حول ميدان تمر حنة والتقط صورًا للعمارة.',
   'Stroll around Tamr Henna square and take photos of the architecture': 'تنزه حول ميدان تمر حنة والتقط صورًا للعمارة',
-  'Gluten-Free Dinner': 'عشاء خالٍ من الغلوتين',
-  'Enjoy a vegetarian, gluten-free meal at a local Mediterranean restaurant.': 'استمتع بوجبة نباتية خالية من الغلوتين في مطعم متوسطي محلي.',
-  'Enjoy a vegetarian, gluten-free meal at a local Mediterranean restaurant': 'استمتع بوجبة نباتية خالية من الغلوتين في مطعم متوسطي محلي.'
-  ,'Airport transfer to the hotel': 'الانتقال من المطار إلى الفندق',
-  'Private car from': 'سيارة خاصة من',
-  'airport to the hotel.': 'المطار إلى الفندق.',
-  'Hotel check-in': 'تسجيل الوصول إلى الفندق',
-  'Drop the bags, freshen up and settle in.': 'اترك الأمتعة وانتعش واستقر في الغرفة.',
-  'Evening walk in': 'تمشية مسائية في',
-  'Morning sightseeing in': 'جولة صباحية في',
-  'A last morning exploring highlights of': 'صباح أخير لاستكشاف أبرز معالم',
-  'Hotel check-out': 'تسجيل المغادرة من الفندق',
-  'Leave bags with reception until departure.': 'اترك الأمتعة عند الاستقبال حتى موعد المغادرة.',
-  'Farewell lunch in': 'غداء الوداع في',
-  'A last relaxed meal before heading home.': 'وجبة هادئة أخيرة قبل العودة إلى المنزل.',
-  'Transfer to the airport': 'الانتقال إلى المطار',
-  'Private car from the hotel to': 'سيارة خاصة من الفندق إلى',
-  'Morning activity in': 'نشاط صباحي في',
-  'Lunch in': 'غداء في',
-  'A welcoming first meal at a local restaurant in': 'وجبة ترحيب أولى في مطعم محلي في',
   'An easy evening stroll to explore the area.': 'تمشية مسائية هادئة لاستكشاف المنطقة.',
-  'Explore a top-rated attraction in': 'استكشف أحد أبرز المعالم في',
-  'A mid-day meal at a popular local spot.': 'وجبة منتصف اليوم في مكان محلي مشهور.',
-  'Afternoon excursion in': 'رحلة بعد الظهر في',
-  'Guided tour or free exploration in': 'جولة مرشدة أو استكشاف حر في',
-  'Dinner in': 'عشاء في',
-  'Evening meal at a recommended restaurant.': 'وجبة مسائية في مطعم موصى به.'
+  'Arrive in your resort and check into your resort.': 'الوصول إلى المنتجع وتسجيل الدخول إليه.',
+  'Arrive in your resort and check in': 'الوصول إلى المنتجع وتسجيل الدخول',
+  'Arrive in your resort': 'الوصول إلى المنتجع'
 };
-const translatedNodes = new WeakMap();
-const translatedAttributes = new WeakMap();
-const translatedElements = new WeakMap();
+
 
 function normalizeText(value) {
   return value.trim().replace(/\s+/g, ' ');
 }
 
-function getTranslation(value, language) {
-  if (language === 'ar') {
-    const key = Object.keys(ar._ui).find(
-      (candidate) => normalizeText(candidate) === normalizeText(value)
-    );
-    return ar._ui[key || value];
+function translateTemplate(value, language) {
+  if (language !== 'ar') return null;
+  const str = value.trim();
+
+  // "Transport to {City} airport." or "Transport to {City} airport"
+  const mTransportAirport = str.match(/^Transport to (.+?) airport\.?$/i);
+  if (mTransportAirport) {
+    const cityName = translateValue(mTransportAirport[1], 'ar');
+    return `الانتقال إلى مطار ${cityName}.`;
   }
 
-  const arabicValue = normalizeText(value);
-  const key = Object.keys(ar._ui).find(
-    (candidate) => normalizeText(ar._ui[candidate]) === arabicValue
-  );
-  return key || value;
+  // "Private car from {City} airport to the hotel."
+  const mCarFromAirport = str.match(/^Private car from (.+?) airport to the hotel\.?$/i);
+  if (mCarFromAirport) {
+    const cityName = translateValue(mCarFromAirport[1], 'ar');
+    return `سيارة خاصة من مطار ${cityName} إلى الفندق.`;
+  }
+
+  // "Private car from the hotel to {City} airport."
+  const mCarToAirport = str.match(/^Private car from the hotel to (.+?) airport\.?$/i);
+  if (mCarToAirport) {
+    const cityName = translateValue(mCarToAirport[1], 'ar');
+    return `سيارة خاصة من الفندق إلى مطار ${cityName}.`;
+  }
+
+  // "Lunch in {City}"
+  const mLunchIn = str.match(/^Lunch in (.+)$/i);
+  if (mLunchIn) {
+    const cityName = translateValue(mLunchIn[1], 'ar');
+    return `غداء في ${cityName}`;
+  }
+
+  // "Dinner in {City}"
+  const mDinnerIn = str.match(/^Dinner in (.+)$/i);
+  if (mDinnerIn) {
+    const cityName = translateValue(mDinnerIn[1], 'ar');
+    return `عشاء في ${cityName}`;
+  }
+
+  // "Evening walk in {City}"
+  const mEveningWalk = str.match(/^Evening walk in (.+)$/i);
+  if (mEveningWalk) {
+    const cityName = translateValue(mEveningWalk[1], 'ar');
+    return `تمشية مسائية في ${cityName}`;
+  }
+
+  // "Morning sightseeing in {City}"
+  const mMorningSight = str.match(/^Morning sightseeing in (.+)$/i);
+  if (mMorningSight) {
+    const cityName = translateValue(mMorningSight[1], 'ar');
+    return `جولة صباحية في ${cityName}`;
+  }
+
+  // "Morning activity in {City}"
+  const mMorningAct = str.match(/^Morning activity in (.+)$/i);
+  if (mMorningAct) {
+    const cityName = translateValue(mMorningAct[1], 'ar');
+    return `نشاط صباحي في ${cityName}`;
+  }
+
+  // "Afternoon excursion in {City}"
+  const mAfternoon = str.match(/^Afternoon excursion in (.+)$/i);
+  if (mAfternoon) {
+    const cityName = translateValue(mAfternoon[1], 'ar');
+    return `رحلة بعد الظهر في ${cityName}`;
+  }
+
+  // "Farewell lunch in {City}"
+  const mFarewell = str.match(/^Farewell lunch in (.+)$/i);
+  if (mFarewell) {
+    const cityName = translateValue(mFarewell[1], 'ar');
+    return `غداء الوداع في ${cityName}`;
+  }
+
+  // "A last morning exploring highlights of {City}."
+  const mLastMorning = str.match(/^A last morning exploring highlights of (.+?)\.?$/i);
+  if (mLastMorning) {
+    const cityName = translateValue(mLastMorning[1], 'ar');
+    return `صباح أخير لاستكشاف أبرز معالم ${cityName}.`;
+  }
+
+  // "Explore a top-rated attraction in {City}."
+  const mExplore = str.match(/^Explore a top-rated attraction in (.+?)\.?$/i);
+  if (mExplore) {
+    const cityName = translateValue(mExplore[1], 'ar');
+    return `استكشف أحد أبرز المعالم في ${cityName}.`;
+  }
+
+  // "Guided tour or free exploration in {City}."
+  const mGuided = str.match(/^Guided tour or free exploration in (.+?)\.?$/i);
+  if (mGuided) {
+    const cityName = translateValue(mGuided[1], 'ar');
+    return `جولة مرشدة أو استكشاف حر في ${cityName}.`;
+  }
+
+  // "A welcoming first meal at a local restaurant in {City}."
+  const mWelcoming = str.match(/^A welcoming first meal at a local restaurant in (.+?)\.?$/i);
+  if (mWelcoming) {
+    const cityName = translateValue(mWelcoming[1], 'ar');
+    return `وجبة ترحيب أولى في مطعم محلي في ${cityName}.`;
+  }
+
+  return null;
+}
+
+
+function findFuzzyMatch(dict, value) {
+  const norm = normalizeText(value).toLowerCase();
+  const withoutDot = norm.replace(/\.$/, '');
+  for (const [k, v] of Object.entries(dict)) {
+    const kNorm = normalizeText(k).toLowerCase();
+    const kWithoutDot = kNorm.replace(/\.$/, '');
+    if (kNorm === norm || kWithoutDot === withoutDot) {
+      return v;
+    }
+  }
+  return null;
 }
 
 function translateValue(value, language) {
-  if (!value) return value;
+  if (!value || typeof value !== 'string') return value;
+
   if (language === 'en') {
-    const englishDynamicValue = Object.entries({
+    const allDicts = {
+      ...currencyTranslations,
       ...cityTranslations,
       ...countryTranslations,
       ...transportTranslations,
       ...activityTranslations
-    }).find(([, arabic]) => arabic === value)?.[0];
-    if (englishDynamicValue) return englishDynamicValue;
-    const englishCity = Object.keys(cityTranslations).find(
-      (city) => cityTranslations[city] === value
-    );
-    if (englishCity) return englishCity;
-    const englishCountry = Object.keys(countryTranslations).find(
-      (country) => countryTranslations[country] === value
-    );
-    return englishCountry || value;
+    };
+    const englishMatch = Object.entries(allDicts).find(([, arabic]) => arabic === value)?.[0];
+    return englishMatch || value;
   }
+
+  // Arabic lookup
+  if (currencyTranslations[value]) return currencyTranslations[value];
   if (cityTranslations[value]) return cityTranslations[value];
   if (transportTranslations[value]) return transportTranslations[value];
   if (activityTranslations[value]) return activityTranslations[value];
-  const translatedComposite = Object.entries({
-    ...cityTranslations,
-    ...transportTranslations,
-    ...activityTranslations
-  }).reduce(
-    (result, [english, arabic]) => result.replaceAll(english, arabic),
-    value
-  );
-  if (translatedComposite !== value) return translatedComposite;
   if (countryTranslations[value]) return countryTranslations[value];
+
+  // Try template pattern matching
+  const templateMatch = translateTemplate(value, language);
+  if (templateMatch) return templateMatch;
+
+  // Try case-insensitive / normalized lookup with or without periods
+  const fuzzyActivity = findFuzzyMatch(activityTranslations, value);
+  if (fuzzyActivity) return fuzzyActivity;
+
+  const fuzzyTransport = findFuzzyMatch(transportTranslations, value);
+  if (fuzzyTransport) return fuzzyTransport;
+
+  const fuzzyCity = findFuzzyMatch(cityTranslations, value);
+  if (fuzzyCity) return fuzzyCity;
+
+  const fuzzyCountry = findFuzzyMatch(countryTranslations, value);
+  if (fuzzyCountry) return fuzzyCountry;
+
   if (ar[value]) return ar[value];
-  if (ar._ui[value]) return ar._ui[value];
+  if (ar._ui && ar._ui[value]) return ar._ui[value];
+
   const directKey = Object.keys(ar).find(
     (candidate) => normalizeText(candidate) === normalizeText(value)
   );
   if (directKey) return ar[directKey];
-  const normalizedValue = normalizeText(value);
-  const source = Object.keys(ar._ui).find(
-    (candidate) => normalizeText(ar._ui[candidate]) === normalizedValue
-  );
-  return source || value;
-}
 
-function translateDocument(language) {
-  document.querySelectorAll('p, h1, h2, h3, h4, button, option, optgroup').forEach((element) => {
-    if (element.closest('.ayn-navbar, .ayn-footer')) return;
-    if (element.children.length > 0) return;
-    if (!translatedElements.has(element)) translatedElements.set(element, element.textContent);
-    const original = translatedElements.get(element);
-    const translated = getTranslation(original, language);
-    if (translated !== undefined && element.textContent !== translated) {
-      element.textContent = translated;
-    }
-  });
-
-  const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
-  let node = walker.nextNode();
-
-  while (node) {
-    if (node.parentElement && !['SCRIPT', 'STYLE'].includes(node.parentElement.tagName)) {
-      if (node.parentElement.closest('.ayn-navbar, .ayn-footer')) {
-        node = walker.nextNode();
-        continue;
-      }
-      if (!translatedNodes.has(node)) translatedNodes.set(node, node.nodeValue);
-      const original = translatedNodes.get(node);
-      const trimmed = original.trim();
-      const translated = getTranslation(trimmed, language);
-      if (translated !== undefined) {
-        const leading = original.slice(0, original.indexOf(trimmed));
-        const trailing = original.slice(original.indexOf(trimmed) + trimmed.length);
-        node.nodeValue = `${leading}${translated}${trailing}`;
-      }
-    }
-    node = walker.nextNode();
+  if (ar._ui) {
+    const normalizedValue = normalizeText(value);
+    const source = Object.keys(ar._ui).find(
+      (candidate) => normalizeText(candidate) === normalizedValue
+    );
+    if (source) return ar._ui[source];
   }
 
-  document.querySelectorAll('[placeholder], [title], [aria-label], [label]').forEach((element) => {
-    if (element.closest('.ayn-navbar, .ayn-footer')) return;
-    ['placeholder', 'title', 'aria-label', 'label'].forEach((attribute) => {
-      if (!element.hasAttribute(attribute)) return;
-      if (!translatedAttributes.has(element)) translatedAttributes.set(element, {});
-      const originals = translatedAttributes.get(element);
-      if (originals[attribute] === undefined) originals[attribute] = element.getAttribute(attribute);
-      const original = originals[attribute];
-      const translated = getTranslation(original, language);
-      if (translated !== undefined) element.setAttribute(attribute, translated);
-    });
-  });
+  return value;
 }
 
 function getInitialLanguage() {
@@ -260,21 +357,17 @@ export function LanguageProvider({ children }) {
     } catch {
       // Language preference remains available for the current session.
     }
-
-    translateDocument(language);
-    const observer = new MutationObserver(() => translateDocument(language));
-    observer.observe(document.body, { childList: true, subtree: true });
-    return () => observer.disconnect();
   }, [language]);
 
   const value = useMemo(() => ({
+    lang: language,
     language,
     setLanguage,
     t: (key, fallback = key) =>
-      dictionaries[language][key] ??
-      dictionaries[language]._ui?.[key] ??
-      dictionaries.en[key] ??
-      dictionaries.en._ui?.[key] ??
+      dictionaries[language]?.[key] ??
+      dictionaries[language]?._ui?.[key] ??
+      dictionaries.en?.[key] ??
+      dictionaries.en?._ui?.[key] ??
       fallback,
     translate: (value) => translateValue(value, language),
   }), [language]);

@@ -68,7 +68,7 @@
   background: none;
   border: none;
   padding: 0;
-  text-align: left;
+  text-align: start;
   cursor: pointer;
   transition: color 150ms ease;
 }

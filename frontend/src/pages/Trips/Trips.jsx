@@ -108,7 +108,7 @@ export function Trips() {
                 <span>{formatTripDate(trip.start_date, language)} {t('trips.to')} {formatTripDate(trip.end_date, language)}</span>
                 <span>{trip.travelers} {trip.travelers === 1 ? t('trip.traveler') : t('trip.travelers')}</span>
                 <span className="ayn-trip-card__budget">
-                  {trip.currency} {Number(trip.total_budget).toLocaleString()}
+                  {translate(trip.currency)} {Number(trip.total_budget).toLocaleString()}
                 </span>
               </div>
 
@@ -139,7 +139,7 @@ export function Trips() {
                     navigate(`/plan/${trip.plan_id}`);
                   }}
                 >
-                  {t('trips.viewDetails')} &rarr;
+                  {t('trips.viewDetails')} {language === 'ar' ? '←' : '→'}
                 </Button>
               </div>
             </div>

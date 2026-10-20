@@ -51,7 +51,7 @@
   font-size: 22px;
   line-height: 1;
   color: var(--color-text-muted);
-  margin-left: 2px;
+  margin-inline-start: 2px;
 }
 
 /* Nav links */
@@ -160,7 +160,7 @@
 .ayn-navbar__menu {
   position: absolute;
   top: 52px;
-  right: 0;
+  inset-inline-end: 0;
   width: 180px;
   background-color: var(--color-surface);
   border: 2px solid var(--color-border);
@@ -175,7 +175,7 @@
 .ayn-navbar__menu-item {
   width: 100%;
   padding: 10px 16px;
-  text-align: left;
+  text-align: start;
   background: none;
   border: none;
   font-family: var(--font-body);
@@ -222,7 +222,7 @@
     flex-direction: column;
     position: absolute;
     top: 72px;
-    left: 0;
+    inset-inline-start: 0;
     width: 100%;
     background-color: var(--color-surface);
     border-bottom: 2px solid var(--color-border);
@@ -233,6 +233,6 @@
 
   .ayn-navbar__links--mobile-open .ayn-navbar__link {
     width: 100%;
-    text-align: left;
+    text-align: start;
   }
 }
