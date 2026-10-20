@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { CheckCircle2, Clock, XCircle, ArrowLeft, Edit3 } from 'lucide-react';
+import { TierNotice } from '../../components/TierNotice/TierNotice';
+import { PlanSkeleton } from '../../components/Skeleton/Skeleton';
 import { Button } from '../../components/Button';
 import { DayTimelineCard } from '../../components/DayTimelineCard';
 import { BudgetStackedBar } from '../../components/BudgetStackedBar';
@@ -60,9 +62,7 @@ export function DraftPlan() {
   if (loading) {
     return (
       <div className="ayn-draft-page">
-        <div className="ayn-placeholder-screen">
-          <h2 className="ayn-placeholder-screen__title">Building your plan...</h2>
-        </div>
+        <PlanSkeleton label={t('draft.loading')} />
       </div>
     );
   }
@@ -284,6 +284,8 @@ export function DraftPlan() {
           </div>
         </div>
       )}
+
+      <TierNotice tier={plan.search_context?.tier} />
 
       {/* Main Two-Column Grid (DESIGN.md §5.2 item 6) */}
       <div className="ayn-draft-page__grid">

@@ -82,22 +82,37 @@ const EGYPT_CITIES = [
   'Marsa Matrouh',
 ];
 
+const MAX_TRIP_DAYS = 14; // contract §3.3
+
+/** yyyy-mm-dd for a date `days` after `from` (local time, like the date inputs). */
+function isoDay(from, days) {
+  // A 'yyyy-mm-dd' string would parse as UTC midnight; read it as local midnight instead.
+  const d = typeof from === 'string' ? new Date(`${from}T00:00:00`) : new Date(from);
+  d.setDate(d.getDate() + days);
+  const pad = (n) => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+}
+
 export function Destination() {
   const navigate = useNavigate();
-  const { t, translate } = useLanguage();
+  const { t, translate, language } = useLanguage();
 
+  const today = isoDay(new Date(), 0);
   const [originCity, setOriginCity] = useState('Cairo');
   const [city, setCity] = useState('Sharm El Sheikh');
-  const [startDate, setStartDate] = useState('2026-11-10');
-  const [endDate, setEndDate] = useState('2026-11-12');
-  const [budget, setBudget] = useState('60000');
-  const [currency, setCurrency] = useState('EGP');
+  // Defaults three weeks ahead, so the form never opens on a date the backend rejects as past.
+  const [startDate, setStartDate] = useState(() => isoDay(new Date(), 21));
+  const [endDate, setEndDate] = useState(() => isoDay(new Date(), 23));
+  const [budget, setBudget] = useState('');
+  // No preselected currency: the contract says the user must choose it.
+  const [currency, setCurrency] = useState('');
   const [travelers, setTravelers] = useState(2);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState(null);
 
   const handleSubmit = async (e) => {
     if (e) e.preventDefault();
+    window.scrollTo({ top: 0, behavior: 'smooth' }); // the progress card replaces the form
     setIsSubmitting(true);
     setError(null);
 
@@ -105,9 +120,11 @@ export function Destination() {
       destination: { city, country: 'Egypt' },
       start_date: startDate,
       end_date: endDate,
-      total_budget: parseInt(budget, 10) || 60000,
+      total_budget: parseInt(budget, 10),
       currency,
-      travelers: parseInt(travelers, 10) || 2
+      travelers: parseInt(travelers, 10) || 2,
+      // The plan is written in the language the user is reading the site in.
+      language,
     };
 
     try {
@@ -205,7 +222,15 @@ export function Destination() {
               type="date"
               className="ayn-dest-page__input"
               value={startDate}
-              onChange={(e) => setStartDate(e.target.value)}
+              min={today}
+              onChange={(e) => {
+                const next = e.target.value;
+                setStartDate(next);
+                // Keep the end date valid: not before the start, not past the 14-day limit.
+                if (next && (endDate < next || endDate > isoDay(next, MAX_TRIP_DAYS - 1))) {
+                  setEndDate(next);
+                }
+              }}
               required
             />
           </div>
@@ -219,6 +244,8 @@ export function Destination() {
               type="date"
               className="ayn-dest-page__input"
               value={endDate}
+              min={startDate || today}
+              max={startDate ? isoDay(startDate, MAX_TRIP_DAYS - 1) : undefined}
               onChange={(e) => setEndDate(e.target.value)}
               required
             />
@@ -237,7 +264,9 @@ export function Destination() {
               value={budget}
               onChange={(e) => setBudget(e.target.value)}
               required
-              min={1000}
+              min={1}
+              step={1}
+              inputMode="numeric"
             />
           </div>
 
@@ -250,7 +279,9 @@ export function Destination() {
               className="ayn-dest-page__select"
               value={currency}
               onChange={(e) => setCurrency(e.target.value)}
+              required
             >
+              <option value="" disabled>{t('destination.selectCurrency')}</option>
               <option value="EGP">EGP ({t('currency.egp')})</option>
               <option value="USD">USD ({t('currency.usd')})</option>
               <option value="EUR">EUR ({t('currency.eur')})</option>

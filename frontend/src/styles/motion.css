@@ -1,0 +1,342 @@
+/*
+ * Ayn motion layer.
+ *
+ * One place for every animation in the app: tokens, keyframes, and the motion added to
+ * existing components by their class names (so component CSS stays about layout and color).
+ * Motion is short and purposeful (things arrive, respond to the pointer, show progress) and is
+ * switched off entirely for people who ask for reduced motion (last block of this file).
+ */
+
+:root {
+  --motion-fast: 150ms;
+  --motion-medium: 320ms;
+  --motion-slow: 600ms;
+  --ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --lift-shadow: 0 10px 24px rgba(43, 33, 24, 0.12);
+}
+
+/* ---------- Keyframes ---------- */
+
+@keyframes ayn-fade-up {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: none; }
+}
+
+@keyframes ayn-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes ayn-pop-in {
+  from { opacity: 0; transform: translateY(8px) scale(0.96); }
+  to { opacity: 1; transform: none; }
+}
+
+@keyframes ayn-grow-x {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}
+
+@keyframes ayn-ken-burns {
+  from { transform: scale(1); }
+  to { transform: scale(1.06); }
+}
+
+@keyframes ayn-drift {
+  0%, 100% { transform: translateX(0); }
+  50% { transform: translateX(24px); }
+}
+
+@keyframes ayn-bob {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+
+@keyframes ayn-shimmer {
+  from { background-position: 200% 0; }
+  to { background-position: -200% 0; }
+}
+
+@keyframes ayn-typing {
+  0%, 60%, 100% { opacity: 0.25; transform: translateY(0); }
+  30% { opacity: 1; transform: translateY(-3px); }
+}
+
+@keyframes ayn-fly {
+  0% { offset-distance: 0%; opacity: 0; }
+  8% { opacity: 1; }
+  92% { opacity: 1; }
+  100% { offset-distance: 100%; opacity: 0; }
+}
+
+@keyframes ayn-spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ---------- Page transitions ---------- */
+
+/* App.jsx keys this wrapper by route, so every page arrives with the same short fade-up. */
+.ayn-route {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  animation: ayn-fade-up var(--motion-medium) var(--ease-out) both;
+}
+
+/* Pages are flex children here; without this, one wide child stretches the page past the
+   viewport on phones instead of wrapping. */
+.ayn-route > * {
+  min-width: 0;
+}
+
+/* ---------- Scroll reveal (hooks/useScrollReveal.js) ---------- */
+
+/* Only elements the hook has marked as below the fold start hidden; everything else stays
+   visible, so content never disappears if the hook does not run. */
+[data-reveal='hidden'] {
+  opacity: 0;
+  transform: translateY(24px);
+}
+
+[data-reveal='shown'] {
+  animation: ayn-fade-up var(--motion-slow) var(--ease-out) both;
+  animation-delay: var(--reveal-delay, 0ms);
+}
+
+/* ---------- Pointer feedback ---------- */
+
+/* The primary button sits on a 3px "flat" shadow (DESIGN.md); pressing pushes it down. */
+.ayn-btn {
+  transition: background-color var(--motion-fast) ease, border-color var(--motion-fast) ease,
+    color var(--motion-fast) ease, transform var(--motion-fast) var(--ease-out),
+    box-shadow var(--motion-fast) var(--ease-out);
+}
+
+.ayn-btn--primary:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 0 var(--color-text);
+}
+
+.ayn-btn--primary:active:not(:disabled) {
+  transform: translateY(3px);
+  box-shadow: 0 0 0 var(--color-text);
+}
+
+.ayn-btn--secondary:active:not(:disabled),
+.ayn-btn--destructive:active:not(:disabled) {
+  transform: scale(0.97);
+}
+
+/* Cards lift toward the pointer. */
+.ayn-picture-card,
+.ayn-trip-card,
+.ayn-feature-arch-card,
+.ayn-flight-row,
+.ayn-day-card {
+  transition: transform var(--motion-medium) var(--ease-out), box-shadow var(--motion-medium) var(--ease-out),
+    border-color var(--motion-fast) ease;
+}
+
+.ayn-picture-card:hover,
+.ayn-trip-card:hover,
+.ayn-feature-arch-card:hover,
+.ayn-flight-row:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--lift-shadow);
+}
+
+.ayn-day-card:hover {
+  box-shadow: var(--lift-shadow);
+}
+
+.ayn-picture-card__image {
+  transition: transform var(--motion-slow) var(--ease-out);
+}
+
+.ayn-picture-card:hover .ayn-picture-card__image {
+  transform: scale(1.05);
+}
+
+/* A selection settles in with a small spring. */
+.ayn-picture-card--selected,
+.ayn-flight-row--selected {
+  animation: ayn-pop-in var(--motion-medium) var(--ease-spring);
+}
+
+.ayn-picture-card__selected-badge {
+  animation: ayn-pop-in var(--motion-medium) var(--ease-spring) both;
+}
+
+/* Activities slide in one after another inside each day. */
+.ayn-activity-row {
+  animation: ayn-fade-up var(--motion-medium) var(--ease-out) both;
+}
+
+.ayn-activity-row:nth-child(2) { animation-delay: 60ms; }
+.ayn-activity-row:nth-child(3) { animation-delay: 120ms; }
+.ayn-activity-row:nth-child(4) { animation-delay: 180ms; }
+.ayn-activity-row:nth-child(n + 5) { animation-delay: 240ms; }
+
+/* ---------- Home ---------- */
+
+.ayn-home__hero-slide--active .ayn-home__hero-bg {
+  animation: ayn-ken-burns 8s ease-out both;
+}
+
+.ayn-home__hero-card {
+  animation: ayn-fade-up var(--motion-slow) var(--ease-out) 120ms both;
+}
+
+.ayn-home__hero-caption {
+  animation: ayn-fade-in var(--motion-slow) ease 400ms both;
+}
+
+.ayn-home__cloud--top-left { animation: ayn-drift 14s ease-in-out infinite; }
+.ayn-home__cloud--top-right { animation: ayn-drift 18s ease-in-out -6s infinite reverse; }
+.ayn-home__cloud--bottom-center { animation: ayn-drift 16s ease-in-out -3s infinite; }
+
+.ayn-home__person--bottom-left,
+.ayn-home__person--bottom-right,
+.ayn-home__about-figures > * {
+  animation: ayn-bob 4s ease-in-out infinite;
+}
+
+.ayn-home__person--bottom-right,
+.ayn-home__about-figures > :nth-child(2) { animation-delay: -1.3s; }
+.ayn-home__about-figures > :nth-child(3) { animation-delay: -2.6s; }
+
+/* ---------- Budget bar ---------- */
+
+/* Segments grow from the start edge on first paint; width changes still ease (component CSS). */
+.ayn-budget-bar__segment {
+  transform-origin: left center;
+  animation: ayn-grow-x var(--motion-slow) var(--ease-out) both;
+  transition: width var(--motion-medium) var(--ease-out);
+}
+
+[dir='rtl'] .ayn-budget-bar__segment {
+  transform-origin: right center;
+}
+
+.ayn-budget-bar__segment:nth-child(2) { animation-delay: 80ms; }
+.ayn-budget-bar__segment:nth-child(3) { animation-delay: 160ms; }
+.ayn-budget-bar__segment:nth-child(4) { animation-delay: 240ms; }
+
+/* ---------- Chat ---------- */
+
+.ayn-chat-bubble {
+  animation: ayn-pop-in var(--motion-medium) var(--ease-out) both;
+}
+
+.ayn-chat-bubble--user {
+  transform-origin: bottom right;
+}
+
+.ayn-typing {
+  display: inline-flex;
+  gap: 4px;
+  align-items: center;
+  padding-inline-start: 4px;
+}
+
+.ayn-typing span {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+  animation: ayn-typing 1.2s ease-in-out infinite;
+}
+
+.ayn-typing span:nth-child(2) { animation-delay: 150ms; }
+.ayn-typing span:nth-child(3) { animation-delay: 300ms; }
+
+/* ---------- Loading skeletons (components/Skeleton) ---------- */
+
+.ayn-skeleton {
+  border-radius: var(--radius-input);
+  background: linear-gradient(90deg, var(--color-border) 0%, var(--color-surface) 50%, var(--color-border) 100%);
+  background-size: 200% 100%;
+  animation: ayn-shimmer 1.4s linear infinite;
+}
+
+/* ---------- Modal ---------- */
+
+.ayn-modal-overlay {
+  animation: ayn-fade-in var(--motion-fast) ease both;
+}
+
+.ayn-modal-overlay > * {
+  animation: ayn-pop-in var(--motion-medium) var(--ease-spring) both;
+}
+
+/* ---------- Reduced motion ---------- */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    animation-delay: 0ms !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  [data-reveal='hidden'] {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* ---------- Skeleton layouts ---------- */
+
+.ayn-visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+.ayn-skeleton-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-5);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  background: var(--color-surface);
+}
+
+.ayn-skeleton-plan {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.ayn-skeleton-plan__grid {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+  gap: var(--space-5);
+  margin-top: var(--space-4);
+}
+
+.ayn-skeleton-plan__col {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.ayn-skeleton-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: var(--space-5);
+}
+
+@media (max-width: 760px) {
+  .ayn-skeleton-plan__grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

@@ -2,10 +2,10 @@
 
 from __future__ import annotations
 
-from typing import Any
+from typing import Annotated, Any
 
 from fastapi import APIRouter, Depends
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, StringConstraints
 from sqlalchemy.orm import Session
 
 from app.deps import get_current_user, get_db
@@ -15,12 +15,17 @@ from app.models import Plan, Rating, User
 router = APIRouter(tags=["ratings"])
 
 
+# Liked/disliked items are sent to the agent with every later trip (past_feedback),
+# so they are capped like other free text that reaches a prompt.
+FeedbackItem = Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=100)]
+
+
 class CreateRatingPayload(BaseModel):
     plan_id: str
     score: int = Field(ge=1, le=5)
-    liked: list[str] = Field(default_factory=list)
-    disliked: list[str] = Field(default_factory=list)
-    comment: str = ""
+    liked: list[FeedbackItem] = Field(default_factory=list, max_length=10)
+    disliked: list[FeedbackItem] = Field(default_factory=list, max_length=10)
+    comment: str = Field(default="", max_length=1000)
 
 
 @router.post("/ratings", status_code=201)

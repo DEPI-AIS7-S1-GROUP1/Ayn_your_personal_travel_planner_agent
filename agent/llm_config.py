@@ -130,7 +130,7 @@ def get_groq_llm(temperature: float = 0.3, agent_name: str | None = None) -> LLM
             f"GROQ_API_KEY_{(agent_name or 'CONTEXT').upper()} in your .env file."
         )
 
-    model_name = os.getenv("GROQ_MODEL", "qwen/qwen3.8-27b")
+    model_name = os.getenv("GROQ_MODEL", "openai/gpt-oss-120b")
     if not model_name.startswith("groq/"):
         full_model = f"groq/{model_name}"
     else:

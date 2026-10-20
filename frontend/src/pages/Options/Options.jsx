@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Plane, CarTaxiFront, Bus, Check, ArrowRight } from 'lucide-react';
+import { TierNotice } from '../../components/TierNotice/TierNotice';
 import { PictureCard } from '../../components/PictureCard';
 import { Button } from '../../components/Button';
 import api from '../../services/api';
@@ -209,6 +210,8 @@ export function Options() {
           {t('options.subtitleCompare')} {t('options.subtitleBudget')}
         </p>
       </div>
+
+      <TierNotice tier={plan.search_context?.tier} scope="options" />
 
       {/* Hotels Section */}
       <section className="ayn-options-section">

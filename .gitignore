@@ -40,3 +40,6 @@ Thumbs.db
 
 # Logs (e.g. agentops.log written by the agent's monitoring)
 *.log
+
+# Tavily search cache, written at runtime by the agent (agent/tools/tavily_tool.py)
+agent/cache/

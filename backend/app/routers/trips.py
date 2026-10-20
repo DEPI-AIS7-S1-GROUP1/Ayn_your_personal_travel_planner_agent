@@ -1,5 +1,6 @@
 """Trips router (contract §3.3, §4 POST/GET /trips)."""
 
+import logging
 from datetime import date
 from typing import Any, Literal
 
@@ -16,14 +17,22 @@ from app.routers.currencies import SUPPORTED_CURRENCIES
 from agent.main import generate_plan_from_dict
 
 router = APIRouter(tags=["trips"])
+logger = logging.getLogger(__name__)
+
+# Past feedback goes into every new prompt; only the latest ratings are sent so the
+# prompt stays small however many trips the user has rated.
+PAST_FEEDBACK_RATINGS = 5
+
 
 def get_past_feedback(db: Session, user_id: str) -> dict:
-    """Collect what the user liked and disliked in their past ratings."""
+    """Collect what the user liked and disliked in their latest ratings."""
     ratings = db.execute(
         select(Rating)
         .join(Plan, Rating.plan_id == Plan.id)
         .join(Trip, Plan.trip_id == Trip.id)
         .where(Trip.user_id == user_id)
+        .order_by(Rating.created_at.desc())
+        .limit(PAST_FEEDBACK_RATINGS)
     ).scalars().all()
 
     liked = []
@@ -36,8 +45,9 @@ def get_past_feedback(db: Session, user_id: str) -> dict:
 
 
 class DestinationPayload(BaseModel):
-    city: str
-    country: str = "Egypt"
+    # The city goes straight into the agent's prompt, so its length is capped.
+    city: str = Field(min_length=1, max_length=80)
+    country: str = Field(default="Egypt", max_length=40)
 
 
 class CreateTripPayload(BaseModel):
@@ -134,6 +144,8 @@ def create_trip(
     if curr not in SUPPORTED_CURRENCIES:
         raise ApiError(400, "INVALID_CURRENCY", f"Currency '{payload.currency}' is not supported.")
 
+    if not payload.destination.city.strip():
+        raise ApiError(400, "VALIDATION_ERROR", "destination.city: must not be empty.")
     if payload.destination.country.strip().lower() != "egypt":
         raise ApiError(400, "INVALID_DESTINATION", "Destination country must be Egypt.")
 
@@ -160,7 +172,7 @@ def create_trip(
     }
 
     trip_dict = {
-        "destination": {"city": payload.destination.city, "country": "Egypt"},
+        "destination": {"city": payload.destination.city.strip(), "country": "Egypt"},
         "start_date": s_date.isoformat(),
         "end_date": e_date.isoformat(),
         "total_budget": payload.total_budget,
@@ -175,13 +187,15 @@ def create_trip(
     db.rollback()
     try:
         gen_plan = generate_plan_from_dict(profile_dict, trip_dict)
-    except Exception as exc:
-        raise ApiError(502, "GENERATION_FAILED", f"Plan generation failed: {exc}")
+    except Exception:
+        # Provider messages can include account details: they go to the log, not the client.
+        logger.exception("Plan generation failed")
+        raise ApiError(502, "GENERATION_FAILED", "Plan generation failed. Please try again.")
 
     # Trip and plan are written together in one short transaction.
     trip = Trip(
         user_id=user.id,
-        destination_city=payload.destination.city,
+        destination_city=payload.destination.city.strip(),
         destination_country="Egypt",
         start_date=s_date,
         end_date=e_date,
@@ -200,8 +214,9 @@ def create_trip(
         options=gen_plan.options.model_dump(by_alias=True),
         selected_flight_id=gen_plan.selected_flight_id,
         selected_hotel_id=gen_plan.selected_hotel_id,
-        # The language is kept here instead of in a new database column (Y9).
-        search_context={"language": payload.language},
+        # The language is kept here instead of in a new database column (Y9). "tier" records
+        # which generator wrote the plan (e.g. "mock_unverified"), so the UI can say so.
+        search_context={"language": payload.language, "tier": gen_plan.search_context},
     )
     db.add(plan)
     db.commit()

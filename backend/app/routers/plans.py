@@ -1,6 +1,7 @@
 """Plans router (contract §4: GET/PUT/Confirm/Cancel /plans/{id} and POST /plans/{id}/chat)."""
 
-from datetime import date, datetime, timedelta, timezone
+import logging
+from datetime import date
 from typing import Any
 
 from fastapi import APIRouter, Depends
@@ -11,9 +12,11 @@ from sqlalchemy.orm import Session
 from app.deps import get_current_user, get_db
 from app.errors import ApiError
 from app.models import ChatMessage, Conversation, Plan, Trip, User, utcnow
+from app.plan_rules import PlanRuleError, check_budget_split, check_itinerary, check_trip_dates
 from agent.agents.chat_agent import chat as agent_chat
 
 router = APIRouter(tags=["plans"])
+logger = logging.getLogger(__name__)
 
 
 # ---------------------------------------------------------------------------
@@ -27,7 +30,7 @@ class ChatRequest(BaseModel):
 
 class UpdatePlanRequest(BaseModel):
     itinerary: list[dict] | None = None
-    budget_split: dict | None = None
+    budget_split: dict[str, int] | None = None
     selected_flight_id: str | None = None
     selected_hotel_id: str | None = None
 
@@ -124,122 +127,21 @@ def update_plan(
     if plan.status != "draft":
         raise ApiError(409, "PLAN_NOT_EDITABLE", "Only draft plans can be edited.")
 
-    active_bs = plan.budget_split
-    if payload.budget_split is not None:
-        # Validate budget split sum
-        bs = payload.budget_split
-        total = plan.trip.total_budget
-        if sum(bs.values()) != total:
-            raise ApiError(
-                400,
-                "VALIDATION_ERROR",
-                f"budget_split must sum to total_budget ({total}). Got {sum(bs.values())}.",
-            )
-        active_bs = bs
-        plan.budget_split = bs
+    trip = plan.trip
+    try:
+        budget_split = plan.budget_split
+        if payload.budget_split is not None:
+            budget_split = check_budget_split(payload.budget_split, trip.total_budget)
+        # A new split is checked against the itinerary that stays, too: lowering a category
+        # below what its activities already cost would break contract §3.5.
+        itinerary = payload.itinerary if payload.itinerary is not None else plan.itinerary
+        itinerary = check_itinerary(itinerary, trip.start_date, trip.end_date, budget_split)
+    except PlanRuleError as exc:
+        raise ApiError(400, "VALIDATION_ERROR", str(exc))
 
+    plan.budget_split = budget_split
     if payload.itinerary is not None:
-        # Validate itinerary continuity and structure (contract §3.5, §3.6, §4)
-        trip = plan.trip
-        num_days = (trip.end_date - trip.start_date).days + 1
-        if len(payload.itinerary) != num_days:
-            raise ApiError(
-                400,
-                "VALIDATION_ERROR",
-                f"Itinerary must contain exactly {num_days} days covering {trip.start_date} to {trip.end_date}.",
-            )
-
-        valid_time_slots = {"morning", "afternoon", "evening"}
-        valid_categories = {"hotel", "food", "activities", "transport"}
-        category_costs = {"hotel": 0, "food": 0, "activities": 0, "transport": 0}
-
-        cleaned_itinerary = []
-        for i, day in enumerate(payload.itinerary):
-            expected_day_num = i + 1
-            expected_date = (trip.start_date + timedelta(days=i)).isoformat()
-
-            day_num = day.get("day")
-            day_date = day.get("date")
-
-            if day_num != expected_day_num:
-                raise ApiError(
-                    400,
-                    "VALIDATION_ERROR",
-                    f"Day index mismatch at position {i}: expected day {expected_day_num}, got {day_num}.",
-                )
-            if day_date != expected_date:
-                raise ApiError(
-                    400,
-                    "VALIDATION_ERROR",
-                    f"Day {day_num} date gap or mismatch: expected {expected_date}, got {day_date}.",
-                )
-
-            activities = day.get("activities", [])
-            if not isinstance(activities, list) or len(activities) < 1:
-                raise ApiError(
-                    400,
-                    "VALIDATION_ERROR",
-                    f"Day {day_num} must contain at least 1 activity.",
-                )
-
-            cleaned_activities = []
-            for j, act in enumerate(activities):
-                if not isinstance(act, dict):
-                    raise ApiError(400, "VALIDATION_ERROR", f"Invalid activity format on day {day_num}.")
-
-                time_slot = act.get("time_slot")
-                if time_slot not in valid_time_slots:
-                    raise ApiError(
-                        400,
-                        "VALIDATION_ERROR",
-                        f"Day {day_num} activity '{act.get('title', '')}' has invalid time_slot '{time_slot}'. Must be morning, afternoon, or evening.",
-                    )
-
-                category = act.get("category")
-                if category not in valid_categories:
-                    raise ApiError(
-                        400,
-                        "VALIDATION_ERROR",
-                        f"Day {day_num} activity '{act.get('title', '')}' has invalid category '{category}'. Must be hotel, food, activities, or transport.",
-                    )
-
-                cost = act.get("estimated_cost", 0)
-                if not isinstance(cost, int) or cost < 0:
-                    raise ApiError(
-                        400,
-                        "VALIDATION_ERROR",
-                        f"Day {day_num} activity '{act.get('title', '')}' estimated_cost must be a non-negative integer.",
-                    )
-
-                category_costs[category] += cost
-
-                act_id = act.get("id") or f"act_{day_num}_{j+1}"
-                cleaned_activities.append({
-                    "id": act_id,
-                    "title": act.get("title", ""),
-                    "description": act.get("description", ""),
-                    "time_slot": time_slot,
-                    "estimated_cost": cost,
-                    "category": category,
-                })
-
-            cleaned_itinerary.append({
-                "day": day_num,
-                "date": day_date,
-                "activities": cleaned_activities,
-            })
-
-        # Check category budget sums
-        for cat, cost_sum in category_costs.items():
-            allocated = active_bs.get(cat, 0)
-            if cost_sum > allocated:
-                raise ApiError(
-                    400,
-                    "VALIDATION_ERROR",
-                    f"Total estimated cost for category '{cat}' ({cost_sum}) exceeds allocated budget ({allocated}).",
-                )
-
-        plan.itinerary = cleaned_itinerary
+        plan.itinerary = itinerary
 
     if payload.selected_flight_id is not None:
         plan.selected_flight_id = payload.selected_flight_id
@@ -300,13 +202,14 @@ def chat_plan(
     db: Session = Depends(get_db),
 ):
     """Refine a draft plan via chat (contract §4.75).
-    
+
     Steps:
     1. Check login and plan owner. Reject non-draft plans with 409.
-    2. Create or load the conversation. Save the user's message.
-    3. Call the agent.
-    4. If updated, check that budget sums and dates are valid, then save plan.
-    5. Save the assistant message and return response.
+    2. Load the conversation (if any) and build the history in memory.
+    3. Call the agent with no write open: a reply can take many seconds, and an open
+       write would lock SQLite for every other user meanwhile (same fix as POST /trips).
+    4. If updated, check the new trip and plan with the same rules as PUT /plans.
+    5. Save the conversation, both messages and the plan in one short transaction.
     """
     # Step 1: Check login and plan owner
     plan = db.get(Plan, plan_id)
@@ -317,52 +220,33 @@ def chat_plan(
     if plan.status != "draft":
         raise ApiError(409, "PLAN_NOT_EDITABLE", "Only draft plans can be edited.")
 
-    # Step 2: Create or load conversation
-    conv_id = payload.conversation_id
+    # Step 2: Load the conversation. Only this plan's conversations can be continued;
+    # the server picks the id of a new one.
     conversation = None
-    if conv_id:
+    if payload.conversation_id:
         conversation = db.execute(
             select(Conversation).where(
-                Conversation.id == conv_id,
+                Conversation.id == payload.conversation_id,
                 Conversation.plan_id == plan.id,
             )
         ).scalar_one_or_none()
         if conversation is None:
-            conversation = Conversation(id=conv_id, plan_id=plan.id)
-            db.add(conversation)
-            db.flush()
+            raise ApiError(404, "NOT_FOUND", f"Conversation '{payload.conversation_id}' not found.")
 
-    if conversation is None:
-        conversation = Conversation(plan_id=plan.id)
-        db.add(conversation)
-        db.flush()
-
-    # Save user message
-    user_msg = ChatMessage(
-        conversation_id=conversation.id,
-        role="user",
-        content=payload.message,
-    )
-    db.add(user_msg)
-    db.flush()
-
-    # Build conversation history
     history = [
-        {
-            "role": m.role,
-            "content": m.content,
-            "action": m.action,
-            "changes": m.changes,
-        }
-        for m in conversation.messages
+        {"role": m.role, "content": m.content, "action": m.action, "changes": m.changes}
+        for m in (conversation.messages if conversation else [])
     ]
+    history.append({"role": "user", "content": payload.message, "action": None, "changes": None})
 
-    # Step 3: Call the agent
     plan_dict = serialize_plan(plan)
     trip_dict = serialize_trip(plan.trip)
     profile_dict = serialize_profile(user)
     search_context = plan.search_context
+    conversation_id = conversation.id if conversation else None
 
+    # Step 3: Call the agent with no transaction open
+    db.rollback()
     try:
         agent_resp = agent_chat(
             plan=plan_dict,
@@ -372,67 +256,61 @@ def chat_plan(
             message=payload.message,
             search_context=search_context,
         )
-    except Exception as exc:
-        raise ApiError(502, "GENERATION_FAILED", f"Agent failed: {exc}")
+    except Exception:
+        logger.exception("Chat agent failed for plan %s", plan_id)
+        raise ApiError(502, "GENERATION_FAILED", "The assistant could not answer. Please try again.")
 
-    action = agent_resp.get("action", "needs_clarification")
-    assistant_content = agent_resp.get("message", "")
-    changes = agent_resp.get("changes") or []
+    action = agent_resp.get("action")
+    if action not in ("updated", "needs_clarification"):
+        action = "needs_clarification"
+    assistant_content = agent_resp.get("message") or ""
+    changes = (agent_resp.get("changes") or []) if action == "updated" else []
 
-    updated_trip_data = None
-    updated_plan_data = None
+    # The plan may have changed while the agent was working (e.g. confirmed in another tab).
+    plan = db.get(Plan, plan_id)
+    if plan is None or plan.status != "draft":
+        raise ApiError(409, "PLAN_NOT_EDITABLE", "Only draft plans can be edited.")
+    trip = plan.trip
 
-    # Step 4: If updated, check budget sums and dates, then save plan
+    # Step 4: If updated, check the new trip and plan like PUT /plans does
     if action == "updated":
         updated_p = agent_resp.get("plan")
-        updated_t = agent_resp.get("trip")
-        if not updated_p:
-            raise ApiError(502, "GENERATION_FAILED", "Agent returned updated action without plan data.")
-
-        # Check budget split sum
-        bs = updated_p.get("budget_split", {})
-        total_budget = updated_p.get("total_budget", plan.trip.total_budget)
-        if sum(bs.values()) != total_budget:
-            raise ApiError(
-                502,
-                "GENERATION_FAILED",
-                f"Agent produced invalid budget sum: {sum(bs.values())} != {total_budget}",
-            )
-
-        # Check dates
-        s_date_str = updated_t.get("start_date") if updated_t else plan.trip.start_date.isoformat()
-        e_date_str = updated_t.get("end_date") if updated_t else plan.trip.end_date.isoformat()
+        updated_t = agent_resp.get("trip") or {}
+        if not isinstance(updated_p, dict):
+            raise ApiError(502, "GENERATION_FAILED", "The assistant returned an update without a plan.")
         try:
-            s_date = date.fromisoformat(s_date_str)
-            e_date = date.fromisoformat(e_date_str)
-            if s_date > e_date or (e_date - s_date).days > 14:
-                raise ValueError("Trip length invalid")
-        except Exception:
-            raise ApiError(502, "GENERATION_FAILED", "Agent produced invalid trip dates.")
+            total_budget = updated_t.get("total_budget", trip.total_budget)
+            if isinstance(total_budget, bool) or not isinstance(total_budget, int) or total_budget <= 0:
+                raise PlanRuleError("total_budget must be a positive integer.")
+            start = date.fromisoformat(updated_t.get("start_date", trip.start_date.isoformat()))
+            end = date.fromisoformat(updated_t.get("end_date", trip.end_date.isoformat()))
+            # "Not in the past" only applies when the agent moves the start date.
+            check_trip_dates(start, end, today=date.today() if start != trip.start_date else None)
+            budget_split = check_budget_split(updated_p.get("budget_split"), total_budget)
+            itinerary = check_itinerary(updated_p.get("itinerary"), start, end, budget_split)
+        except (PlanRuleError, ValueError, TypeError) as exc:
+            logger.warning("Chat agent produced an invalid plan for %s: %s", plan_id, exc)
+            raise ApiError(502, "GENERATION_FAILED", "The assistant produced an invalid plan. Please rephrase and try again.")
 
-        # Apply changes to DB models
-        plan.itinerary = updated_p.get("itinerary", plan.itinerary)
-        plan.budget_split = updated_p.get("budget_split", plan.budget_split)
-        if "options" in updated_p:
-            plan.options = updated_p["options"]
-
-        if updated_t:
-            if "total_budget" in updated_t:
-                plan.trip.total_budget = updated_t["total_budget"]
-            if "start_date" in updated_t:
-                plan.trip.start_date = date.fromisoformat(updated_t["start_date"])
-            if "end_date" in updated_t:
-                plan.trip.end_date = date.fromisoformat(updated_t["end_date"])
-
+        trip.total_budget = total_budget
+        trip.start_date = start
+        trip.end_date = end
+        plan.budget_split = budget_split
+        plan.itinerary = itinerary
+        options = updated_p.get("options")
+        if isinstance(options, dict) and isinstance(options.get("flights"), list) and isinstance(options.get("hotels"), list):
+            plan.options = options
         plan.updated_at = utcnow()
+
+    # Step 5: Save everything in one short transaction
+    if conversation_id is None:
+        conversation = Conversation(plan_id=plan.id)
+        db.add(conversation)
         db.flush()
-
-        updated_trip_data = serialize_trip(plan.trip)
-        updated_plan_data = serialize_plan(plan)
-
-    # Step 5: Save assistant message and return response
+        conversation_id = conversation.id
+    db.add(ChatMessage(conversation_id=conversation_id, role="user", content=payload.message))
     assistant_msg = ChatMessage(
-        conversation_id=conversation.id,
+        conversation_id=conversation_id,
         role="assistant",
         content=assistant_content,
         action=action,
@@ -442,7 +320,7 @@ def chat_plan(
     db.commit()
 
     return {
-        "conversation_id": conversation.id,
+        "conversation_id": conversation_id,
         "message": {
             "id": assistant_msg.id,
             "role": "assistant",
@@ -451,7 +329,6 @@ def chat_plan(
         },
         "action": action,
         "changes": changes,
-        "trip": updated_trip_data,
-        "plan": updated_plan_data,
+        "trip": serialize_trip(trip) if action == "updated" else None,
+        "plan": serialize_plan(plan) if action == "updated" else None,
     }
-

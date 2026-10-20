@@ -1,7 +1,9 @@
 """Profile router (contract §3.2, §4 GET/PUT /profile)."""
 
+from typing import Annotated, Literal
+
 from fastapi import APIRouter, Depends
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, StringConstraints
 from sqlalchemy.orm import Session
 
 from app.deps import get_current_user, get_db
@@ -11,14 +13,25 @@ from app.models import Profile, User, utcnow
 router = APIRouter(tags=["profile"])
 
 
+# Allowed values (contract §2). Anything else is a 400 VALIDATION_ERROR here; without this
+# check a bad value would be saved and then make every later POST /trips fail in the agent.
+Personality = Literal["calm", "adventurous", "foodie", "landmark-loving", "history-loving", "style-loving", "exploring"]
+Hobby = Literal["hiking", "diving", "photography", "museums", "beaches", "nightlife", "cooking", "wildlife",
+                "cycling", "music", "art", "local-markets"]
+DietaryLimit = Literal["vegetarian", "vegan", "halal", "gluten-free", "dairy-free", "nut-free"]
+# Free text goes into the agent's prompt, so each item and note has a length cap.
+Tag = Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=50)]
+Note = Annotated[str, StringConstraints(strip_whitespace=True, max_length=500)]
+
+
 class ProfilePayload(BaseModel):
-    personality: list[str] = Field(min_length=1, max_length=3)
-    hobbies: list[str] = Field(min_length=1)
-    food_likes: list[str] = Field(default_factory=list, max_length=10)
-    food_dislikes: list[str] = Field(default_factory=list, max_length=10)
-    dietary_limits: list[str] = Field(default_factory=list)
-    liked_last_trip: str = ""
-    disliked_last_trip: str = ""
+    personality: list[Personality] = Field(min_length=1, max_length=3)
+    hobbies: list[Hobby] = Field(min_length=1, max_length=12)
+    food_likes: list[Tag] = Field(default_factory=list, max_length=10)
+    food_dislikes: list[Tag] = Field(default_factory=list, max_length=10)
+    dietary_limits: list[DietaryLimit] = Field(default_factory=list, max_length=6)
+    liked_last_trip: Note = ""
+    disliked_last_trip: Note = ""
 
 
 def _serialize_profile_dict(prof: Profile) -> dict:

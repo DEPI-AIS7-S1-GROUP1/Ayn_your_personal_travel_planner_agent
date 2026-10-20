@@ -1,4 +1,4 @@
-import React, { useState, useId } from 'react';
+import { useState, useId, useEffect } from 'react';
 import './Input.css';
 
 /**
@@ -36,9 +36,10 @@ export function Input({
   const [displayValue, setDisplayValue] = useState(value ?? '');
 
   // Keep internal state aligned if value prop changes
-  React.useEffect(() => {
+  useEffect(() => {
     if (value !== undefined) {
       if (formatThousands && typeof value === 'number') {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setDisplayValue(value.toLocaleString());
       } else {
         setDisplayValue(value);

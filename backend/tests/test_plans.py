@@ -43,6 +43,21 @@ ITINERARY = [
             }
         ],
     },
+    {
+        # The trip below runs Nov 10-12, so a valid plan has all 3 days (contract §3.6).
+        "day": 3,
+        "date": "2026-11-12",
+        "activities": [
+            {
+                "id": "act_004",
+                "title": "Hotel check-out",
+                "description": "Check out and head home",
+                "time_slot": "morning",
+                "estimated_cost": 0,
+                "category": "hotel",
+            }
+        ],
+    },
 ]
 OPTIONS = {"flights": [], "hotels": []}
 
