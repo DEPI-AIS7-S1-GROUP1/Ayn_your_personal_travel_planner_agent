@@ -283,7 +283,7 @@ def generate_plan_from_dict(
                 logger.warning("Tier %d returned no flights or hotels; filled them from the mock builder", tier)
             plan.search_context = tier_name
             model_name = (os.getenv("GEMINI_MODEL", "gemini-3.8-flash") if "gemini" in tier_name
-                          else os.getenv("GROQ_MODEL", "qwen/qwen3.8-27b") if tier_name.startswith("groq")
+                          else os.getenv("GROQ_MODEL", "openai/gpt-oss-120b") if tier_name.startswith("groq")
                           else "deterministic")
             logger.info("Tier %d succeeded: provider=%s model=%s", tier, tier_name, model_name)
             logger.info("✅ Tier %d succeeded (%s)", tier, tier_name)
@@ -314,7 +314,7 @@ def generate_plan_from_dict(
                       )) else "pipeline_error")
             failed_provider = "Gemini" if tier == 1 else "Groq" if tier == 2 else "deterministic"
             failed_model = (os.getenv("GEMINI_MODEL", "gemini-3.8-flash") if tier == 1 else
-                            os.getenv("GROQ_MODEL", "qwen/qwen3.8-27b") if tier == 2 else "n/a")
+                            os.getenv("GROQ_MODEL", "openai/gpt-oss-120b") if tier == 2 else "n/a")
             logger.warning("Tier %d failed: provider=%s model=%s class=%s reason=%s",
                            tier, failed_provider, failed_model, type(exc).__name__, reason)
             if i >= len(tiers):

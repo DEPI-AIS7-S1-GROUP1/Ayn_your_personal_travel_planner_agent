@@ -656,7 +656,7 @@ def _call_groq(system_prompt: str, user_content: str) -> dict[str, Any] | None:
         from groq import Groq
         # Without an explicit timeout the SDK can wait minutes; the user is waiting on this reply.
         client = Groq(api_key=api_key, timeout=float(os.getenv("GROQ_REQUEST_TIMEOUT_S", "25")), max_retries=1)
-        model_name = os.getenv("GROQ_MODEL", "qwen/qwen3.8-27b")
+        model_name = os.getenv("GROQ_MODEL", "openai/gpt-oss-120b")
         if model_name.startswith("groq/"):
             model_name = model_name[5:]
 
@@ -669,6 +669,7 @@ def _call_groq(system_prompt: str, user_content: str) -> dict[str, Any] | None:
             response_format={"type": "json_object"},
             temperature=0.2,
             max_tokens=4096,
+            **({"reasoning_effort": "low"} if model_name.startswith("openai/gpt-oss") else {}),
         )
 
         text = response.choices[0].message.content.strip()
