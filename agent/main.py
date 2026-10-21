@@ -49,6 +49,15 @@ from agent.schemas import FinalPlanResponse, UserProfile, TripRequest
 from agent.fallbacks.direct_gemini import run_direct_gemini_fallback
 from agent.fallbacks.direct_groq import run_direct_groq_fallback
 from agent.fallbacks.mock_builder import build_mock_plan
+from agent.arabic import trip_language
+from agent.tools.hotel_images import add_hotel_photos
+from agent.translation import translate_plan_to_arabic
+from agent.tools.restaurant_search import (
+    named_meal_count,
+    restaurant_names,
+    search_restaurants,
+    suitable_names,
+)
 from agent.validators.post_processor import post_process
 
 # ---------------------------------------------------------------------------
@@ -90,7 +99,7 @@ def save_plan(plan: FinalPlanResponse, path: Path) -> None:
 # Tier 1 — CrewAI Pipeline
 # ---------------------------------------------------------------------------
 
-def run_crewai_pipeline(profile: dict, trip: dict) -> FinalPlanResponse:
+def run_crewai_pipeline(profile: dict, trip: dict, restaurants: list[dict] | None = None) -> FinalPlanResponse:
     """Execute the 3-agent sequential CrewAI pipeline."""
     if not CREWAI_AVAILABLE:
         raise RuntimeError("CrewAI is not installed or available.")
@@ -103,7 +112,7 @@ def run_crewai_pipeline(profile: dict, trip: dict) -> FinalPlanResponse:
     logger.info("Creating tasks...")
     context_task = create_context_task(context_agent, profile, trip)
     search_task = create_search_task(search_agent, context_task, trip)
-    planner_task = create_planner_task(planner_agent, search_task, profile, trip)
+    planner_task = create_planner_task(planner_agent, search_task, profile, trip, restaurants)
 
     logger.info("Kicking off CrewAI pipeline...")
     crew = Crew(
@@ -218,6 +227,17 @@ def generate_plan_from_dict(
     deadline = time.monotonic() + TOTAL_TIMEOUT_S
     gemini_retried = False
 
+    # One restaurant search for every tier, so meals name real places whichever tier answers.
+    # Cached per city for 72 h; [] when Tavily is off or fails, and the plan is built as before.
+    restaurants = search_restaurants(t_dict, p_dict)
+    found_names = restaurant_names(restaurants, t_dict["destination"]["city"])
+    names = suitable_names(found_names, p_dict)
+
+    # Arabic trips are planned in English and translated afterwards (agent/translation.py): the
+    # models' direct Arabic was stiff and word-for-word. The templates are already written in Arabic.
+    arabic = trip_language(t_dict) == "ar"
+    llm_trip = {**t_dict, "language": "en"} if arabic else t_dict
+
     i = 0
     while i < len(tiers):
         tier = tiers[i]
@@ -238,7 +258,7 @@ def generate_plan_from_dict(
                 if CREWAI_AVAILABLE:
                     try:
                         plan = _run_tier_with_timeout(
-                            run_crewai_pipeline, p_dict, t_dict,
+                            run_crewai_pipeline, p_dict, llm_trip, restaurants,
                             timeout_s=max(1, min(GLOBAL_TIMEOUT_S, int(remaining_s))),
                         )
                         tier_name = "crewai_gemini"
@@ -251,41 +271,51 @@ def generate_plan_from_dict(
                         raise crew_err
                 else:
                     plan = _run_tier_with_timeout(
-                        run_direct_gemini_fallback, p_dict, t_dict,
+                        run_direct_gemini_fallback, p_dict, llm_trip, restaurants,
                         timeout_s=max(1, min(int(os.getenv("AGENT_GEMINI_TIMEOUT_S", "20")), int(remaining_s))),
                     )
                     tier_name = "direct_gemini_unverified"
             elif tier == 2:
                 logger.info("⚡ Tier 2: Direct Groq fallback...")
                 plan = _run_tier_with_timeout(
-                    run_direct_groq_fallback, p_dict, t_dict,
+                    run_direct_groq_fallback, p_dict, llm_trip, restaurants,
                     timeout_s=max(1, min(int(os.getenv("AGENT_GROQ_TIMEOUT_S", "30")), int(remaining_s))),
                 )
                 tier_name = "groq_unverified"
             elif tier == 3:
                 logger.info("🏗️  Tier 3: Deterministic mock builder...")
-                plan = build_mock_plan(p_dict, t_dict)
+                plan = build_mock_plan(p_dict, t_dict, names)
                 tier_name = "mock_unverified"
             else:
                 continue
 
-            plan = post_process(plan, profile=p_dict, language=t_dict.get("language", "en"))
+            text_trip = t_dict if tier == 3 else llm_trip  # the language the plan's text is in now
+            plan = post_process(plan, profile=p_dict, language=text_trip.get("language", "en"))
             # The Options page needs flights and hotels; an LLM can return empty lists and still
             # pass the schema (seen with Groq in Arabic). Fill only what is missing from the
             # deterministic builder and say so in the tier name.
             if tier != 3 and (not plan.options.flights or not plan.options.hotels):
-                fallback_options = build_mock_plan(p_dict, t_dict).options
+                fallback_options = build_mock_plan(p_dict, text_trip).options
                 if not plan.options.flights:
                     plan.options.flights = fallback_options.flights
                 if not plan.options.hotels:
                     plan.options.hotels = fallback_options.hotels
                 tier_name += "+mock_options"
                 logger.warning("Tier %d returned no flights or hotels; filled them from the mock builder", tier)
+            if arabic and tier != 3:
+                # Every name found is protected, also one filtered out for this profile that the
+                # model chose anyway: a name must never be translated ("يلا بار دهب").
+                translate_plan_to_arabic(plan, found_names)
+            # LLM tiers invent photo links and the templates point at files that do not exist.
+            add_hotel_photos(plan.options.hotels, t_dict["destination"]["city"])
             plan.search_context = tier_name
             model_name = (os.getenv("GEMINI_MODEL", "gemini-3.8-flash") if "gemini" in tier_name
                           else os.getenv("GROQ_MODEL", "openai/gpt-oss-120b") if tier_name.startswith("groq")
                           else "deterministic")
             logger.info("Tier %d succeeded: provider=%s model=%s", tier, tier_name, model_name)
+            if names:
+                named, meals = named_meal_count(plan.itinerary, names)
+                logger.info("Meals naming a searched restaurant: %d of %d", named, meals)
             logger.info("✅ Tier %d succeeded (%s)", tier, tier_name)
             return plan
 

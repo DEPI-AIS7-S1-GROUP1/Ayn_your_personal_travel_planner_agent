@@ -29,13 +29,13 @@ const SLOT_OPTIONS = [
 
 const SLOTS_ORDER = ['morning', 'afternoon', 'evening'];
 
-function formatCost(cost, category, currency = 'EGP', t) {
+function formatCost(cost, category, currency = 'EGP', t, money) {
   const num = Number(cost) || 0;
   if (num === 0) {
     if (category === 'hotel') return null;
     return t('common.free');
   }
-  return `${currency} ${num.toLocaleString()}`;
+  return money(num, currency);
 }
 
 /**
@@ -64,7 +64,7 @@ export function DayTimelineCard({
   onRemoveActivity,
   className = ''
 }) {
-  const { t, translate } = useLanguage();
+  const { t, money, translate } = useLanguage();
   const [editingId, setEditingId] = useState(null);
   const [isAddingNew, setIsAddingNew] = useState(false);
   const [formData, setFormData] = useState({
@@ -144,7 +144,7 @@ export function DayTimelineCard({
           {date && <span className="ayn-day-card__date">{date}</span>}
         </div>
         <span className="ayn-day-card__day-total tabular-nums">
-          {currency} {dayTotal.toLocaleString()}
+          {money(dayTotal, currency)}
         </span>
       </div>
 
@@ -162,7 +162,7 @@ export function DayTimelineCard({
                 {group.activities.map((activity) => {
                   const Icon = CATEGORY_ICONS[activity.category] || Compass;
                   const isCurrentlyEditing = editingId === activity.id;
-                  const costFormatted = formatCost(activity.estimated_cost, activity.category, currency, t);
+                  const costFormatted = formatCost(activity.estimated_cost, activity.category, currency, t, money);
 
                   return (
                     <div key={activity.id} className="ayn-activity-row-wrapper">

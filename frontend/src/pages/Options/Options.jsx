@@ -9,7 +9,7 @@ import { useLanguage } from '../../context/LanguageContext.js';
 import './Options.css';
 
 export function Options() {
-  const { t, translate } = useLanguage();
+  const { t, tf, money, translate } = useLanguage();
   const { id } = useParams();
   const navigate = useNavigate();
 
@@ -156,14 +156,14 @@ export function Options() {
       icon: Bus,
       details: 'High-comfort intercity mini-coach, reserved seating, onboard Wi-Fi, AC.',
       outbound: {
-        from: `${origin} Station`,
-        to: `${destCity} Central`,
+        from: tf('options.busStation', { city: translate(origin) }),
+        to: tf('options.busCentral', { city: translate(destCity) }),
         departure: `${plan.start_date || '2026-11-10'}T07:00`,
         arrival: `${plan.start_date || '2026-11-10'}T12:00`,
       },
       return: {
-        from: `${destCity} Central`,
-        to: `${origin} Station`,
+        from: tf('options.busCentral', { city: translate(destCity) }),
+        to: tf('options.busStation', { city: translate(origin) }),
         departure: `${plan.end_date || '2026-11-12'}T15:30`,
         arrival: `${plan.end_date || '2026-11-12'}T20:30`,
       },
@@ -177,14 +177,14 @@ export function Options() {
       icon: Bus,
       details: 'First-class reclining seats, individual media screens, complimentary refreshments.',
       outbound: {
-        from: `${origin} Terminal`,
-        to: `${destCity} Terminal`,
+        from: tf('options.busTerminal', { city: translate(origin) }),
+        to: tf('options.busTerminal', { city: translate(destCity) }),
         departure: `${plan.start_date || '2026-11-10'}T09:00`,
         arrival: `${plan.start_date || '2026-11-10'}T14:30`,
       },
       return: {
-        from: `${destCity} Terminal`,
-        to: `${origin} Terminal`,
+        from: tf('options.busTerminal', { city: translate(destCity) }),
+        to: tf('options.busTerminal', { city: translate(origin) }),
         departure: `${plan.end_date || '2026-11-12'}T18:00`,
         arrival: `${plan.end_date || '2026-11-12'}T23:30`,
       },
@@ -206,7 +206,7 @@ export function Options() {
       <div className="ayn-options-page__header">
         <h1 className="ayn-options-page__title">{t('options.title')}</h1>
         <p className="ayn-options-page__subtitle">
-          {t('options.subtitleFrom')} <strong>{translate(origin)}</strong> {t('trips.to')} <strong>{translate(destCity)}</strong>.
+          {t('options.subtitleFrom')} <strong>{translate(origin)}</strong> {t('trips.to')} <strong>{translate(destCity)}</strong>.{' '}
           {t('options.subtitleCompare')} {t('options.subtitleBudget')}
         </p>
       </div>
@@ -327,7 +327,7 @@ export function Options() {
 
                 <div className="ayn-flight-row__right">
                   <div className="ayn-flight-row__price tabular-nums">
-                    {plan.currency} {item.price?.toLocaleString()}
+                    {money(item.price, plan.currency)}
                   </div>
                   <Button
                     variant={isSelected ? 'primary' : 'secondary'}

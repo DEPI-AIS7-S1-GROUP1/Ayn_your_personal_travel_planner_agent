@@ -285,7 +285,7 @@ def test_empty_flights_and_hotels_are_filled(monkeypatch):
                "dietary_limits": []}
     trip = {**TRIP, "start_date": date(2026, 11, 10).isoformat()}
 
-    def groq_without_options(p, t):
+    def groq_without_options(p, t, restaurants=None):
         plan = agent_main.build_mock_plan(p, t)
         plan.options.flights = []
         plan.options.hotels = []

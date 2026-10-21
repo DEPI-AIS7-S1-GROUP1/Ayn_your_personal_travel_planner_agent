@@ -95,7 +95,7 @@ function isoDay(from, days) {
 
 export function Destination() {
   const navigate = useNavigate();
-  const { t, translate, language } = useLanguage();
+  const { t, tf, translate, language } = useLanguage();
 
   const today = isoDay(new Date(), 0);
   const [originCity, setOriginCity] = useState('Cairo');
@@ -205,7 +205,7 @@ export function Destination() {
             >
               {EGYPT_CITIES.map((c) => (
                 <option key={c} value={c}>
-                  {translate(c)}, {t('destination.egypt')}
+                  {tf('common.placeInCountry', { city: translate(c), country: t('destination.egypt') })}
                 </option>
               ))}
             </select>

@@ -27,7 +27,7 @@ function formatDisplayDate(dateStr, language) {
 }
 
 export function DraftPlan() {
-  const { language, t, translate } = useLanguage();
+  const { language, t, tn, translate } = useLanguage();
   const { id } = useParams();
   const navigate = useNavigate();
 
@@ -202,7 +202,7 @@ export function DraftPlan() {
               {formatDisplayDate(plan.start_date, language)} – {formatDisplayDate(plan.end_date, language)}
             </span>
             <span>•</span>
-            <span>{plan.travelers} {plan.travelers === 1 ? t('trip.traveler') : t('trip.travelers')}</span>
+            <span>{tn('count.travelers', plan.travelers)}</span>
             <span>•</span>
             {/* Status indicator (DESIGN §4.10) */}
             <span className={`ayn-draft-page__status ayn-draft-page__status--${plan.status}`}>

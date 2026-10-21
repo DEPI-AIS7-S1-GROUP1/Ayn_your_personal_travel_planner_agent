@@ -63,7 +63,7 @@ function getCategoryIcon(cat) {
 }
 
 export function Confirmed() {
-  const { language, t, translate } = useLanguage();
+  const { language, t, tf, tn, money, translate } = useLanguage();
   const { id } = useParams();
   const navigate = useNavigate();
 
@@ -183,15 +183,18 @@ export function Confirmed() {
         </div>
         <h1 className="ayn-confirmed-hero__title">{t('confirmed.title')}</h1>
         <p className="ayn-confirmed-hero__subtitle">
-          {translate(destCity)}, {t('destination.egypt')} &bull; {formatDisplayDate(plan.start_date || plan.itinerary?.[0]?.date, language)} {t('trips.to')}{' '}
-          {formatDisplayDate(plan.end_date || plan.itinerary?.[plan.itinerary.length - 1]?.date, language)}
+          {tf('common.placeInCountry', { city: translate(destCity), country: t('destination.egypt') })} &bull;{' '}
+          {tf('trips.dateRange', {
+            from: formatDisplayDate(plan.start_date || plan.itinerary?.[0]?.date, language),
+            to: formatDisplayDate(plan.end_date || plan.itinerary?.[plan.itinerary.length - 1]?.date, language),
+          })}
         </p>
         <div className="ayn-confirmed-trip-pills">
           <span className="ayn-pill"><MapPin size={14} /> {translate(destCity)}</span>
-          <span className="ayn-pill"><Calendar size={14} /> {plan.itinerary?.length || 0} {t('confirmed.days')}</span>
-          <span className="ayn-pill"><Users size={14} /> {plan.travelers || 2} {t('trip.travelers')}</span>
+          <span className="ayn-pill"><Calendar size={14} /> {tn('count.days', plan.itinerary?.length || 0)}</span>
+          <span className="ayn-pill"><Users size={14} /> {tn('count.travelers', plan.travelers || 2)}</span>
           <span className="ayn-pill">
-            <Coins size={14} /> {translate(plan.currency)} {Number(plan.total_budget || 0).toLocaleString()}
+            <Coins size={14} /> {money(plan.total_budget, plan.currency)}
           </span>
         </div>
       </div>
@@ -229,10 +232,10 @@ export function Confirmed() {
                     <div className="ayn-booking-item__type">{t('confirmed.hotelStay')}</div>
                     <div className="ayn-booking-item__name">{selectedHotel.name}</div>
                     <div className="ayn-booking-item__sub">
-                      {translate(selectedHotel.area || destCity)} &bull; {selectedHotel.stars || 4} {t('confirmed.stars')}
+                      {translate(selectedHotel.area || destCity)} &bull; {tn('count.stars', selectedHotel.stars || 4)}
                     </div>
                     <div className="ayn-booking-item__price">
-                      {translate(plan.currency)} {Number(selectedHotel.total_price || 0).toLocaleString()} {t('confirmed.total')}
+                      {tf('confirmed.totalPrice', { amount: money(selectedHotel.total_price, plan.currency) })}
                     </div>
                   </div>
                 </div>
@@ -246,10 +249,10 @@ export function Confirmed() {
                       {selectedFlight.airline || 'EgyptAir / Intercity Transport'}
                     </div>
                     <div className="ayn-booking-item__sub">
-                      {t('confirmed.departureFrom')} {translate(selectedFlight.outbound?.from || origin)} {t('trips.to')} {translate(destCity)}
+                      {tf('confirmed.departureRoute', { from: translate(selectedFlight.outbound?.from || origin), to: translate(destCity) })}
                     </div>
                     <div className="ayn-booking-item__price">
-                      {translate(plan.currency)} {Number(selectedFlight.price || 0).toLocaleString()} {t('confirmed.total')}
+                      {tf('confirmed.totalPrice', { amount: money(selectedFlight.price, plan.currency) })}
                     </div>
                   </div>
                 </div>
@@ -292,7 +295,7 @@ export function Confirmed() {
                         </span>
                         {Number(act.estimated_cost) > 0 ? (
                           <span className="ayn-confirmed-act-cost">
-                            {translate(plan.currency)} {Number(act.estimated_cost).toLocaleString()}
+                            {money(act.estimated_cost, plan.currency)}
                           </span>
                         ) : (
                           <span className="ayn-confirmed-act-cost--free">{t('confirmed.includedFree')}</span>

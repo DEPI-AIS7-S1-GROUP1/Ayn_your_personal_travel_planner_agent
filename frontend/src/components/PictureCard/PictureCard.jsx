@@ -35,7 +35,7 @@ export function PictureCard({
   className = '',
   ...props
 }) {
-  const { t, translate } = useLanguage();
+  const { t, tf, money, translate } = useLanguage();
   const [imageFailed, setImageFailed] = useState(false);
 
   const starCount = Math.max(0, Math.min(5, Math.round(stars || 0)));
@@ -93,11 +93,11 @@ export function PictureCard({
 
         <div className="ayn-picture-card__price-row">
           <span className="ayn-picture-card__price-total tabular-nums">
-            {typeof totalPrice === 'number' ? `${currency} ${totalPrice.toLocaleString()}` : totalPrice}
+            {typeof totalPrice === 'number' ? money(totalPrice, currency) : totalPrice}
           </span>
           {pricePerNight && (
             <span className="ayn-picture-card__price-night tabular-nums">
-              {typeof pricePerNight === 'number' ? `${currency} ${pricePerNight.toLocaleString()} / ${t('common.night')}` : pricePerNight}
+              {typeof pricePerNight === 'number' ? tf('common.perNight', { amount: money(pricePerNight, currency) }) : pricePerNight}
             </span>
           )}
         </div>

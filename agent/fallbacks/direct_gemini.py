@@ -16,6 +16,7 @@ from agent.arabic import arabic_language_rule_block
 from agent.fallbacks.prompt_rules import compact_schema, days_rule
 from agent.schemas import FinalPlanResponse
 from agent.feedback import feedback_text
+from agent.tools.restaurant_search import restaurant_rule_block
 
 logger = logging.getLogger(__name__)
 
@@ -23,8 +24,12 @@ logger = logging.getLogger(__name__)
 def run_direct_gemini_fallback(
     profile: dict[str, Any],
     trip: dict[str, Any],
+    restaurants: list[dict] | None = None,
 ) -> FinalPlanResponse:
-    """Generate a plan using the Google GenAI SDK directly."""
+    """Generate a plan using the Google GenAI SDK directly.
+
+    restaurants: search evidence from agent/tools/restaurant_search.py, so meals name real places.
+    """
     api_key = os.getenv("GEMINI_API_KEY")
     if not api_key or not api_key.strip() or api_key.startswith("AIzaSy_your"):
         raise ValueError("GEMINI_API_KEY is not configured")
@@ -67,6 +72,7 @@ def run_direct_gemini_fallback(
         f"11. created_at and updated_at: {date.today().isoformat()}\n"
         f"12. {feedback_text(profile)}\n\n"
         f"{arabic_language_rule_block(trip)}\n"
+        f"{restaurant_rule_block(restaurants or [], trip)}\n"
         f"User Profile: {json.dumps(profile)}\n"
         f"Trip Request: {json.dumps(trip)}"
     )

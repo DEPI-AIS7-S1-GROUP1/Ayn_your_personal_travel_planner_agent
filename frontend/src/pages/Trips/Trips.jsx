@@ -21,7 +21,7 @@ function formatTripDate(dateString, language) {
 
 export function Trips() {
   const navigate = useNavigate();
-  const { language, t, translate } = useLanguage();
+  const { language, t, tf, tn, money, translate } = useLanguage();
   const [trips, setTrips] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -106,10 +106,10 @@ export function Trips() {
               <p className="ayn-trip-card__country">{translate(trip.destination.country)}</p>
 
               <div className="ayn-trip-card__meta">
-                <span>{formatTripDate(trip.start_date, language)} {t('trips.to')} {formatTripDate(trip.end_date, language)}</span>
-                <span>{trip.travelers} {trip.travelers === 1 ? t('trip.traveler') : t('trip.travelers')}</span>
+                <span>{tf('trips.dateRange', { from: formatTripDate(trip.start_date, language), to: formatTripDate(trip.end_date, language) })}</span>
+                <span>{tn('count.travelers', trip.travelers)}</span>
                 <span className="ayn-trip-card__budget">
-                  {translate(trip.currency)} {Number(trip.total_budget).toLocaleString()}
+                  {money(trip.total_budget, trip.currency)}
                 </span>
               </div>
 
