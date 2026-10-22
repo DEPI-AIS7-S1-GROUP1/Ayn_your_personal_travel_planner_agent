@@ -15,6 +15,7 @@ import {
   Coins,
 } from 'lucide-react';
 import { Button } from '../../components/Button';
+import { PersonIllustration, CelebratoryConfetti } from '../../components/Illustration';
 import api from '../../services/api';
 import { useLanguage } from '../../context/LanguageContext.js';
 import './Confirmed.css';
@@ -178,6 +179,33 @@ export function Confirmed() {
     <div className="ayn-confirmed-page">
       {/* Sky Hero */}
       <div className="ayn-confirmed-hero">
+        {/* Celebration Confetti */}
+        <CelebratoryConfetti />
+
+        {/* Official Egyptian Passport Entry Stamp with landing animation */}
+        <div className="ayn-passport-stamp ayn-passport-stamp--landing" aria-hidden="true">
+          <div className="ayn-passport-stamp__inner">
+            <span className="ayn-passport-stamp__country">A. R. EGYPT • AYN</span>
+            <span className="ayn-passport-stamp__city">{translate(destCity).toUpperCase()}</span>
+            <span className="ayn-passport-stamp__type">
+              {language === 'ar' ? '★ رحلة مؤكدة ★' : '★ VOYAGE CONFIRMED ★'}
+            </span>
+            <span className="ayn-passport-stamp__date">
+              {formatDisplayDate(plan.start_date || new Date().toISOString(), language)}
+            </span>
+          </div>
+        </div>
+
+        {/* Companion Cheering Traveler */}
+        <div className="ayn-confirmed-hero__character" aria-hidden="true">
+          <PersonIllustration
+            variant="suitcase"
+            width={64}
+            height={94}
+            bubbleText={language === 'ar' ? 'رحلة سعيدة وممتعة! ✈️' : 'Have a magical trip! ✈️'}
+          />
+        </div>
+
         <div className="ayn-confirmed-hero__icon">
           <CheckCircle2 size={48} strokeWidth={2} color="var(--color-green)" />
         </div>

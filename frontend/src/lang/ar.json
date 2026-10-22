@@ -103,7 +103,7 @@
   "generating.description": "يختار «أين» الأنشطة المناسبة لك، ويوزّع ميزانيتك، ويبحث عن الفنادق والرحلات.",
   "common.tryAgain": "حاول مرة أخرى",
   "common.backToForm": "العودة إلى النموذج",
-  "destination.title": "إلى أين في مصر؟",
+  "destination.title": "إلى أين وجهتك القادمة في مصر؟",
   "destination.description": "اختر مدينة المغادرة والوجهة والتواريخ والميزانية، وسيُعدّ لك «أين» خطة يومية على مقاسك.",
   "destination.from": "من أين ستسافر؟",
   "draft.loading": "جارٍ تحميل خطتك...",
@@ -554,5 +554,9 @@
     "Disliked last trip (Textarea min 112px)": "ما لم يعجبك في الرحلة الأخيرة",
     "Try typing here...": "جرّب الكتابة هنا...",
     "Tell us what you want to avoid...": "أخبرنا بما تريد تجنبه..."
-  }
+  },
+  "home.heroBadge": "مرشدك الذكي للسفر في مصر",
+  "home.featuresSubtitle": "من أسواق الإسكندرية القديمة إلى شواطئ البحر الأحمر الهادئة، مخطط بدقة في ثوانٍ.",
+  "home.aboutBadge": "مصمم خصيصاً لمصر",
+  "home.clickTravelers": "اضغط على مسافرينا للترحيب بهم!"
 }

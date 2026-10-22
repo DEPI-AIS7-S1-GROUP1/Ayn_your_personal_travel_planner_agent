@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Menu, X } from 'lucide-react';
 import { Button } from '../Button';
@@ -31,6 +31,16 @@ export function Navbar({
 }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 12);
+    };
+    handleScroll();
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
   const { language, setLanguage, t } = useLanguage();
 
   const navigate = useNavigate();
@@ -61,7 +71,7 @@ export function Navbar({
   const handleLanguageChange = (nextLanguage) => setLanguage(nextLanguage);
 
   return (
-    <header className={`ayn-navbar-wrapper ${className}`}>
+    <header className={`ayn-navbar-wrapper ${isScrolled ? 'ayn-navbar-wrapper--scrolled' : ''} ${className}`}>
       <div className="ayn-navbar">
         {/* Left: Wordmark */}
         <button

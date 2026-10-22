@@ -137,8 +137,13 @@ export function ChatPanel({
         <div className="ayn-chat-panel__title-group">
           <h3 className="ayn-chat-panel__title">{t('chat.title')}</h3>
         </div>
-        <div className="ayn-chat-panel__figure" aria-hidden="true">
+        <div className={`ayn-chat-panel__figure ${isUpdating ? 'ayn-chat-panel__figure--thinking' : ''}`} aria-hidden="true">
           <PersonIllustration variant="backpack" />
+          {isUpdating && (
+            <span className="ayn-figure-typing-bubble" aria-label="Ayn is thinking">
+              <span /><span /><span />
+            </span>
+          )}
         </div>
       </div>
 

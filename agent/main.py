@@ -170,12 +170,21 @@ def _tier_worker(result_queue, fn, args):
 
 
 def _run_tier_with_timeout(fn, *args, timeout_s: int | None = None):
-    """Run a tier in a killable process with a hard wall deadline.
+    """Run a tier in a worker process (or thread on Windows) with a hard wall deadline.
 
     Terminating a local worker cannot recall a request already accepted by a
     remote provider, so network timeouts remain configured at provider level.
     """
     timeout = timeout_s if timeout_s is not None else GLOBAL_TIMEOUT_S
+    if os.name == "nt":
+        import concurrent.futures
+        with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor:
+            future = executor.submit(fn, *args)
+            try:
+                return future.result(timeout=timeout)
+            except concurrent.futures.TimeoutError:
+                raise TimeoutError(f"Tier execution exceeded {timeout}s deadline")
+
     ctx = multiprocessing.get_context("spawn")
     result_queue = ctx.Queue(maxsize=1)
     process = ctx.Process(target=_tier_worker, args=(result_queue, fn, args), daemon=True)

@@ -43,6 +43,51 @@ _NOT_A_NAME = re.compile(
     r"occasion|tripadvisor|halal|vegan|vegetarian|gluten|plan your visit)\b",
     re.IGNORECASE,
 )
+_FAST_FOOD_CHAINS = re.compile(
+    r"\b(kfc|kentucky fried chicken|mcdonalds?|burger king|pizza hut|subway|hardees?|dominos?)\b",
+    re.IGNORECASE,
+)
+
+CITY_ICONIC_RESTAURANTS: dict[str, list[dict]] = {
+    "Sharm El Sheikh": [
+        {"name": "Fares Seafood", "area": "Old Market", "dish_en": "signature seafood soup, grilled sea bass and calamari tajine", "dish_ar": "شوربة فواكه البحر وطاجن الكاليماري والسمك السنجاري"},
+        {"name": "El Masrien", "area": "Old Market", "dish_en": "charcoal-grilled kofta, kebab and stuffed pigeon with oriental rice", "dish_ar": "كفتة وكباب مشوي على الفحم وحمام محشي"},
+        {"name": "Abou El Sid", "area": "Naama Bay", "dish_en": "classic molokhia with chicken, fiteer meshaltet and mezze platters", "dish_ar": "ملوخية بالدجاج وفطير مشلتت ومقبلات مصرية"},
+        {"name": "Dananeer", "area": "Naama Bay promenade", "dish_en": "fresh jumbo prawns, grilled red sea grouper and garlic tahini", "dish_ar": "جمبري مشوي وسمك وقار طازج مع سلطة الطحينة"},
+    ],
+    "Cairo": [
+        {"name": "Abou Tarek", "area": "Champollion St, Downtown", "dish_en": "authentic Egyptian Koshari with extra da'ah, crispy onions and tomato salsa", "dish_ar": "كشري أبو طارق بالتقلية والدقة والصلصة الحارة"},
+        {"name": "Naguib Mahfouz Cafe", "area": "Khan el-Khalili", "dish_en": "slow-cooked lamb shank tajine, mixed Egyptian grill and fresh mint tea", "dish_ar": "طاجن موزة ضاني ومشويات مشكلة وشاي بالنعناع"},
+        {"name": "Felfela", "area": "Talaat Harb, Downtown", "dish_en": "crispy hot ta'ameya, foul medames with olive oil and babaghanoush", "dish_ar": "طعمية مقرمشة سخنة وفول مدمس بزيت الزيتون وبابا غنوج"},
+        {"name": "Andrea El Mariouteya", "area": "Mariouteya canal, Giza", "dish_en": "wood-roasted herb chicken, fresh baladi bread and stuffed vine leaves", "dish_ar": "فراخ مشوية على الفحم مع خبز بلدي ساخن وورق عنب"},
+        {"name": "Kebdet El Prince", "area": "Imbaba", "dish_en": "sizzling beef liver with chili, authentic mombar and hot molokhia", "dish_ar": "كبدة إسكندراني وممبار وطشة ملوخية سخنة"},
+    ],
+    "Luxor": [
+        {"name": "Sofra Restaurant", "area": "Mohamed Farid St", "dish_en": "stuffed pigeon with cracked green wheat (freek) and okra lamb tajine", "dish_ar": "حمام محشي بالفريك وطاجن بامية باللحم الضاني"},
+        {"name": "Al-Sahaby Lane", "area": "Temple Street rooftop", "dish_en": "camel burger, Egyptian mezze platters and fresh mango juice overlooking Luxor Temple", "dish_ar": "برجر لحم الجمل مع مقبلات شرقية وعصير مانجو بإطلالة على المعبد"},
+        {"name": "El Hussein", "area": "Near Luxor Temple", "dish_en": "charcoal mixed grill, sun-baked bread and spiced lentil soup", "dish_ar": "مشويات مشكلة مع عيش بلدي وشوربة عدس"},
+    ],
+    "Aswan": [
+        {"name": "Al Dokka", "area": "Elephantine Island", "dish_en": "freshly grilled Nile fish, tahini and Nubian spiced rice", "dish_ar": "سمك نيل مشوي طازج مع أرز بالخلطة وطحينة"},
+        {"name": "Makka Restaurant", "area": "Abtal El Tahrir St", "dish_en": "Nubian roasted chicken with okra stew and sun-baked eish shamsi", "dish_ar": "دجاج محمر على الطريقة النوبية مع بامية وعيش شمسي"},
+        {"name": "Nubian Dream", "area": "Gharb Soheil village", "dish_en": "clay-pot meat tagine, freshly squeezed hibiscus and dates", "dish_ar": "طواجن لحم في الفخار مع كركديه أسواني وتمر"},
+    ],
+    "Alexandria": [
+        {"name": "Fish Market", "area": "Corniche, Al Anfoushi", "dish_en": "grilled sea bream, buttered jumbo shrimp and fishermen's sayadiya rice", "dish_ar": "سمك دنيس مشوي بالردة وجمبري زبدة مع أرز صيادية"},
+        {"name": "Balbaa Village", "area": "Sidi Gaber", "dish_en": "charcoal-grilled kebab, kofta, tarb and seafood platters", "dish_ar": "مشويات بلبعة من كباب وكفتة وطرب وفواكه البحر"},
+        {"name": "Alban Swisra", "area": "Camp Caesar", "dish_en": "sizzling skillets of molten Egyptian cheese with spicy pastrami and sausage", "dish_ar": "طاسات الجبن السايحة مع البسطرمة والسجق الإسكندراني"},
+    ],
+    "Hurghada": [
+        {"name": "Star Fish Restaurant", "area": "Sheraton Road", "dish_en": "fresh red mullet, grilled lobster tail and creamy seafood soup", "dish_ar": "سمك بربوني مشوي وذيل استاكوزا وشوربة سي فود بالكريمة"},
+        {"name": "El Halaba", "area": "Dahar downtown", "dish_en": "authentic charcoal-roasted chicken with oriental rice and garlic dip", "dish_ar": "دجاج مشوي على الفحم مع أرز شرقي وثومية"},
+        {"name": "Granada", "area": "Old Sheraton Rd", "dish_en": "wood-fired flatbreads, Mediterranean seafood and panoramic sea views", "dish_ar": "مخبوزات طازجة ومأكولات بحرية بإطلالة بانورامية على البحر"},
+    ],
+    "Dahab": [
+        {"name": "King Chicken", "area": "El Mashraba street", "dish_en": "crispy golden roasted chicken served with rice, soup, garlic tahini and fresh bread", "dish_ar": "نصف دجاجة محمرة مع أرز وشوربة وطحينة وخبز بلدي"},
+        {"name": "Ali Baba", "area": "Lighthouse waterfront", "dish_en": "grilled catch-of-the-day fish chosen right from the ice display with baked potatoes", "dish_ar": "سمك مشوي طازج يتم اختياره من الثلج مع بطاطس بالفرن"},
+        {"name": "Shark Restaurant", "area": "El Mashraba promenade", "dish_en": "grilled calamari, seafood tagine, and fresh lemon-mint juice", "dish_ar": "كاليماري مشوي وطاجن فواكه البحر وعصير ليمون بالنعناع"},
+    ],
+}
 # One-word matches that are page text, not a restaurant ("Namaste" or "Byblos" pass).
 _COMMON_WORDS = frozenset(
     "restaurant cafe café dining international egyptian local seafood food menu plan other must "
@@ -114,11 +159,17 @@ def restaurant_names(evidence: list[dict], city: str = "") -> list[str]:
                 name = _clean_name(match.group(1))
                 key = name.casefold()
                 if (len(name) < 3 or key in seen or _NOT_A_NAME.search(name)
+                        or _FAST_FOOD_CHAINS.search(name)
                         or (" " not in name and key in _COMMON_WORDS)
                         or (city and key == city.casefold())):
                     continue
                 seen.add(key)
                 names.append(name)
+    if len(names) < 3 and city:
+        for item in CITY_ICONIC_RESTAURANTS.get(city, CITY_ICONIC_RESTAURANTS.get("Cairo", [])):
+            if item["name"].casefold() not in seen:
+                seen.add(item["name"].casefold())
+                names.append(item["name"])
     return names[:MAX_NAMES]
 
 
@@ -133,27 +184,34 @@ def suitable_names(names: list[str], profile: dict) -> list[str]:
 
 
 def restaurant_rule_block(evidence: list[dict], trip: dict) -> str:
-    """Prompt section for the LLM tiers. Empty when there is no evidence (prompt unchanged)."""
+    """Prompt section for the LLM tiers. Uses live web search evidence or curated Egyptian spots."""
+    city = trip.get("destination", {}).get("city", "")
     if not evidence:
-        return ""
-    names = restaurant_names(evidence, trip["destination"]["city"])
+        curated = CITY_ICONIC_RESTAURANTS.get(city, CITY_ICONIC_RESTAURANTS.get("Cairo", []))
+        evidence = [
+            {
+                "title": r["name"],
+                "content": f"{r['name']} in {r['area']} ({city}): authentic dishes include {r['dish_en']}.",
+            }
+            for r in curated
+        ]
+    names = restaurant_names(evidence, city)
     sources = "\n".join(
         f"[{i}] {s['title']}: {s['content']}" for i, s in enumerate(evidence, start=1)
     )
     found = f"Names found: {', '.join(names)}\n" if names else ""
     return (
-        "\nREAL RESTAURANTS (from a live web search; use only these for meals):\n"
+        "\nREAL RESTAURANTS (from verified Egyptian dining spots; use only these for meals):\n"
         f"{found}Sources:\n{sources}\n"
         'RESTAURANT RULE: every activity with category "food" MUST name one specific restaurant '
         'from the sources above in its title, e.g. "Lunch at Shark Restaurant". In an Arabic plan keep '
         'the restaurant name in Latin letters exactly as written, e.g. "غداء في Shark Restaurant". '
-        "In the description name one or two dishes to order there that fit the food likes, plus the "
-        'area when the sources give it, e.g. "Try the koshari and ta\'ameya; a local favourite in '
-        'Mashraba." Pick restaurants '
-        "that fit the food likes, food dislikes and dietary limits (no bars or pubs when the limits "
-        "include halal), and use a different one for each "
-        "meal when there are enough. Never invent a restaurant name; if none fits, use a generic "
-        'title such as "Lunch at a local seafood restaurant".\n'
+        "In the description name one or two specific authentic dishes to order there (e.g. koshari with extra da'ah, "
+        "chicken shawarma, fresh grilled sea bass, stuffed pigeon, or mixed grill), plus the street/area when known "
+        '(e.g. "Order the chicken shawarma and koshari with garlic dip; a local favourite in El Mashraba street"). '
+        "Pick restaurants that fit the food likes, food dislikes and dietary limits (no bars or pubs when the limits "
+        "include halal), and use a different one for each meal when there are enough. "
+        "Never invent a restaurant name; never use American fast food chains.\n"
     )
 
 

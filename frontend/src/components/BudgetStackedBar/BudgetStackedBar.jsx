@@ -66,7 +66,17 @@ export function BudgetStackedBar({
   return (
     <div className={`ayn-budget-card ${className}`}>
       <div className="ayn-budget-card__header">
-        <h3 className="ayn-budget-card__title">{t('budget.title')}</h3>
+        <div className="ayn-budget-card__title-group">
+          <div className="ayn-budget-jar-icon" aria-hidden="true">
+            <svg viewBox="0 0 28 28" className="ayn-jar-svg">
+              <ellipse cx="14" cy="5" rx="7" ry="2" fill="#B5472F" />
+              <path d="M7,5 C7,10 4,14 5,21 C6,25 22,25 23,21 C24,14 21,10 21,5 Z" fill="#D97A53" stroke="#B5472F" strokeWidth="1.2" />
+              <circle cx="14" cy="15" r="3.5" fill="#F5A623" stroke="#FFF" strokeWidth="0.8" />
+              <text x="14" y="17" textAnchor="middle" fill="#2B2118" fontSize="5.5" fontWeight="900">£</text>
+            </svg>
+          </div>
+          <h3 className="ayn-budget-card__title">{t('budget.title')}</h3>
+        </div>
         <span className="ayn-budget-card__total tabular-nums">
           {/* The amount comes first in Arabic: "1,500 دولار". */}
           {language === 'ar'

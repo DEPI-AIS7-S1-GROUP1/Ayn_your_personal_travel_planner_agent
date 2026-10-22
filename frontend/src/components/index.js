@@ -16,3 +16,4 @@ export * from './ErrorBoundary';
 export * from './TierNotice/TierNotice';
 export * from './Skeleton/Skeleton';
 export * from './CountUp/CountUp';
+export * from './AynLogo';

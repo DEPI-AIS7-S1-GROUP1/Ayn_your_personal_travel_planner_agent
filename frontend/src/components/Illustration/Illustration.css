@@ -1,19 +1,876 @@
+/* ==========================================================================
+   Ayn Living Illustrations CSS (Motion & Delight)
+   ========================================================================== */
+
 .ayn-illustration {
   display: inline-block;
   user-select: none;
 }
 
 .ayn-illustration--person {
-  width: 48px;
-  height: 77px;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  filter: drop-shadow(0 4px 8px rgba(43, 33, 24, 0.12));
 }
 
-.ayn-illustration--cloud {
-  display: block;
+.ayn-person-wrap {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  user-select: none;
 }
+
+.ayn-person-wrap--interactive {
+  cursor: pointer;
+  outline: none;
+  transition: transform var(--motion-fast) var(--ease-spring);
+}
+
+.ayn-person-wrap--interactive:hover {
+  transform: translateY(-2px);
+}
+
+.ayn-person-wrap--interactive:focus-visible {
+  outline: var(--focus-ring);
+  outline-offset: 4px;
+  border-radius: var(--radius-button);
+}
+
+/* Hop animation on click */
+.ayn-person-wrap--jumping {
+  animation: ayn-person-hop 0.55s var(--ease-spring) both;
+}
+
+@keyframes ayn-person-hop {
+  0% { transform: translateY(0) scale(1, 1); }
+  25% { transform: translateY(-12px) scale(0.94, 1.08); }
+  60% { transform: translateY(0) scale(1.05, 0.95); }
+  80% { transform: translateY(-3px) scale(0.98, 1.02); }
+  100% { transform: translateY(0) scale(1, 1); }
+}
+
+/* Ground shadow breathing / squashing */
+.ayn-person-wrap--animated .ayn-char__shadow {
+  transform-origin: 28px 82px;
+  animation: ayn-shadow-breathe 4s ease-in-out infinite;
+}
+
+@keyframes ayn-shadow-breathe {
+  0%, 100% { transform: scale(1); opacity: 0.8; }
+  50% { transform: scale(0.9, 0.9); opacity: 0.6; }
+}
+
+/* Idle Breathing / Bobbing */
+.ayn-person-wrap--animated .ayn-char__body-group {
+  transform-origin: 28px 80px;
+  animation: ayn-body-breathe 4s ease-in-out infinite;
+}
+
+@keyframes ayn-body-breathe {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-2px); }
+}
+
+/* Blinking Eyes */
+.ayn-person-wrap--animated .ayn-char__eyes {
+  transform-origin: 28px 18px;
+  animation: ayn-eyes-blink 5s ease-in-out infinite;
+}
+
+@keyframes ayn-eyes-blink {
+  0%, 46%, 50%, 96%, 100% { transform: scaleY(1); }
+  48%, 98% { transform: scaleY(0.1); }
+}
+
+/* Arm Wave on Hover */
+.ayn-person-wrap--interactive:hover .ayn-char__arm-wave {
+  transform-origin: 38px 33px;
+  animation: ayn-arm-wave 0.8s ease-in-out infinite alternate;
+}
+
+@keyframes ayn-arm-wave {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(-22deg); }
+}
+
+/* Backpack gentle sway */
+.ayn-person-wrap--animated .ayn-char__backpack {
+  transform-origin: 18px 36px;
+  animation: ayn-backpack-sway 4s ease-in-out infinite;
+}
+
+@keyframes ayn-backpack-sway {
+  0%, 100% { transform: rotate(0deg); }
+  50% { transform: rotate(-2deg); }
+}
+
+/* Map flutter in breeze */
+.ayn-person-wrap--animated .ayn-char__map-prop {
+  transform-origin: 28px 45px;
+  animation: ayn-map-flutter 3.5s ease-in-out infinite;
+}
+
+@keyframes ayn-map-flutter {
+  0%, 100% { transform: rotate(0deg) skewX(0deg); }
+  35% { transform: rotate(1.5deg) skewX(1deg); }
+  70% { transform: rotate(-1deg) skewX(-1deg); }
+}
+
+/* Suitcase wheel slight jitter */
+.ayn-person-wrap--interactive:hover .ayn-char__suitcase-prop {
+  transform-origin: 41px 42px;
+  animation: ayn-suitcase-tilt 0.6s ease-in-out infinite alternate;
+}
+
+@keyframes ayn-suitcase-tilt {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(3deg); }
+}
+
+/* Camera flash on click or periodic */
+.ayn-person-wrap--animated .ayn-char__camera-flash {
+  animation: ayn-camera-flash 6s ease-in-out infinite;
+}
+
+@keyframes ayn-camera-flash {
+  0%, 92%, 100% { opacity: 0; transform: scale(0.5); }
+  94% { opacity: 1; transform: scale(1.3); }
+  96% { opacity: 0; transform: scale(1.5); }
+}
+
+/* Selfie arm gentle tilt */
+.ayn-person-wrap--animated .ayn-char__selfie-arm {
+  transform-origin: 38px 33px;
+  animation: ayn-selfie-tilt 4s ease-in-out infinite;
+}
+
+@keyframes ayn-selfie-tilt {
+  0%, 100% { transform: rotate(0deg); }
+  50% { transform: rotate(-3deg); }
+}
+
+/* ==========================================================================
+   Speech Bubble Component
+   ========================================================================== */
+
+.ayn-person-bubble {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: var(--color-surface);
+  color: var(--color-text);
+  border: 2px solid var(--color-text);
+  border-radius: 12px;
+  padding: 6px 12px;
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 800;
+  white-space: nowrap;
+  box-shadow: 0 4px 0 var(--color-text);
+  z-index: 10;
+  pointer-events: none;
+  animation: ayn-bubble-pop 0.3s var(--ease-spring) both;
+}
+
+.ayn-person-bubble__tip {
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 0;
+  border-left: 6px solid transparent;
+  border-right: 6px solid transparent;
+  border-top: 6px solid var(--color-text);
+}
+
+@keyframes ayn-bubble-pop {
+  0% {
+    opacity: 0;
+    transform: translateX(-50%) translateY(8px) scale(0.8);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0) scale(1);
+  }
+}
+
+/* RTL Speech Bubble */
+html.ayn-arabic .ayn-person-bubble {
+  font-family: var(--font-arabic), var(--font-body);
+  direction: rtl;
+}
+
+/* ==========================================================================
+   Walking Figure Component (Section traversing traveler)
+   ========================================================================== */
+
+.ayn-walking-figure {
+  display: inline-block;
+  overflow: visible;
+  animation: ayn-walk-across 18s linear infinite;
+}
+
+.ayn-walking-figure--slow { animation-duration: 26s; }
+.ayn-walking-figure--medium { animation-duration: 18s; }
+.ayn-walking-figure--fast { animation-duration: 12s; }
+
+.ayn-walking-figure--rtl {
+  animation-name: ayn-walk-across-rtl;
+  transform: scaleX(-1);
+}
+
+@keyframes ayn-walk-across {
+  0% { transform: translateX(-60px); }
+  100% { transform: translateX(calc(100vw + 60px)); }
+}
+
+@keyframes ayn-walk-across-rtl {
+  0% { transform: scaleX(-1) translateX(-60px); }
+  100% { transform: scaleX(-1) translateX(calc(-100vw - 60px)); }
+}
+
+.ayn-walking-figure .ayn-char__legs {
+  animation: ayn-leg-stride 0.6s ease-in-out infinite alternate;
+  transform-origin: 28px 56px;
+}
+
+@keyframes ayn-leg-stride {
+  0% { transform: skewX(-12deg); }
+  100% { transform: skewX(12deg); }
+}
+
+/* ==========================================================================
+   Living Egypt Scenes CSS
+   ========================================================================== */
 
 .ayn-illustration--arch-scene {
   width: 100%;
   height: 100%;
   display: block;
+  transition: transform var(--motion-medium) var(--ease-spring);
+}
+
+/* Pulsing Sun */
+.ayn-scene__sun {
+  transform-origin: center;
+  animation: ayn-sun-pulse 6s ease-in-out infinite;
+}
+
+.ayn-scene__sun-halo {
+  transform-origin: 155px 42px;
+  animation: ayn-halo-expand 4s ease-in-out infinite;
+}
+
+@keyframes ayn-sun-pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.06); filter: drop-shadow(0 0 6px #F5A623); }
+}
+
+@keyframes ayn-halo-expand {
+  0%, 100% { transform: scale(0.95); opacity: 0.25; }
+  50% { transform: scale(1.12); opacity: 0.55; }
+}
+
+/* Drifting clouds */
+.ayn-scene__cloud-fast {
+  animation: ayn-cloud-drift 12s linear infinite;
+}
+
+.ayn-scene__cloud-slow {
+  animation: ayn-cloud-drift 22s linear infinite;
+}
+
+@keyframes ayn-cloud-drift {
+  0% { transform: translateX(-40px); }
+  100% { transform: translateX(220px); }
+}
+
+/* Walking camel */
+.ayn-scene__camel {
+  animation: ayn-camel-journey 28s linear infinite;
+}
+
+@keyframes ayn-camel-journey {
+  0% { transform: translate(-30px, 112px); }
+  100% { transform: translate(220px, 112px); }
+}
+
+.ayn-scene__camel-leg-1 {
+  transform-origin: 10px 10px;
+  animation: ayn-camel-stride 0.8s ease-in-out infinite alternate;
+}
+
+.ayn-scene__camel-leg-2 {
+  transform-origin: 14px 10px;
+  animation: ayn-camel-stride 0.8s ease-in-out infinite alternate-reverse;
+}
+
+@keyframes ayn-camel-stride {
+  0% { transform: rotate(-10deg); }
+  100% { transform: rotate(10deg); }
+}
+
+/* Rocking Felucca Sailboat */
+.ayn-scene__felucca {
+  transform-origin: 30px 20px;
+  animation: ayn-felucca-rock 4.5s ease-in-out infinite;
+}
+
+@keyframes ayn-felucca-rock {
+  0%, 100% { transform: translate(90px, 68px) rotate(-1.5deg); }
+  50% { transform: translate(95px, 69px) rotate(2deg); }
+}
+
+/* Swaying Palm Crown */
+.ayn-scene__palm-crown {
+  transform-origin: -2px -5px;
+  animation: ayn-palm-sway 4s ease-in-out infinite;
+}
+
+@keyframes ayn-palm-sway {
+  0%, 100% { transform: rotate(0deg); }
+  50% { transform: rotate(-5deg); }
+}
+
+/* Rolling waves */
+.ayn-scene__wave-roll {
+  animation: ayn-wave-undulate 3s ease-in-out infinite alternate;
+}
+
+.ayn-scene__wave-roll--delay {
+  animation: ayn-wave-undulate 3.5s ease-in-out infinite alternate-reverse;
+}
+
+@keyframes ayn-wave-undulate {
+  0% { transform: translateX(-6px); }
+  100% { transform: translateX(6px); }
+}
+
+/* Snorkeling Fish */
+.ayn-scene__fish {
+  animation: ayn-fish-swim 7s ease-in-out infinite;
+}
+
+@keyframes ayn-fish-swim {
+  0% { transform: translate(110px, 100px) scaleX(1); }
+  45% { transform: translate(145px, 94px) scaleX(1); }
+  50% { transform: translate(145px, 94px) scaleX(-1); }
+  95% { transform: translate(85px, 102px) scaleX(-1); }
+  100% { transform: translate(110px, 100px) scaleX(1); }
+}
+
+/* Soaring Birds */
+.ayn-scene__birds {
+  animation: ayn-birds-soar 16s linear infinite;
+}
+
+@keyframes ayn-birds-soar {
+  0% { transform: translate(-40px, 0); }
+  100% { transform: translate(220px, -15px); }
+}
+
+/* Luxor Dust Motes */
+.ayn-scene__motes circle {
+  animation: ayn-mote-float 4s ease-in-out infinite alternate;
+}
+
+.ayn-scene__motes circle:nth-child(2) { animation-delay: 1.2s; }
+.ayn-scene__motes circle:nth-child(3) { animation-delay: 2.5s; }
+
+@keyframes ayn-mote-float {
+  0% { transform: translateY(0); opacity: 0.4; }
+  100% { transform: translateY(-8px); opacity: 0.9; }
+}
+
+/* ==========================================================================
+   Thinking Traveler Component
+   ========================================================================== */
+
+.ayn-thinking-traveler {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  cursor: pointer;
+  user-select: none;
+  position: relative;
+  transition: transform 0.25s ease;
+  animation: ayn-traveler-idle 3.6s ease-in-out infinite;
+}
+
+.ayn-thinking-traveler:hover {
+  transform: translateY(-4px) scale(1.02);
+}
+
+.ayn-thinking-traveler--bounce {
+  animation: ayn-char-jump 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+}
+
+.ayn-thought-bubble {
+  background: #FFFFFF;
+  border: 2px solid var(--color-text, #2B2118);
+  border-radius: 20px;
+  padding: 10px 18px;
+  font-family: var(--font-heading, sans-serif);
+  font-weight: 700;
+  font-size: 14px;
+  color: var(--color-text, #2B2118);
+  box-shadow: 0 6px 16px rgba(43, 33, 24, 0.1);
+  margin-bottom: 12px;
+  position: relative;
+  max-width: 240px;
+  text-align: center;
+  animation: ayn-pop-in 0.3s ease-out;
+}
+
+.ayn-thought-bubble__dots {
+  position: absolute;
+  bottom: -14px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+}
+
+.ayn-thought-bubble__dot {
+  display: block;
+  background: #FFFFFF;
+  border: 1.5px solid var(--color-text, #2B2118);
+  border-radius: 50%;
+}
+
+.ayn-thought-bubble__dot--1 { width: 8px; height: 8px; }
+.ayn-thought-bubble__dot--2 { width: 5px; height: 5px; margin-left: -4px; }
+.ayn-thought-bubble__dot--3 { width: 3px; height: 3px; margin-left: -8px; }
+
+.ayn-thinking-char__chin-arm {
+  transform-origin: 56px 45px;
+  animation: ayn-chin-tap 2.8s ease-in-out infinite;
+}
+
+@keyframes ayn-chin-tap {
+  0%, 100% { transform: rotate(0deg); }
+  50% { transform: rotate(-3deg); }
+}
+
+@keyframes ayn-traveler-idle {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-4px); }
+}
+
+/* ==========================================================================
+   Egypt Vector Map World (Organic & Clean at Rest - Refined Part 1)
+   ========================================================================== */
+
+.ayn-egypt-world {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 760 / 600;
+  box-sizing: border-box;
+  user-select: none;
+}
+
+.ayn-egypt-world__svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  overflow: visible;
+  pointer-events: none;
+}
+
+/* Pins Layer: Overlays the SVG map with real HTML buttons */
+.ayn-egypt-world__pins-layer {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 10;
+}
+
+/* Individual Real HTML Landmark Button */
+.ayn-map-pin-btn {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  width: 44px;
+  height: 44px;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0;
+  margin: 0;
+  background: none;
+  border: none;
+  border-radius: 999px;
+  cursor: pointer;
+  pointer-events: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  outline: none;
+  transition: transform 0.28s cubic-bezier(0.34, 1.56, 0.64, 1);
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Focus Ring for Keyboard Accessibility */
+.ayn-map-pin-btn:focus-visible {
+  outline: 3px solid var(--color-primary, #1F5F8B);
+  outline-offset: 4px;
+}
+
+/* Hover bounce */
+.ayn-map-pin-btn:hover {
+  transform: translate(-50%, -50%) translateY(-5px) scale(1.15);
+  z-index: 25;
+}
+
+/* Selected state resting slight elevation */
+.ayn-map-pin-btn--selected {
+  transform: translate(-50%, -50%) translateY(-2px);
+  z-index: 20;
+}
+
+.ayn-map-pin-btn--selected:hover {
+  transform: translate(-50%, -50%) translateY(-6px) scale(1.15);
+}
+
+/* Circular Landmark Shield Container */
+.ayn-map-pin-btn__shield {
+  width: 34px;
+  height: 34px;
+  border-radius: 999px;
+  background: #FFFFFF;
+  border: 1.8px solid #2B2118;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 3px 8px rgba(43, 33, 24, 0.14);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+}
+
+.ayn-map-pin-btn--selected .ayn-map-pin-btn__shield {
+  background: #FFFDF8;
+  border-color: var(--color-sun, #F5A623);
+  border-width: 2.4px;
+  box-shadow: 0 4px 12px rgba(245, 166, 35, 0.4), 0 2px 4px rgba(43, 33, 24, 0.12);
+}
+
+.ayn-pin-svg {
+  width: 22px;
+  height: 22px;
+  display: block;
+}
+
+/* Pulsing concentric selection waves */
+.ayn-map-pin-btn__pulse {
+  position: absolute;
+  inset: -4px;
+  border-radius: 999px;
+  border: 2px solid var(--color-sun, #F5A623);
+  opacity: 0.8;
+  animation: ayn-pin-pulse-wave 2s cubic-bezier(0.24, 1, 0.4, 1) infinite;
+  pointer-events: none;
+}
+
+.ayn-map-pin-btn__pulse-outer {
+  position: absolute;
+  inset: -4px;
+  border-radius: 999px;
+  border: 1.5px solid var(--color-terracotta, #B5472F);
+  opacity: 0.5;
+  animation: ayn-pin-pulse-wave 2s cubic-bezier(0.24, 1, 0.4, 1) infinite 0.65s;
+  pointer-events: none;
+}
+
+@keyframes ayn-pin-pulse-wave {
+  0% {
+    transform: scale(0.9);
+    opacity: 0.85;
+  }
+  100% {
+    transform: scale(1.85);
+    opacity: 0;
+  }
+}
+
+/* Tooltip: Hand-drawn look, appears ONLY on hover, focus-visible, or active tap */
+.ayn-map-pin-btn__tooltip {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%) translateY(4px);
+  background: var(--color-surface, #FAF6EE);
+  border: 1.8px solid var(--color-text, #2B2118);
+  border-radius: 14px 16px 14px 18px; /* hand-drawn organic curve */
+  padding: 6px 14px;
+  box-shadow: 0 6px 16px rgba(43, 33, 24, 0.16);
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.2s cubic-bezier(0.2, 0.8, 0.2, 1), transform 0.2s cubic-bezier(0.2, 0.8, 0.2, 1), visibility 0.2s;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  z-index: 30;
+}
+
+/* Tooltip small arrow pointer */
+.ayn-map-pin-btn__tooltip::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border-width: 6px 6px 0 6px;
+  border-style: solid;
+  border-color: var(--color-text, #2B2118) transparent transparent transparent;
+}
+
+/* Tooltip visibility trigger */
+.ayn-map-pin-btn:hover .ayn-map-pin-btn__tooltip,
+.ayn-map-pin-btn:focus-visible .ayn-map-pin-btn__tooltip,
+.ayn-map-pin-btn:active .ayn-map-pin-btn__tooltip {
+  opacity: 1;
+  visibility: visible;
+  transform: translateX(-50%) translateY(0);
+}
+
+.ayn-map-pin-btn__tooltip-title {
+  font-family: var(--font-heading, inherit);
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--color-text, #2B2118);
+  line-height: 1.2;
+}
+
+.ayn-map-pin-btn__tooltip-tagline {
+  font-family: var(--font-body, inherit);
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--color-terracotta, #B5472F);
+  line-height: 1.2;
+}
+
+/* Subtle Organic Sea Water */
+.ayn-organic-sea--med {
+  animation: ayn-sea-sway-med 10s ease-in-out infinite alternate;
+  transform-origin: 380px 75px;
+}
+
+.ayn-organic-sea--red {
+  animation: ayn-sea-sway-red 12s ease-in-out infinite alternate;
+  transform-origin: 620px 380px;
+}
+
+@keyframes ayn-sea-sway-med {
+  0% { transform: scale(1); }
+  100% { transform: scale(1.015) translateY(3px); }
+}
+
+@keyframes ayn-sea-sway-red {
+  0% { transform: scale(1); }
+  100% { transform: scale(1.02) translateX(-2px); }
+}
+
+/* Subtle Wave Ripples */
+.ayn-map-waves--med {
+  animation: ayn-wave-drift 14s ease-in-out infinite alternate;
+}
+
+.ayn-map-waves--red {
+  animation: ayn-wave-drift-v 16s ease-in-out infinite alternate;
+}
+
+@keyframes ayn-wave-drift {
+  0% { transform: translateX(-6px); }
+  100% { transform: translateX(6px); }
+}
+
+@keyframes ayn-wave-drift-v {
+  0% { transform: translateY(-4px); }
+  100% { transform: translateY(4px); }
+}
+
+/* Animated Flowing Nile Ribbon */
+.ayn-map-nile-river {
+  stroke-dasharray: 6 5;
+  animation: ayn-nile-flow 2.8s linear infinite;
+}
+
+.ayn-map-nile-branch {
+  stroke-dasharray: 5 4;
+  animation: ayn-nile-flow 2.8s linear infinite;
+}
+
+@keyframes ayn-nile-flow {
+  from { stroke-dashoffset: 22; }
+  to { stroke-dashoffset: 0; }
+}
+
+/* Subtle Ambient Life */
+.ayn-map-camel {
+  animation: ayn-camel-trek 45s ease-in-out infinite alternate;
+}
+
+@keyframes ayn-camel-trek {
+  0% { transform: translate(110px, 355px); }
+  50% { transform: translate(175px, 375px); }
+  100% { transform: translate(240px, 355px); }
+}
+
+.ayn-map-birds--1 {
+  animation: ayn-birds-soar 28s linear infinite;
+}
+
+@keyframes ayn-birds-soar {
+  0% {
+    transform: translate(320px, 240px);
+    opacity: 0;
+  }
+  15% { opacity: 0.7; }
+  85% { opacity: 0.7; }
+  100% {
+    transform: translate(520px, 170px);
+    opacity: 0;
+  }
+}
+
+.ayn-map-ship--med {
+  animation: ayn-ship-med 30s linear infinite;
+}
+
+@keyframes ayn-ship-med {
+  0% {
+    transform: translate(160px, 60px) rotate(-1deg);
+    opacity: 0;
+  }
+  5% { opacity: 0.95; }
+  95% { opacity: 0.95; }
+  100% {
+    transform: translate(520px, 50px) rotate(1deg);
+    opacity: 0;
+  }
+}
+
+.ayn-map-ship--redsea {
+  animation: ayn-ship-redsea 32s linear infinite;
+}
+
+@keyframes ayn-ship-redsea {
+  0% {
+    transform: translate(520px, 260px) rotate(35deg);
+    opacity: 0;
+  }
+  5% { opacity: 0.95; }
+  45% {
+    transform: translate(585px, 335px) rotate(40deg);
+  }
+  95% { opacity: 0.95; }
+  100% {
+    transform: translate(680px, 480px) rotate(45deg);
+    opacity: 0;
+  }
+}
+
+.ayn-map-compass {
+  animation: ayn-compass-sway 20s ease-in-out infinite alternate;
+  transform-origin: 95px 505px;
+}
+
+@keyframes ayn-compass-sway {
+  0% { transform: rotate(-3deg); }
+  100% { transform: rotate(3deg); }
+}
+
+/* Ephemeral Flight Route */
+.ayn-map-ephemeral-route {
+  transition: opacity 0.5s ease;
+  opacity: 1;
+}
+
+.ayn-map-route--fading {
+  opacity: 0;
+}
+
+.ayn-map-route-draw-once {
+  stroke-dasharray: 6 6;
+  animation: ayn-route-dash 1.4s linear infinite;
+}
+
+@keyframes ayn-route-dash {
+  to {
+    stroke-dashoffset: -24;
+  }
+}
+
+/* Mobile Adjustments */
+@media (max-width: 960px) {
+  .ayn-map-pin-btn__tooltip-title {
+    font-size: 16px; /* Min 16px on mobile for high legibility */
+  }
+  .ayn-map-pin-btn__tooltip-tagline {
+    font-size: 12px;
+  }
+}
+
+/* ==========================================================================
+   Reduced Motion Overrides
+   ========================================================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  .ayn-person-wrap--animated .ayn-char__body-group,
+  .ayn-person-wrap--animated .ayn-char__shadow,
+  .ayn-person-wrap--animated .ayn-char__eyes,
+  .ayn-person-wrap--animated .ayn-char__backpack,
+  .ayn-person-wrap--animated .ayn-char__map-prop,
+  .ayn-person-wrap--animated .ayn-char__selfie-arm,
+  .ayn-person-wrap--animated .ayn-char__camera-flash,
+  .ayn-person-wrap--interactive:hover .ayn-char__arm-wave,
+  .ayn-person-wrap--interactive:hover .ayn-char__suitcase-prop,
+  .ayn-walking-figure,
+  .ayn-scene__sun,
+  .ayn-scene__sun-halo,
+  .ayn-scene__cloud-fast,
+  .ayn-scene__cloud-slow,
+  .ayn-scene__camel,
+  .ayn-scene__felucca,
+  .ayn-scene__palm-crown,
+  .ayn-scene__wave-roll,
+  .ayn-scene__fish,
+  .ayn-scene__birds,
+  .ayn-scene__motes circle,
+  .ayn-thinking-traveler,
+  .ayn-thinking-char__chin-arm,
+  .ayn-map-pin__pulse,
+  .ayn-map-pin__pulse-outer,
+  .ayn-sea-water--med,
+  .ayn-sea-water--red,
+  .ayn-map-waves--med,
+  .ayn-map-waves--red,
+  .ayn-map-nile-river,
+  .ayn-map-nile-branch,
+  .ayn-map-camel,
+  .ayn-map-birds--1,
+  .ayn-map-birds--2,
+  .ayn-map-ship--med,
+  .ayn-map-ship--redsea,
+  .ayn-map-compass,
+  .ayn-map-route-line,
+  .ayn-map-pin-btn,
+  .ayn-map-pin-btn__shield,
+  .ayn-map-pin-btn__pulse,
+  .ayn-map-pin-btn__pulse-outer,
+  .ayn-organic-sea--med,
+  .ayn-organic-sea--red {
+    animation: none !important;
+    transform: none !important;
+  }
 }

@@ -24,11 +24,12 @@
 .ayn-survey-page__form {
   background-color: var(--color-surface);
   border: 2px solid var(--color-border);
-  border-radius: 20px;
+  border-radius: 26px 20px 30px 22px;
   padding: var(--space-6);
   display: flex;
   flex-direction: column;
   gap: var(--space-5);
+  box-shadow: 0 8px 0 var(--color-text), 0 16px 32px rgba(43, 33, 24, 0.08);
 }
 
 .ayn-survey-page__section-title {
@@ -59,17 +60,31 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  transition: all 150ms ease;
+  transition: all var(--motion-fast) var(--ease-spring);
 }
 
 .ayn-chip-button:hover {
-  border-color: var(--color-text-muted);
+  border-color: var(--color-primary);
+  transform: translateY(-2px);
+}
+
+.ayn-chip-button:active {
+  transform: scale(0.95);
 }
 
 .ayn-chip-button--selected {
   border-color: var(--color-primary);
-  color: var(--color-primary);
-  background-color: rgba(31, 95, 139, 0.08);
+  color: var(--color-on-primary);
+  background-color: var(--color-primary);
+  box-shadow: 0 3px 0 var(--color-text);
+  transform: translateY(-2px);
+  animation: ayn-chip-pop var(--motion-fast) var(--ease-spring);
+}
+
+@keyframes ayn-chip-pop {
+  0% { transform: scale(0.92); }
+  50% { transform: scale(1.08); }
+  100% { transform: translateY(-2px) scale(1); }
 }
 
 .ayn-survey-textarea {

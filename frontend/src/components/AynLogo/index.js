@@ -1,0 +1,1 @@
+export { AynLogo } from './AynLogo';
