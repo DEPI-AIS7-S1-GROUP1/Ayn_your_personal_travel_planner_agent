@@ -22,7 +22,7 @@ export function Footer({ onNavigate, className = '' }) {
               onClick={() => onNavigate?.('home')}
               aria-label="Ayn Home"
             >
-              <img src={aynLogo} alt="Ayn" className="ayn-brand-logo ayn-brand-logo--footer" />
+              <img src={aynLogo} alt="Ayn" className="ayn-footer__logo" />
             </button>
             <p className="ayn-footer__tagline">
               {t('footer.tagline')}

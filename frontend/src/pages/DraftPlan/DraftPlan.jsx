@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { CheckCircle2, Clock, XCircle, ArrowLeft, Edit3 } from 'lucide-react';
+import { CheckCircle2, Clock, XCircle, ArrowLeft, Edit3, Compass } from 'lucide-react';
 import { TierNotice } from '../../components/TierNotice/TierNotice';
 import { PlanSkeleton } from '../../components/Skeleton/Skeleton';
 import { Button } from '../../components/Button';
@@ -35,6 +35,8 @@ export function DraftPlan() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [isManualEditMode, setIsManualEditMode] = useState(false);
+  const [changedActivityIds, setChangedActivityIds] = useState([]);
+  const changedTimeoutRef = useRef(null);
 
   useEffect(() => {
     let mounted = true;
@@ -58,6 +60,8 @@ export function DraftPlan() {
       mounted = false;
     };
   }, [id]);
+
+
 
   if (loading) {
     return (
@@ -96,6 +100,8 @@ export function DraftPlan() {
     );
   }
 
+
+
   // Calculate planned sums for budget legend
   const plannedSums = { hotel: 0, food: 0, activities: 0, transport: 0 };
   plan.itinerary?.forEach((day) => {
@@ -108,6 +114,36 @@ export function DraftPlan() {
   });
 
   const handlePlanUpdatedByChat = (updatedPlan, updatedTrip) => {
+    // Compare existing activities with updatedPlan activities to detect what changed
+    const oldActs = {};
+    plan?.itinerary?.forEach((day) => {
+      day.activities?.forEach((a) => {
+        if (a?.id) oldActs[a.id] = JSON.stringify(a);
+      });
+    });
+
+    const changedIds = [];
+    updatedPlan?.itinerary?.forEach((day) => {
+      day.activities?.forEach((a) => {
+        if (a?.id) {
+          const oldStr = oldActs[a.id];
+          if (!oldStr || oldStr !== JSON.stringify(a)) {
+            changedIds.push(a.id);
+          }
+        }
+      });
+    });
+
+    if (changedTimeoutRef.current) {
+      clearTimeout(changedTimeoutRef.current);
+    }
+
+    setChangedActivityIds(changedIds);
+    // Auto-clear after 3.5s so future clicks or interactions don't replay the flip
+    changedTimeoutRef.current = setTimeout(() => {
+      setChangedActivityIds([]);
+    }, 3500);
+
     setPlan((prev) => ({
       ...prev,
       ...updatedPlan,
@@ -194,6 +230,9 @@ export function DraftPlan() {
       {/* Page Header */}
       <div className="ayn-draft-page__header">
         <div className="ayn-draft-page__header-info">
+          <div className="ayn-draft-passport-pill" aria-hidden="true">
+            <span>✈️ EGYPT TRAVEL PASSPORT &bull; AYN</span>
+          </div>
           <h1 className="ayn-draft-page__title">
             {t('draft.tripTo')} {translate(plan.destination?.city || t('destination.egypt'))}
           </h1>
@@ -292,24 +331,38 @@ export function DraftPlan() {
         {/* Left Column: Day timeline cards */}
         <div className="ayn-draft-page__left">
           <div className="ayn-draft-page__itinerary-header">
-            <h2 className="ayn-draft-page__itinerary-title">{t('draft.itinerary')}</h2>
+            <div>
+              <div className="ayn-draft-page__route-trail" aria-hidden="true">
+                <span className="ayn-draft-page__trail-line" />
+                <Compass size={16} className="ayn-draft-page__compass-icon" />
+                <span className="ayn-draft-page__trail-line" />
+              </div>
+              <h2 className="ayn-draft-page__itinerary-title">{t('draft.itinerary')}</h2>
+            </div>
           </div>
           <p className="ayn-draft-page__itinerary-note">
             {t('draft.pricesForTravelers')}
           </p>
 
+
+
           {plan.itinerary?.map((day, idx) => (
-            <DayTimelineCard
+            <div
               key={day.day || idx}
-              dayNumber={day.day}
-              date={formatDisplayDate(day.date, language)}
-              currency={plan.currency}
-              activities={day.activities || []}
-              editMode={isManualEditMode}
-              onUpdateActivity={(actId, updated) => handleUpdateActivity(idx, actId, updated)}
-              onRemoveActivity={(actId) => handleRemoveActivity(idx, actId)}
-              onAddActivity={(newAct) => handleAddActivity(idx, newAct)}
-            />
+              className="ayn-draft-page__day-wrapper"
+            >
+              <DayTimelineCard
+                dayNumber={day.day}
+                date={formatDisplayDate(day.date, language)}
+                currency={plan.currency}
+                activities={day.activities || []}
+                editMode={isManualEditMode}
+                changedActivityIds={changedActivityIds}
+                onUpdateActivity={(actId, updated) => handleUpdateActivity(idx, actId, updated)}
+                onRemoveActivity={(actId) => handleRemoveActivity(idx, actId)}
+                onAddActivity={(newAct) => handleAddActivity(idx, newAct)}
+              />
+            </div>
           ))}
         </div>
 

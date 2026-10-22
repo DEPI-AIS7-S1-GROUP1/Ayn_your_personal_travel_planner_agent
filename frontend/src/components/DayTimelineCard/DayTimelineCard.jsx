@@ -1,3 +1,4 @@
+import { DayPassportStamp, TimeOfDaySkyMotif, ActivityCategoryBadge } from '../Illustration';
 import { useState } from 'react';
 import { BedDouble, Utensils, Compass, CarTaxiFront, Plane } from 'lucide-react';
 import { Button } from '../Button';
@@ -62,9 +63,11 @@ export function DayTimelineCard({
   onAddActivity,
   onUpdateActivity,
   onRemoveActivity,
+  changedActivityIds = [],
   className = ''
 }) {
-  const { t, money, translate } = useLanguage();
+  const [hoveredActId, setHoveredActId] = useState(null);
+  const { t, money, translate, language } = useLanguage();
   const [editingId, setEditingId] = useState(null);
   const [isAddingNew, setIsAddingNew] = useState(false);
   const [formData, setFormData] = useState({
@@ -137,15 +140,15 @@ export function DayTimelineCard({
 
   return (
     <div className={`ayn-day-card ${className}`}>
-      {/* Header */}
+      {/* Header with authentic Egyptian Passport Stamp */}
       <div className="ayn-day-card__header">
         <div className="ayn-day-card__title-group">
           <h3 className="ayn-day-card__title">{t('trip.day')} {dayNumber}</h3>
           {date && <span className="ayn-day-card__date">{date}</span>}
         </div>
-        <span className="ayn-day-card__day-total tabular-nums">
-          {money(dayTotal, currency)}
-        </span>
+        <div className="ayn-day-card__header-right">
+          <DayPassportStamp dayNumber={Number(dayNumber) || 1} isArabic={language === 'ar'} />
+        </div>
       </div>
 
       {/* Timeline slots */}
@@ -156,7 +159,7 @@ export function DayTimelineCard({
           slotGroups.map((group) => (
             <div key={group.key} className="ayn-day-card__slot-group">
               <span className="ayn-day-card__slot-dot" />
-              <div className="ayn-day-card__slot-label">{group.label}</div>
+              <TimeOfDaySkyMotif slot={group.key} label={group.label} />
 
               <div className="ayn-day-card__activities">
                 {group.activities.map((activity) => {
@@ -210,10 +213,12 @@ export function DayTimelineCard({
                           </div>
                         </div>
                       ) : (
-                        <div className="ayn-activity-row">
-                          <div className="ayn-activity-row__icon-wrap">
-                            <Icon size={20} strokeWidth={1.5} />
-                          </div>
+                        <div
+                          className={`ayn-activity-row ${changedActivityIds?.includes(activity.id) ? 'ayn-activity-row--just-changed' : ''} ${hoveredActId === activity.id ? 'ayn-activity-row--spotlight' : ''}`}
+                          onMouseEnter={() => setHoveredActId(activity.id)}
+                          onMouseLeave={() => setHoveredActId(null)}
+                        >
+                          <ActivityCategoryBadge category={activity.category} />
 
                           <div className="ayn-activity-row__main">
                             <div className="ayn-activity-row__header">
@@ -303,6 +308,8 @@ export function DayTimelineCard({
           ))
         )}
       </div>
+
+
 
       {/* Edit Mode Add Activity Button */}
       {editMode && !isAddingNew && !editingId && (

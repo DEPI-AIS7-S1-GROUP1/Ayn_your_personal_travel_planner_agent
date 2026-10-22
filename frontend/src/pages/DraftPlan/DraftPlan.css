@@ -24,6 +24,22 @@
   gap: var(--space-1);
 }
 
+.ayn-draft-passport-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--color-sand, #F5EFE6);
+  border: 1.5px dashed var(--color-terracotta, #B5472F);
+  color: var(--color-terracotta, #B5472F);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  padding: 3px 10px;
+  border-radius: 8px;
+  width: fit-content;
+  margin-bottom: 4px;
+}
+
 .ayn-draft-page__title {
   font-family: 'Bricolage Grotesque', sans-serif;
   font-size: 32px;
@@ -144,4 +160,45 @@
   font-size: 14px;
   color: var(--color-text-muted);
   margin: 0;
+}
+
+
+/* Decorative Travel Route Trail */
+.ayn-draft-page__route-trail {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.ayn-draft-page__trail-line {
+  display: inline-block;
+  width: 48px;
+  height: 2px;
+  background: repeating-linear-gradient(90deg, var(--color-terracotta) 0, var(--color-terracotta) 5px, transparent 5px, transparent 10px);
+  opacity: 0.55;
+}
+
+.ayn-draft-page__compass-icon {
+  color: var(--color-terracotta);
+  animation: ayn-compass-spin 10s ease-in-out infinite;
+  transform-origin: center;
+}
+
+@keyframes ayn-compass-spin {
+  0%, 100% { transform: rotate(0deg); }
+  25% { transform: rotate(-18deg); }
+  75% { transform: rotate(18deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ayn-draft-page__compass-icon {
+    animation: none !important;
+  }
+}
+
+
+.ayn-draft-page__day-wrapper {
+  scroll-margin-top: 100px;
+  width: 100%;
 }

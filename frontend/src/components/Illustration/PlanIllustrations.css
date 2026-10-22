@@ -1,0 +1,482 @@
+/* ==========================================================================
+   PlanIllustrations.css – Organic Illustrated Itinerary World
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   1. Day Passport Stamp (Authentic Egyptian Journal Stamp)
+   -------------------------------------------------------------------------- */
+.ayn-day-passport-stamp {
+  display: inline-block;
+  padding: 6px 12px;
+  background: rgba(255, 252, 244, 0.95);
+  border: 2px dashed var(--color-terracotta, #B5472F);
+  border-radius: 12px;
+  color: var(--color-terracotta, #B5472F);
+  transform: rotate(var(--stamp-angle, -3deg));
+  box-shadow: 0 4px 14px rgba(43, 33, 24, 0.08);
+  user-select: none;
+  pointer-events: none;
+  transition: transform var(--motion-medium, 0.3s) var(--ease-spring, cubic-bezier(0.34, 1.56, 0.64, 1));
+}
+
+.ayn-day-card:hover .ayn-day-passport-stamp {
+  transform: rotate(0deg) scale(1.05);
+}
+
+.ayn-day-passport-stamp__inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.ayn-day-passport-stamp__country {
+  font-family: var(--font-heading, inherit);
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 1px;
+  opacity: 0.85;
+}
+
+.ayn-day-passport-stamp__center {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 1px 0;
+}
+
+.ayn-stamp-motif-svg {
+  width: 28px;
+  height: 18px;
+  color: var(--color-terracotta, #B5472F);
+}
+
+.ayn-day-passport-stamp__day {
+  font-family: var(--font-heading, inherit);
+  font-size: 13px;
+  font-weight: 900;
+  letter-spacing: 0.5px;
+}
+
+.ayn-day-passport-stamp__official {
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: 0.8px;
+  opacity: 0.75;
+}
+
+/* --------------------------------------------------------------------------
+   2. Time of Day Sky Blocks (Morning, Afternoon, Evening)
+   -------------------------------------------------------------------------- */
+.ayn-slot-sky {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 16px;
+  border-radius: 16px;
+  margin-bottom: 12px;
+  overflow: hidden;
+  border: 1.5px solid transparent;
+  transition: all var(--motion-fast, 0.2s) ease;
+}
+
+.ayn-slot-sky__arc {
+  position: absolute;
+  inset-inline-end: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 100px;
+  height: 34px;
+  pointer-events: none;
+}
+
+.ayn-slot-sky__content {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  z-index: 2;
+}
+
+.ayn-slot-sky__label {
+  font-family: var(--font-heading, inherit);
+  font-size: 13px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: var(--color-text, #2B2118); /* High contrast */
+}
+
+.ayn-slot-sky__pill {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.8);
+  color: var(--color-text-muted, #73675D);
+}
+
+/* Morning Dawn */
+.ayn-slot-sky--morning {
+  background: linear-gradient(135deg, rgba(254, 243, 199, 0.55) 0%, rgba(253, 230, 138, 0.3) 100%);
+  border-color: rgba(245, 166, 35, 0.25);
+}
+
+.ayn-slot-sky__icon--morning {
+  color: #D97706;
+}
+
+.ayn-slot-sky__celestial--morning {
+  animation: ayn-sky-bob 3s ease-in-out infinite alternate;
+}
+
+/* Afternoon Midday */
+.ayn-slot-sky--afternoon {
+  background: linear-gradient(135deg, rgba(224, 242, 254, 0.55) 0%, rgba(186, 230, 253, 0.35) 100%);
+  border-color: rgba(31, 95, 139, 0.25);
+}
+
+.ayn-slot-sky__icon--afternoon {
+  color: #1F5F8B;
+}
+
+.ayn-slot-sky__celestial--afternoon {
+  animation: ayn-sky-rotate 16s linear infinite;
+  transform-origin: 60px 9px;
+}
+
+/* Evening Night */
+.ayn-slot-sky--evening {
+  background: linear-gradient(135deg, rgba(243, 232, 255, 0.6) 0%, rgba(224, 231, 255, 0.4) 100%);
+  border-color: rgba(112, 70, 160, 0.25);
+}
+
+.ayn-slot-sky__icon--evening {
+  color: #6D28D9;
+}
+
+.ayn-slot-sky__celestial--evening {
+  animation: ayn-sky-shimmer 4s ease-in-out infinite alternate;
+}
+
+@keyframes ayn-sky-bob {
+  0% { transform: translateY(0); }
+  100% { transform: translateY(-3px); }
+}
+
+@keyframes ayn-sky-rotate {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes ayn-sky-shimmer {
+  0% { opacity: 0.8; }
+  100% { opacity: 1; }
+}
+
+/* --------------------------------------------------------------------------
+   3. Activity Category Illustrated Badges
+   -------------------------------------------------------------------------- */
+.ayn-act-badge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  flex-shrink: 0;
+  transition: transform var(--motion-fast, 0.2s) var(--ease-spring, cubic-bezier(0.34, 1.56, 0.64, 1));
+}
+
+.ayn-act-badge--hotel {
+  background: rgba(31, 95, 139, 0.12);
+  color: #1F5F8B;
+  border: 1.5px solid rgba(31, 95, 139, 0.28);
+}
+
+.ayn-act-badge--food {
+  background: rgba(181, 71, 47, 0.12);
+  color: #B5472F;
+  border: 1.5px solid rgba(181, 71, 47, 0.28);
+}
+
+.ayn-act-badge--transport,
+.ayn-act-badge--flight {
+  background: rgba(245, 166, 35, 0.15);
+  color: #C27D00;
+  border: 1.5px solid rgba(245, 166, 35, 0.35);
+}
+
+.ayn-act-badge--activities {
+  background: rgba(20, 122, 130, 0.12);
+  color: #147A82;
+  border: 1.5px solid rgba(20, 122, 130, 0.28);
+}
+
+/* --------------------------------------------------------------------------
+   4. Day Mini Map (Route Overview per Day)
+   -------------------------------------------------------------------------- */
+.ayn-day-mini-map {
+  background: #FAF6EE;
+  border: 2px solid var(--color-border, #E4D7C5);
+  border-radius: 18px;
+  padding: 12px 14px;
+  margin-top: 14px;
+  box-shadow: 0 4px 16px rgba(43, 33, 24, 0.05);
+  transition: border-color var(--motion-fast, 0.2s) ease;
+}
+
+.ayn-day-mini-map:hover {
+  border-color: rgba(31, 95, 139, 0.4);
+}
+
+.ayn-day-mini-map__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.ayn-day-mini-map__title {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-heading, inherit);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.6px;
+  color: var(--color-text, #2B2118);
+}
+
+.ayn-day-mini-map__compass {
+  color: var(--color-terracotta, #B5472F);
+}
+
+.ayn-day-mini-map__stops-count {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--color-text-muted, #73675D);
+}
+
+.ayn-day-mini-map__canvas-wrap {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 300 / 120;
+}
+
+.ayn-day-mini-map__svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+  overflow: visible;
+}
+
+.ayn-day-mini-map__trail-dashed {
+  animation: ayn-trail-dash 20s linear infinite;
+}
+
+@keyframes ayn-trail-dash {
+  to {
+    stroke-dashoffset: -120;
+  }
+}
+
+.ayn-mini-waypoint {
+  transition: transform 0.2s var(--ease-spring, cubic-bezier(0.34, 1.56, 0.64, 1));
+}
+
+.ayn-mini-waypoint--active {
+  transform-origin: center;
+}
+
+.ayn-mini-waypoint__ring {
+  animation: ayn-ring-pulse 1.6s ease-out infinite;
+  transform-origin: center;
+}
+
+@keyframes ayn-ring-pulse {
+  0% { transform: scale(0.6); opacity: 1; }
+  100% { transform: scale(1.6); opacity: 0; }
+}
+
+/* --------------------------------------------------------------------------
+   5. Walking Traveler Trail (Roadmap Side Navigation)
+   -------------------------------------------------------------------------- */
+.ayn-walking-trail {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  padding: 12px 0;
+  margin-bottom: 24px;
+}
+
+.ayn-walking-trail__track {
+  position: absolute;
+  inset-inline-start: 19px;
+  top: 20px;
+  bottom: 20px;
+  width: 2px;
+  background: repeating-linear-gradient(180deg, var(--color-terracotta, #B5472F) 0, var(--color-terracotta, #B5472F) 5px, transparent 5px, transparent 10px);
+  opacity: 0.45;
+}
+
+.ayn-walking-trail__walker {
+  position: absolute;
+  inset-inline-start: -15px;
+  top: -6px;
+  transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+  z-index: 4;
+  pointer-events: none;
+}
+
+.ayn-walking-trail__walker-figure {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.ayn-walker-svg {
+  width: 32px;
+  height: 38px;
+  filter: drop-shadow(0 3px 6px rgba(43, 33, 24, 0.2));
+}
+
+.ayn-walking-trail__walker-bubble {
+  background: var(--color-primary, #1F5F8B);
+  color: #FFF;
+  font-size: 10px;
+  font-weight: 800;
+  padding: 2px 7px;
+  border-radius: 10px;
+  white-space: nowrap;
+  box-shadow: 0 2px 8px rgba(31, 95, 139, 0.3);
+}
+
+.ayn-walking-trail__stops {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.ayn-walking-trail__stop-btn {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 12px;
+  transition: background-color 0.2s ease;
+  text-align: start;
+}
+
+.ayn-walking-trail__stop-btn:hover {
+  background-color: rgba(43, 33, 24, 0.05);
+}
+
+.ayn-walking-trail__stop-dot {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: #FFF;
+  border: 2px solid var(--color-border, #E4D7C5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 800;
+  color: var(--color-text-muted, #73675D);
+  transition: all 0.25s var(--ease-spring, cubic-bezier(0.34, 1.56, 0.64, 1));
+  z-index: 2;
+}
+
+.ayn-walking-trail__stop-btn--active .ayn-walking-trail__stop-dot {
+  background: var(--color-primary, #1F5F8B);
+  border-color: var(--color-primary, #1F5F8B);
+  color: #FFF;
+  transform: scale(1.2);
+  box-shadow: 0 0 0 4px rgba(31, 95, 139, 0.18);
+}
+
+.ayn-walking-trail__stop-name {
+  font-family: var(--font-heading, inherit);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--color-text, #2B2118);
+}
+
+.ayn-walking-trail__stop-btn--active .ayn-walking-trail__stop-name {
+  color: var(--color-primary, #1F5F8B);
+  font-weight: 800;
+}
+
+/* --------------------------------------------------------------------------
+   6. Celebratory Confetti (Gold, Turquoise, Papyrus, Terracotta)
+   -------------------------------------------------------------------------- */
+.ayn-celebratory-confetti {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  overflow: hidden;
+  z-index: 10;
+}
+
+.ayn-confetti-particle {
+  position: absolute;
+  top: -20px;
+  border-radius: 2px;
+  animation: ayn-confetti-flutter ease-in forwards;
+}
+
+.ayn-confetti-particle--gold {
+  background: #F5A623;
+}
+
+.ayn-confetti-particle--turquoise {
+  background: #147A82;
+}
+
+.ayn-confetti-particle--terracotta {
+  background: #B5472F;
+}
+
+.ayn-confetti-particle--papyrus {
+  background: #FFF9EE;
+  border: 1px solid rgba(43, 33, 24, 0.15);
+}
+
+@keyframes ayn-confetti-flutter {
+  0% {
+    transform: translateY(0) rotate(0deg) scale(0.8);
+    opacity: 1;
+  }
+  60% {
+    transform: translateY(280px) rotate(360deg) scale(1.1);
+    opacity: 0.9;
+  }
+  100% {
+    transform: translateY(520px) rotate(720deg) scale(0.6);
+    opacity: 0;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   7. Accessibility / Prefers Reduced Motion
+   -------------------------------------------------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+  .ayn-day-passport-stamp,
+  .ayn-slot-sky__celestial--morning,
+  .ayn-slot-sky__celestial--afternoon,
+  .ayn-slot-sky__celestial--evening,
+  .ayn-day-mini-map__trail-dashed,
+  .ayn-mini-waypoint__ring,
+  .ayn-walking-trail__walker,
+  .ayn-confetti-particle {
+    animation: none !important;
+    transition: none !important;
+  }
+}

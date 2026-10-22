@@ -14,7 +14,7 @@
   cursor: pointer;
   box-sizing: border-box;
   white-space: nowrap;
-  transition: background-color 150ms ease, border-color 150ms ease, color 150ms ease;
+  transition: background-color var(--motion-fast) ease, border-color var(--motion-fast) ease, color var(--motion-fast) ease, transform var(--motion-fast) var(--ease-spring), box-shadow var(--motion-fast) var(--ease-spring);
   user-select: none;
 }
 
@@ -91,4 +91,16 @@
 /* Full Width */
 .ayn-btn--full-width {
   width: 100%;
+}
+
+.ayn-btn:active:not(:disabled) {
+  transform: translateY(2px) scale(0.98);
+}
+
+.ayn-btn svg {
+  transition: transform var(--motion-fast) var(--ease-spring);
+}
+
+.ayn-btn:hover:not(:disabled) svg {
+  transform: rotate(-6deg) scale(1.1);
 }

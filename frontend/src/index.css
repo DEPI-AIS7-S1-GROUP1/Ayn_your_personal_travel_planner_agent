@@ -17,6 +17,19 @@
   --color-brown: #7A5232;
   --color-error: #A8403A;
 
+  /* Extended Warm Egyptian Palette */
+  --color-nile-teal: #147A82;
+  --color-nile-deep: #0E4D53;
+  --color-sunset-coral: #E76F51;
+  --color-warm-sand: #E9D8A6;
+  --color-sand-light: #F4EAD4;
+  --color-papyrus-gold: #EE9B00;
+  --color-oasis-green: #2A9D8F;
+  --gradient-brand: linear-gradient(135deg, #1F5F8B 0%, #147A82 35%, #F5A623 75%, #B5472F 100%);
+  --gradient-sunset: linear-gradient(135deg, #F5A623 0%, #E76F51 50%, #B5472F 100%);
+  --gradient-nile: linear-gradient(180deg, #147A82 0%, #1F5F8B 100%);
+  --gradient-sand: linear-gradient(180deg, #F4EAD4 0%, #E8D9C0 100%);
+
   /* Budget chart ramp */
   --chart-hotel: #1F5F8B;
   --chart-food: #2F6B4A;

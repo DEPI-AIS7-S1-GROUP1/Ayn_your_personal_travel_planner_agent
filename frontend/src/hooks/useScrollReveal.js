@@ -4,6 +4,7 @@ import { useEffect } from 'react';
 // keep their markup; new pages get the effect by using these classes.
 const REVEAL_SELECTOR = [
   '.ayn-home__features-title',
+  '.ayn-route-motif',
   '.ayn-home__features-grid > *',
   '.ayn-home__about-text',
   '.ayn-home__about-figures',

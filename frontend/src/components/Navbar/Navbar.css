@@ -1,11 +1,24 @@
 .ayn-navbar-wrapper {
-  background-color: var(--color-surface);
-  border-bottom: 2px solid var(--color-border);
+  background-color: rgba(252, 250, 246, 0.72);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-bottom: 1px solid rgba(43, 33, 24, 0.08);
   width: 100%;
   position: sticky;
   top: 0;
   z-index: 100;
+  transition: box-shadow var(--motion-medium) var(--ease-out), background-color var(--motion-medium) ease, border-color var(--motion-medium) ease;
 }
+
+.ayn-navbar-wrapper--scrolled {
+  background-color: rgba(252, 250, 246, 0.88);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  box-shadow: 0 4px 24px rgba(43, 33, 24, 0.06);
+  border-bottom-color: rgba(43, 33, 24, 0.12);
+}
+
+
 
 .ayn-navbar {
   max-width: 1120px;
@@ -36,11 +49,38 @@
   width: auto;
   object-fit: contain;
   display: block;
-  transition: transform 0.2s ease, opacity 0.2s ease;
+  animation: ayn-brand-logo-idle 5s ease-in-out infinite;
+  transform-origin: center bottom;
+  transition: transform var(--motion-medium) var(--ease-spring), filter var(--motion-medium) ease;
+  filter: drop-shadow(0 2px 8px rgba(245, 166, 35, 0.22));
 }
 
-.ayn-wordmark:hover .ayn-brand-logo {
-  transform: scale(1.04);
+.ayn-wordmark:hover .ayn-brand-logo,
+.ayn-wordmark:focus-visible .ayn-brand-logo {
+  transform: translateY(-3.5px) scale(1.06) rotate(-2deg);
+  filter: drop-shadow(0 6px 18px rgba(245, 166, 35, 0.45)) drop-shadow(0 2px 8px rgba(20, 122, 130, 0.3));
+}
+
+@keyframes ayn-brand-logo-idle {
+  0%, 100% {
+    transform: translateY(0);
+    filter: drop-shadow(0 2px 8px rgba(245, 166, 35, 0.2));
+  }
+  50% {
+    transform: translateY(-2.5px);
+    filter: drop-shadow(0 4px 14px rgba(245, 166, 35, 0.38)) drop-shadow(0 2px 6px rgba(20, 122, 130, 0.22));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ayn-brand-logo {
+    animation: none !important;
+    transform: none !important;
+  }
+  .ayn-wordmark:hover .ayn-brand-logo,
+  .ayn-wordmark:focus-visible .ayn-brand-logo {
+    transform: none !important;
+  }
 }
 
 .ayn-wordmark__pin {
@@ -93,9 +133,43 @@
   background-color: rgba(31, 95, 139, 0.06);
 }
 
+.ayn-navbar__link {
+  position: relative;
+  font-family: var(--font-body);
+  font-size: 15px;
+  line-height: 20px;
+  font-weight: 700;
+  color: var(--color-text);
+  text-decoration: none;
+  padding: 8px 18px;
+  border-radius: 999px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  transition: background-color var(--motion-fast) ease, color var(--motion-fast) ease, transform var(--motion-fast) var(--ease-spring);
+}
+
+.ayn-navbar__link:hover:not(.ayn-navbar__link--active) {
+  background-color: rgba(20, 122, 130, 0.08);
+  transform: translateY(-1px);
+}
+
 .ayn-navbar__link--active {
-  background-color: var(--color-sky);
+  background-color: rgba(31, 95, 139, 0.08);
   color: var(--color-primary);
+  font-weight: 800;
+}
+
+.ayn-brand-logo {
+  height: 42px;
+  width: auto;
+  object-fit: contain;
+  display: block;
+  transition: transform var(--motion-fast) var(--ease-spring);
+}
+
+.ayn-brand-logo:hover {
+  transform: scale(1.04);
 }
 
 /* Profile button / Avatar */

@@ -5,7 +5,7 @@
  * Handles Bearer token authentication and structured error responses.
  */
 
-const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api';
+const API_BASE = import.meta.env.VITE_API_BASE_URL || '/api';
 const AUTH_ENDPOINTS = ['/login', '/signup'];
 export const SESSION_EXPIRED_EVENT = 'ayn:session-expired';
 

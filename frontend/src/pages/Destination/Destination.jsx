@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '../../components/Button';
 import { GeneratingScreen } from '../../components/GeneratingScreen/GeneratingScreen';
+import { EgyptMapIllustration } from '../../components/Illustration';
 import api from '../../services/api';
 import { useLanguage } from '../../context/LanguageContext.js';
 import './Destination.css';
@@ -146,7 +147,7 @@ export function Destination() {
 
   if (isSubmitting || error) {
     return (
-      <div className="ayn-dest-page">
+      <div className="ayn-dest-page ayn-dest-page--generating">
         <GeneratingScreen
           error={error}
           onRetry={() => {
@@ -164,163 +165,186 @@ export function Destination() {
 
   return (
     <div className="ayn-dest-page">
-      <h1 className="ayn-dest-page__title">{t('destination.title')}</h1>
-      <p className="ayn-dest-page__desc">
-        {t('destination.description')}
-      </p>
+      <div className="ayn-dest-page__header">
+        <h1 className="ayn-dest-page__title">{t('destination.title')}</h1>
+        <p className="ayn-dest-page__desc">
+          {t('destination.description')}
+        </p>
+      </div>
 
-      <form className="ayn-dest-page__form" onSubmit={handleSubmit}>
-        <div className="ayn-dest-page__row">
-          <div className="ayn-dest-page__field">
-            <label className="ayn-dest-page__label" htmlFor="dest-origin">
-              {t('destination.from')}
-            </label>
-            <select
-              id="dest-origin"
-              className="ayn-dest-page__select"
-              value={originCity}
-              onChange={(e) => setOriginCity(e.target.value)}
-            >
-              {EGYPT_ORIGIN_GOVERNORATES.map((grp) => (
-                <optgroup key={grp.group} label={translate(grp.group)}>
-                  {grp.options.map((opt) => (
-                    <option key={opt.value} value={opt.value}>
-                      {translate(opt.label)}
+      <div className="ayn-dest-explorer-layout">
+        {/* Left Column: Clear, Interactive Animated Egypt Map with Boats & Ships */}
+        <div className="ayn-dest-map-column">
+          <EgyptMapIllustration
+            originCity={originCity}
+            selectedCity={city}
+            onSelectCity={(selected) => {
+              if (EGYPT_CITIES.includes(selected)) {
+                setCity(selected);
+              }
+            }}
+          />
+        </div>
+
+        {/* Right Column: Travel Planning Form */}
+        <div className="ayn-dest-form-column">
+          <form className="ayn-dest-page__form" onSubmit={handleSubmit}>
+            <div className="ayn-dest-passport-stamp" aria-hidden="true">
+              <span>✈️ EGYPT 2026 &bull; AYN</span>
+            </div>
+
+            <div className="ayn-dest-page__row">
+              <div className="ayn-dest-page__field">
+                <label className="ayn-dest-page__label" htmlFor="dest-origin">
+                  {t('destination.from')}
+                </label>
+                <select
+                  id="dest-origin"
+                  className="ayn-dest-page__select"
+                  value={originCity}
+                  onChange={(e) => setOriginCity(e.target.value)}
+                >
+                  {EGYPT_ORIGIN_GOVERNORATES.map((grp) => (
+                    <optgroup key={grp.group} label={translate(grp.group)}>
+                      {grp.options.map((opt) => (
+                        <option key={opt.value} value={opt.value}>
+                          {translate(opt.label)}
+                        </option>
+                      ))}
+                    </optgroup>
+                  ))}
+                </select>
+              </div>
+
+              <div className="ayn-dest-page__field">
+                <label className="ayn-dest-page__label" htmlFor="dest-city">
+                  {t('destination.destination')}
+                </label>
+                <select
+                  id="dest-city"
+                  className="ayn-dest-page__select"
+                  value={city}
+                  onChange={(e) => setCity(e.target.value)}
+                >
+                  {EGYPT_CITIES.map((c) => (
+                    <option key={c} value={c}>
+                      {tf('common.placeInCountry', { city: translate(c), country: t('destination.egypt') })}
                     </option>
                   ))}
-                </optgroup>
-              ))}
-            </select>
-          </div>
+                </select>
+              </div>
+            </div>
 
-          <div className="ayn-dest-page__field">
-            <label className="ayn-dest-page__label" htmlFor="dest-city">
-              {t('destination.destination')}
-            </label>
-            <select
-              id="dest-city"
-              className="ayn-dest-page__select"
-              value={city}
-              onChange={(e) => setCity(e.target.value)}
-            >
-              {EGYPT_CITIES.map((c) => (
-                <option key={c} value={c}>
-                  {tf('common.placeInCountry', { city: translate(c), country: t('destination.egypt') })}
-                </option>
-              ))}
-            </select>
-          </div>
+            <div className="ayn-dest-page__row">
+              <div className="ayn-dest-page__field">
+                <label className="ayn-dest-page__label" htmlFor="dest-start-date">
+                  {t('destination.startDate')}
+                </label>
+                <input
+                  id="dest-start-date"
+                  type="date"
+                  className="ayn-dest-page__input"
+                  value={startDate}
+                  min={today}
+                  onChange={(e) => {
+                    const next = e.target.value;
+                    setStartDate(next);
+                    if (next && (endDate < next || endDate > isoDay(next, MAX_TRIP_DAYS - 1))) {
+                      setEndDate(next);
+                    }
+                  }}
+                  required
+                />
+              </div>
+
+              <div className="ayn-dest-page__field">
+                <label className="ayn-dest-page__label" htmlFor="dest-end-date">
+                  {t('destination.endDate')}
+                </label>
+                <input
+                  id="dest-end-date"
+                  type="date"
+                  className="ayn-dest-page__input"
+                  value={endDate}
+                  min={startDate || today}
+                  max={startDate ? isoDay(startDate, MAX_TRIP_DAYS - 1) : undefined}
+                  onChange={(e) => setEndDate(e.target.value)}
+                  required
+                />
+              </div>
+            </div>
+
+            <div className="ayn-dest-page__row">
+              <div className="ayn-dest-page__field">
+                <label className="ayn-dest-page__label" htmlFor="dest-budget">
+                  {t('destination.totalBudget')}
+                </label>
+                <input
+                  id="dest-budget"
+                  type="number"
+                  className="ayn-dest-page__input"
+                  value={budget}
+                  onChange={(e) => setBudget(e.target.value)}
+                  required
+                  min={1}
+                  step={1}
+                  inputMode="numeric"
+                />
+              </div>
+
+              <div className="ayn-dest-page__field">
+                <label className="ayn-dest-page__label" htmlFor="dest-currency">
+                  {t('destination.currency')}
+                </label>
+                <select
+                  id="dest-currency"
+                  className="ayn-dest-page__select"
+                  value={currency}
+                  onChange={(e) => setCurrency(e.target.value)}
+                  required
+                >
+                  <option value="" disabled>{t('destination.selectCurrency')}</option>
+                  <option value="EGP">EGP ({t('currency.egp')})</option>
+                  <option value="USD">USD ({t('currency.usd')})</option>
+                  <option value="EUR">EUR ({t('currency.eur')})</option>
+                  <option value="GBP">GBP ({t('currency.gbp')})</option>
+                  <option value="SAR">SAR ({t('currency.sar')})</option>
+                  <option value="AED">AED ({t('currency.aed')})</option>
+                </select>
+              </div>
+            </div>
+
+            <div className="ayn-dest-page__field">
+              <label className="ayn-dest-page__label" htmlFor="dest-travelers">
+                {t('destination.travelers')}
+              </label>
+              <input
+                id="dest-travelers"
+                type="number"
+                className="ayn-dest-page__input"
+                value={travelers}
+                onChange={(e) => setTravelers(e.target.value)}
+                min={1}
+                max={10}
+                required
+              />
+              <p className="ayn-dest-page__note">
+                {t('destination.travelersNote')}
+              </p>
+            </div>
+
+            {error && (
+              <p style={{ color: 'var(--color-error)', margin: 0, fontSize: '13px' }}>
+                {error}
+              </p>
+            )}
+
+            <Button variant="primary" type="submit" disabled={isSubmitting}>
+              {isSubmitting ? t('generating.title') : t('destination.generate')}
+            </Button>
+          </form>
         </div>
-
-        <div className="ayn-dest-page__row">
-          <div className="ayn-dest-page__field">
-            <label className="ayn-dest-page__label" htmlFor="dest-start-date">
-              {t('destination.startDate')}
-            </label>
-            <input
-              id="dest-start-date"
-              type="date"
-              className="ayn-dest-page__input"
-              value={startDate}
-              min={today}
-              onChange={(e) => {
-                const next = e.target.value;
-                setStartDate(next);
-                // Keep the end date valid: not before the start, not past the 14-day limit.
-                if (next && (endDate < next || endDate > isoDay(next, MAX_TRIP_DAYS - 1))) {
-                  setEndDate(next);
-                }
-              }}
-              required
-            />
-          </div>
-
-          <div className="ayn-dest-page__field">
-            <label className="ayn-dest-page__label" htmlFor="dest-end-date">
-              {t('destination.endDate')}
-            </label>
-            <input
-              id="dest-end-date"
-              type="date"
-              className="ayn-dest-page__input"
-              value={endDate}
-              min={startDate || today}
-              max={startDate ? isoDay(startDate, MAX_TRIP_DAYS - 1) : undefined}
-              onChange={(e) => setEndDate(e.target.value)}
-              required
-            />
-          </div>
-        </div>
-
-        <div className="ayn-dest-page__row">
-          <div className="ayn-dest-page__field">
-            <label className="ayn-dest-page__label" htmlFor="dest-budget">
-              {t('destination.totalBudget')}
-            </label>
-            <input
-              id="dest-budget"
-              type="number"
-              className="ayn-dest-page__input"
-              value={budget}
-              onChange={(e) => setBudget(e.target.value)}
-              required
-              min={1}
-              step={1}
-              inputMode="numeric"
-            />
-          </div>
-
-          <div className="ayn-dest-page__field">
-            <label className="ayn-dest-page__label" htmlFor="dest-currency">
-              {t('destination.currency')}
-            </label>
-            <select
-              id="dest-currency"
-              className="ayn-dest-page__select"
-              value={currency}
-              onChange={(e) => setCurrency(e.target.value)}
-              required
-            >
-              <option value="" disabled>{t('destination.selectCurrency')}</option>
-              <option value="EGP">EGP ({t('currency.egp')})</option>
-              <option value="USD">USD ({t('currency.usd')})</option>
-              <option value="EUR">EUR ({t('currency.eur')})</option>
-              <option value="GBP">GBP ({t('currency.gbp')})</option>
-              <option value="SAR">SAR ({t('currency.sar')})</option>
-              <option value="AED">AED ({t('currency.aed')})</option>
-            </select>
-          </div>
-        </div>
-
-        <div className="ayn-dest-page__field">
-          <label className="ayn-dest-page__label" htmlFor="dest-travelers">
-            {t('destination.travelers')}
-          </label>
-          <input
-            id="dest-travelers"
-            type="number"
-            className="ayn-dest-page__input"
-            value={travelers}
-            onChange={(e) => setTravelers(e.target.value)}
-            min={1}
-            max={10}
-            required
-          />
-          <p className="ayn-dest-page__note">
-            {t('destination.travelersNote')}
-          </p>
-        </div>
-
-        {error && (
-          <p style={{ color: 'var(--color-error)', margin: 0, fontSize: '13px' }}>
-            {error}
-          </p>
-        )}
-
-        <Button variant="primary" type="submit" disabled={isSubmitting}>
-          {isSubmitting ? t('generating.title') : t('destination.generate')}
-        </Button>
-      </form>
+      </div>
     </div>
   );
 }

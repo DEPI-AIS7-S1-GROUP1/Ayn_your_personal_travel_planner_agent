@@ -9,6 +9,7 @@ import logging
 from datetime import date, timedelta
 
 from agent.arabic import city_name_ar, trip_language
+from agent.tools.restaurant_search import CITY_ICONIC_RESTAURANTS
 from agent.schemas import (
     BudgetSplit,
     ActivityItem,
@@ -46,17 +47,41 @@ def build_mock_plan(profile: dict, trip: dict, restaurant_names: list[str] | Non
     def loc(en: str, ar: str) -> str:
         return ar if lang == "ar" else en
 
-    names = list(restaurant_names or [])
+    curated_spots = CITY_ICONIC_RESTAURANTS.get(city, CITY_ICONIC_RESTAURANTS.get("Cairo", []))
+    names = list(restaurant_names or ([s["name"] for s in curated_spots] if curated_spots else []))
     meal_index = 0
 
-    def meal_title(meal_en: str, meal_ar: str) -> str:
-        """"Lunch at King Chicken" when the restaurant search found names, else "Lunch in Dahab"."""
+    def meal_info(meal_en: str, meal_ar: str) -> tuple[str, str]:
         nonlocal meal_index
-        if not names:
-            return loc(f"{meal_en} in {city}", f"{meal_ar} في {city_ar}")
-        name = names[meal_index % len(names)]
-        meal_index += 1
-        return loc(f"{meal_en} at {name}", f"{meal_ar} في {name}")
+        if curated_spots:
+            spot = curated_spots[meal_index % len(curated_spots)]
+            meal_index += 1
+            title = loc(f"{meal_en} at {spot['name']}", f"{meal_ar} في {spot['name']}")
+            desc = loc(
+                f"Try the {spot['dish_en']} in {spot['area']}.",
+                f"جرّب {spot['dish_ar']} في {spot['area']}."
+            )
+            return title, desc
+        elif names:
+            name = names[meal_index % len(names)]
+            meal_index += 1
+            title = loc(f"{meal_en} at {name}", f"{meal_ar} في {name}")
+            desc = loc(
+                f"Enjoy authentic Egyptian dishes and local specialties at {name}.",
+                f"استمتع بالأطباق المصرية الأصيلة والمأكولات المحلية الشهية في {name}."
+            )
+            return title, desc
+        else:
+            title = loc(f"{meal_en} in {city}", f"{meal_ar} في {city_ar}")
+            desc = loc(
+                f"Authentic local dining experience in {city}.",
+                f"تناول وجبة محلية أصيلة في {city_ar}."
+            )
+            return title, desc
+
+    def meal_title(meal_en: str, meal_ar: str) -> str:
+        title, _ = meal_info(meal_en, meal_ar)
+        return title
 
     # --- Budget split (remainder goes to transport) ---
     hotel = int(budget * 0.40)
@@ -110,13 +135,11 @@ def build_mock_plan(profile: dict, trip: dict, restaurant_names: list[str] | Non
             ))
             act_counter += 1
 
+            m1_title, m1_desc = meal_info("Lunch", "غداء")
             day_activities.append(ActivityItem(
                 id=f"act_{act_counter:03d}",
-                title=meal_title("Lunch", "غداء"),
-                description=loc(
-                    f"A welcoming first meal at a local restaurant in {city}.",
-                    f"وجبة ترحيب أولى في مطعم محلي في {city_ar}.",
-                ),
+                title=m1_title,
+                description=m1_desc,
                 time_slot="afternoon",
                 estimated_cost=food_per_day // 2,
                 category="food",
@@ -164,13 +187,11 @@ def build_mock_plan(profile: dict, trip: dict, restaurant_names: list[str] | Non
             ))
             act_counter += 1
 
+            ml_title, ml_desc = meal_info("Farewell lunch", "غداء الوداع")
             day_activities.append(ActivityItem(
                 id=f"act_{act_counter:03d}",
-                title=meal_title("Farewell lunch", "غداء الوداع"),
-                description=loc(
-                    "A last relaxed meal before heading home.",
-                    "وجبة هادئة أخيرة قبل العودة إلى المنزل.",
-                ),
+                title=ml_title,
+                description=ml_desc,
                 time_slot="afternoon",
                 estimated_cost=food_per_day // 2,
                 category="food",
@@ -205,13 +226,11 @@ def build_mock_plan(profile: dict, trip: dict, restaurant_names: list[str] | Non
             ))
             act_counter += 1
 
+            mm_title, mm_desc = meal_info("Lunch", "غداء")
             day_activities.append(ActivityItem(
                 id=f"act_{act_counter:03d}",
-                title=meal_title("Lunch", "غداء"),
-                description=loc(
-                    "A mid-day meal at a popular local spot.",
-                    "وجبة منتصف اليوم في مكان محلي مشهور.",
-                ),
+                title=mm_title,
+                description=mm_desc,
                 time_slot="afternoon",
                 estimated_cost=food_per_day // 2,
                 category="food",
@@ -232,13 +251,11 @@ def build_mock_plan(profile: dict, trip: dict, restaurant_names: list[str] | Non
                 ))
                 act_counter += 1
 
+                md_title, md_desc = meal_info("Dinner", "عشاء")
                 day_activities.append(ActivityItem(
                     id=f"act_{act_counter:03d}",
-                    title=meal_title("Dinner", "عشاء"),
-                    description=loc(
-                        "Evening meal at a recommended restaurant.",
-                        "وجبة مسائية في مطعم موصى به.",
-                    ),
+                    title=md_title,
+                    description=md_desc,
                     time_slot="evening",
                     estimated_cost=food_per_day // 2,
                     category="food",

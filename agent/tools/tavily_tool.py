@@ -13,8 +13,18 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from urllib.parse import urlsplit, urlunsplit
 
-from crewai.tools import tool
-from tavily import TavilyClient
+try:
+    from crewai.tools import tool
+except ImportError:
+    def tool(name: str):
+        def decorator(fn):
+            return fn
+        return decorator
+
+try:
+    from tavily import TavilyClient
+except ImportError:
+    TavilyClient = None
 
 logger = logging.getLogger(__name__)
 CACHE_DIR = Path(__file__).resolve().parent.parent / "cache" / "tavily"
@@ -164,12 +174,28 @@ def _execute_tavily_search(query: str, *, enforce_limit: bool = True) -> str:
     depth = SEARCH_DEPTH if SEARCH_DEPTH in {"basic", "advanced", "fast", "ultra-fast"} else "basic"
     logger.info("Tavily API request %d/%d depth=%s", count, MAX_SEARCH_QUERIES, depth)
     try:
-        response = TavilyClient(api_key=api_key).search(
-            query=query,
-            max_results=MAX_RESULTS,
-            search_depth=depth,
-            timeout=float(os.getenv("TAVILY_TIMEOUT_S", "12")),
-        )
+        if TavilyClient is not None:
+            response = TavilyClient(api_key=api_key).search(
+                query=query,
+                max_results=MAX_RESULTS,
+                search_depth=depth,
+                timeout=float(os.getenv("TAVILY_TIMEOUT_S", "12")),
+            )
+        else:
+            import requests
+            timeout = float(os.getenv("TAVILY_TIMEOUT_S", "12"))
+            resp = requests.post(
+                "https://api.tavily.com/search",
+                json={
+                    "api_key": api_key,
+                    "query": query,
+                    "max_results": MAX_RESULTS,
+                    "search_depth": depth,
+                },
+                timeout=timeout,
+            )
+            resp.raise_for_status()
+            response = resp.json()
         results = _deduplicate_results(response.get("results") or [])
         payload = {
             "status": "ok" if results else "no_results",

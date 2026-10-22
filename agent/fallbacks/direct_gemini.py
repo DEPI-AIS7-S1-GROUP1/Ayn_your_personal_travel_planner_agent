@@ -11,6 +11,10 @@ import logging
 import os
 from datetime import date
 from typing import Any
+from pathlib import Path
+from dotenv import load_dotenv
+
+load_dotenv(Path(__file__).resolve().parents[2] / '.env', override=False)
 
 from agent.arabic import arabic_language_rule_block
 from agent.fallbacks.prompt_rules import compact_schema, days_rule
