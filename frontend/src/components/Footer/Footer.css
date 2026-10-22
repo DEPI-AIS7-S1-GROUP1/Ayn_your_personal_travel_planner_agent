@@ -30,6 +30,29 @@
   max-width: 340px;
 }
 
+.ayn-wordmark--footer {
+  display: inline-flex;
+  align-items: center;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  align-self: flex-start;
+}
+
+.ayn-brand-logo--footer {
+  height: 52px;
+  max-height: 52px;
+  width: auto;
+  object-fit: contain;
+  display: block;
+  transition: transform 0.2s ease;
+}
+
+.ayn-wordmark--footer:hover .ayn-brand-logo--footer {
+  transform: scale(1.04);
+}
+
 .ayn-footer__tagline {
   font-family: var(--font-body);
   font-size: 14px;
@@ -68,7 +91,7 @@
   background: none;
   border: none;
   padding: 0;
-  text-align: left;
+  text-align: start;
   cursor: pointer;
   transition: color 150ms ease;
 }
@@ -96,4 +119,36 @@
 
 .ayn-footer__credit {
   margin: 0;
+}
+
+
+.ayn-footer__logo {
+  height: 40px;
+  width: auto;
+  object-fit: contain;
+  display: block;
+  animation: ayn-brand-logo-idle 5.5s ease-in-out infinite;
+  animation-delay: 1.4s;
+  transform-origin: center bottom;
+  transition: transform var(--motion-medium) var(--ease-spring), filter var(--motion-medium) ease;
+  filter: drop-shadow(0 2px 6px rgba(245, 166, 35, 0.2));
+}
+
+.ayn-wordmark--footer:hover .ayn-footer__logo,
+.ayn-wordmark--footer:focus-visible .ayn-footer__logo,
+.ayn-footer__logo:hover {
+  transform: translateY(-3px) scale(1.08) rotate(-2deg);
+  filter: drop-shadow(0 6px 16px rgba(245, 166, 35, 0.45));
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ayn-footer__logo {
+    animation: none !important;
+    transform: none !important;
+  }
+  .ayn-wordmark--footer:hover .ayn-footer__logo,
+  .ayn-wordmark--footer:focus-visible .ayn-footer__logo,
+  .ayn-footer__logo:hover {
+    transform: none !important;
+  }
 }

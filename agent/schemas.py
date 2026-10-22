@@ -54,6 +54,7 @@ class UserProfile(BaseModel):
     dietary_limits: List[DietaryLimitsEnum]
     liked_last_trip: Optional[str] = ""
     disliked_last_trip: Optional[str] = ""
+    past_feedback: dict[str, list[str]] = Field(default_factory=dict)
 
 
 class Destination(BaseModel):
@@ -82,11 +83,13 @@ class Agent1Output(BaseModel):
 
 
 class VerifiedPlace(BaseModel):
-    """A single real place found by the Destination Searcher."""
+    """A place candidate with optional internal search evidence provenance."""
     name: str
     category: CategoryEnum
     description: str
     estimated_cost: int = Field(ge=0)
+    source_url: Optional[str] = None
+    evidence_status: Literal["source_found", "unverified"] = "unverified"
 
 
 class Agent2Output(BaseModel):
@@ -187,6 +190,7 @@ class FinalPlanResponse(BaseModel):
     options: Options = Options()
     selected_flight_id: Optional[str] = None
     selected_hotel_id: Optional[str] = None
+    search_context: Optional[str] = None
     created_at: str = Field(default_factory=lambda: date.today().isoformat())
     updated_at: str = Field(default_factory=lambda: date.today().isoformat())
 

@@ -11,10 +11,15 @@ import sys
 import json
 import logging
 import argparse
+import multiprocessing
+import queue
+import time
 from pathlib import Path
 from datetime import date
 
 from dotenv import load_dotenv
+
+load_dotenv(Path(__file__).resolve().parent.parent / ".env", override=False)
 
 # Load .env before any other imports that need API keys
 # Force UTF-8 output encoding on Windows console
@@ -25,18 +30,34 @@ if sys.platform == "win32":
     except Exception:
         pass
 
-from crewai import Crew, Process
+try:
+    from crewai import Crew, Process
+    from agent.agents.context_agent import create_context_agent
+    from agent.agents.search_agent import create_search_agent
+    from agent.agents.planner_agent import create_planner_agent
+    from agent.tasks.context_task import create_context_task
+    from agent.tasks.search_task import create_search_task
+    from agent.tasks.planner_task import create_planner_task
+    from agent.tools.tavily_tool import reset_search_counter
+    CREWAI_AVAILABLE = True
+except ImportError:
+    Crew = None  # type: ignore
+    Process = None  # type: ignore
+    CREWAI_AVAILABLE = False
 
 from agent.schemas import FinalPlanResponse, UserProfile, TripRequest
-from agent.agents.context_agent import create_context_agent
-from agent.agents.search_agent import create_search_agent
-from agent.agents.planner_agent import create_planner_agent
-from agent.tasks.context_task import create_context_task
-from agent.tasks.search_task import create_search_task
-from agent.tasks.planner_task import create_planner_task
+from agent.fallbacks.direct_gemini import run_direct_gemini_fallback
 from agent.fallbacks.direct_groq import run_direct_groq_fallback
 from agent.fallbacks.mock_builder import build_mock_plan
-from agent.tools.tavily_tool import reset_search_counter
+from agent.arabic import trip_language
+from agent.tools.hotel_images import add_hotel_photos
+from agent.translation import translate_plan_to_arabic
+from agent.tools.restaurant_search import (
+    named_meal_count,
+    restaurant_names,
+    search_restaurants,
+    suitable_names,
+)
 from agent.validators.post_processor import post_process
 
 # ---------------------------------------------------------------------------
@@ -78,8 +99,10 @@ def save_plan(plan: FinalPlanResponse, path: Path) -> None:
 # Tier 1 — CrewAI Pipeline
 # ---------------------------------------------------------------------------
 
-def run_crewai_pipeline(profile: dict, trip: dict) -> FinalPlanResponse:
+def run_crewai_pipeline(profile: dict, trip: dict, restaurants: list[dict] | None = None) -> FinalPlanResponse:
     """Execute the 3-agent sequential CrewAI pipeline."""
+    if not CREWAI_AVAILABLE:
+        raise RuntimeError("CrewAI is not installed or available.")
     reset_search_counter()
     logger.info("Creating agents...")
     context_agent = create_context_agent()
@@ -89,7 +112,7 @@ def run_crewai_pipeline(profile: dict, trip: dict) -> FinalPlanResponse:
     logger.info("Creating tasks...")
     context_task = create_context_task(context_agent, profile, trip)
     search_task = create_search_task(search_agent, context_task, trip)
-    planner_task = create_planner_task(planner_agent, search_task, profile, trip)
+    planner_task = create_planner_task(planner_agent, search_task, profile, trip, restaurants)
 
     logger.info("Kicking off CrewAI pipeline...")
     crew = Crew(
@@ -128,85 +151,231 @@ def run_crewai_pipeline(profile: dict, trip: dict) -> FinalPlanResponse:
 
 
 # ---------------------------------------------------------------------------
-# Orchestrator
+# Orchestrator & Timeout Management
 # ---------------------------------------------------------------------------
+
+GLOBAL_TIMEOUT_S = int(os.getenv("AGENT_GLOBAL_TIMEOUT_S", "40"))
+TOTAL_TIMEOUT_S = int(os.getenv("AGENT_TOTAL_TIMEOUT_S", "75"))
+GEMINI_RETRY_DELAY_S = float(os.getenv("AGENT_GEMINI_RETRY_DELAY_S", "2"))
+GEMINI_RETRY_MIN_REMAINING_S = 45  # a retry must still leave time for Tier 2
+
+
+def _tier_worker(result_queue, fn, args):
+    """Process entry point returning JSON-safe plan data or a safe error."""
+    try:
+        result = fn(*args)
+        result_queue.put((True, result.model_dump(mode="json", by_alias=True)))
+    except BaseException as exc:
+        result_queue.put((False, type(exc).__name__, str(exc)[:1000]))
+
+
+def _run_tier_with_timeout(fn, *args, timeout_s: int | None = None):
+    """Run a tier in a worker process (or thread on Windows) with a hard wall deadline.
+
+    Terminating a local worker cannot recall a request already accepted by a
+    remote provider, so network timeouts remain configured at provider level.
+    """
+    timeout = timeout_s if timeout_s is not None else GLOBAL_TIMEOUT_S
+    if os.name == "nt":
+        import concurrent.futures
+        with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor:
+            future = executor.submit(fn, *args)
+            try:
+                return future.result(timeout=timeout)
+            except concurrent.futures.TimeoutError:
+                raise TimeoutError(f"Tier execution exceeded {timeout}s deadline")
+
+    ctx = multiprocessing.get_context("spawn")
+    result_queue = ctx.Queue(maxsize=1)
+    process = ctx.Process(target=_tier_worker, args=(result_queue, fn, args), daemon=True)
+    process.start()
+    process.join(timeout)
+    if process.is_alive():
+        process.terminate()
+        process.join(2)
+        if process.is_alive() and hasattr(process, "kill"):
+            process.kill()
+            process.join(2)
+        result_queue.close()
+        raise TimeoutError(f"Tier execution exceeded {timeout}s deadline; worker process terminated")
+    try:
+        succeeded, *payload = result_queue.get(timeout=1)
+    except queue.Empty as exc:
+        result_queue.close()
+        raise RuntimeError(f"Tier worker exited with code {process.exitcode} without a result") from exc
+    finally:
+        result_queue.close()
+    if not succeeded:
+        error_type, message = payload
+        raise RuntimeError(f"{error_type}: {message}")
+    return FinalPlanResponse.model_validate(payload[0])
+
+
+def _key_configured(name: str) -> bool:
+    """True when an API key looks real (not empty, not an .env.example placeholder)."""
+    value = os.getenv(name, "").strip()
+    return bool(value) and "your" not in value.lower()
+
+
+def generate_plan_from_dict(
+    profile: dict,
+    trip: dict,
+    force_tier: int | None = None,
+) -> FinalPlanResponse:
+    """3-tier plan generation with automatic fallback from raw dictionaries."""
+    validated_profile = UserProfile.model_validate(profile)
+    validated_trip = TripRequest.model_validate(trip)
+
+    p_dict = validated_profile.model_dump()
+    t_dict = validated_trip.model_dump()
+    # language is an optional generation hint, not part of the public trip contract
+    if trip.get("language"):
+        t_dict["language"] = trip["language"]
+
+    tiers = [force_tier] if force_tier else [1, 2, 3]
+    deadline = time.monotonic() + TOTAL_TIMEOUT_S
+    gemini_retried = False
+
+    # One restaurant search for every tier, so meals name real places whichever tier answers.
+    # Cached per city for 72 h; [] when Tavily is off or fails, and the plan is built as before.
+    restaurants = search_restaurants(t_dict, p_dict)
+    found_names = restaurant_names(restaurants, t_dict["destination"]["city"])
+    names = suitable_names(found_names, p_dict)
+
+    # Arabic trips are planned in English and translated afterwards (agent/translation.py): the
+    # models' direct Arabic was stiff and word-for-word. The templates are already written in Arabic.
+    arabic = trip_language(t_dict) == "ar"
+    llm_trip = {**t_dict, "language": "en"} if arabic else t_dict
+
+    i = 0
+    while i < len(tiers):
+        tier = tiers[i]
+        i += 1
+        try:
+            remaining_s = deadline - time.monotonic()
+            if tier != 3 and remaining_s <= 0:
+                raise TimeoutError(f"Overall generation deadline of {TOTAL_TIMEOUT_S}s exceeded")
+            # A tier without its key is skipped before a worker process starts: starting one
+            # (and importing CrewAI) takes ~15 s just to learn the key is missing.
+            if tier == 1 and not force_tier and not _key_configured("GEMINI_API_KEY"):
+                raise ValueError("GEMINI_API_KEY is not configured")
+            if tier == 2 and not force_tier and not _key_configured("GROQ_API_KEY"):
+                raise ValueError("GROQ_API_KEY is not configured")
+            if tier == 1:
+                logger.info("🚀 Tier 1: Starting primary pipeline (CrewAI / Gemini)...")
+                tavily_key = os.getenv("TAVILY_API_KEY", "")
+                if CREWAI_AVAILABLE:
+                    try:
+                        plan = _run_tier_with_timeout(
+                            run_crewai_pipeline, p_dict, llm_trip, restaurants,
+                            timeout_s=max(1, min(GLOBAL_TIMEOUT_S, int(remaining_s))),
+                        )
+                        tier_name = "crewai_gemini"
+                    except Exception as crew_err:
+                        logger.warning(
+                            "CrewAI/Gemini pipeline failed; proceeding to configured fallback (%s): %s",
+                            type(crew_err).__name__,
+                            crew_err,
+                        )
+                        raise crew_err
+                else:
+                    plan = _run_tier_with_timeout(
+                        run_direct_gemini_fallback, p_dict, llm_trip, restaurants,
+                        timeout_s=max(1, min(int(os.getenv("AGENT_GEMINI_TIMEOUT_S", "20")), int(remaining_s))),
+                    )
+                    tier_name = "direct_gemini_unverified"
+            elif tier == 2:
+                logger.info("⚡ Tier 2: Direct Groq fallback...")
+                plan = _run_tier_with_timeout(
+                    run_direct_groq_fallback, p_dict, llm_trip, restaurants,
+                    timeout_s=max(1, min(int(os.getenv("AGENT_GROQ_TIMEOUT_S", "30")), int(remaining_s))),
+                )
+                tier_name = "groq_unverified"
+            elif tier == 3:
+                logger.info("🏗️  Tier 3: Deterministic mock builder...")
+                plan = build_mock_plan(p_dict, t_dict, names)
+                tier_name = "mock_unverified"
+            else:
+                continue
+
+            text_trip = t_dict if tier == 3 else llm_trip  # the language the plan's text is in now
+            plan = post_process(plan, profile=p_dict, language=text_trip.get("language", "en"))
+            # The Options page needs flights and hotels; an LLM can return empty lists and still
+            # pass the schema (seen with Groq in Arabic). Fill only what is missing from the
+            # deterministic builder and say so in the tier name.
+            if tier != 3 and (not plan.options.flights or not plan.options.hotels):
+                fallback_options = build_mock_plan(p_dict, text_trip).options
+                if not plan.options.flights:
+                    plan.options.flights = fallback_options.flights
+                if not plan.options.hotels:
+                    plan.options.hotels = fallback_options.hotels
+                tier_name += "+mock_options"
+                logger.warning("Tier %d returned no flights or hotels; filled them from the mock builder", tier)
+            if arabic and tier != 3:
+                # Every name found is protected, also one filtered out for this profile that the
+                # model chose anyway: a name must never be translated ("يلا بار دهب").
+                translate_plan_to_arabic(plan, found_names)
+            # LLM tiers invent photo links and the templates point at files that do not exist.
+            add_hotel_photos(plan.options.hotels, t_dict["destination"]["city"])
+            plan.search_context = tier_name
+            model_name = (os.getenv("GEMINI_MODEL", "gemini-3.8-flash") if "gemini" in tier_name
+                          else os.getenv("GROQ_MODEL", "openai/gpt-oss-120b") if tier_name.startswith("groq")
+                          else "deterministic")
+            logger.info("Tier %d succeeded: provider=%s model=%s", tier, tier_name, model_name)
+            if names:
+                named, meals = named_meal_count(plan.itinerary, names)
+                logger.info("Meals naming a searched restaurant: %d of %d", named, meals)
+            logger.info("✅ Tier %d succeeded (%s)", tier, tier_name)
+            return plan
+
+        except Exception as exc:
+            logger.warning("⚠️  Tier %d failed: %s", tier, exc)
+            # Gemini's 503 ("high demand") is usually over within seconds: one short retry of
+            # Tier 1 before falling back, when enough of the overall deadline is left.
+            if (tier == 1 and not force_tier and not gemini_retried
+                    and any(code in str(exc) for code in ("503", "UNAVAILABLE"))
+                    and deadline - time.monotonic() > GEMINI_RETRY_MIN_REMAINING_S):
+                gemini_retried = True
+                logger.info("Tier 1 got 503; retrying once in %ss", GEMINI_RETRY_DELAY_S)
+                time.sleep(GEMINI_RETRY_DELAY_S)
+                i -= 1
+                continue
+            if i < len(tiers):
+                logger.info("Fallback transition: tier %d -> tier %d", tier, tiers[i])
+            message = str(exc)
+            reason = ("schema_validation" if "ValidationError" in message else
+                      "malformed_json" if "JSONDecodeError" in message else
+                      "timeout" if isinstance(exc, TimeoutError) else
+                      "model_not_found_or_unavailable" if any(code in message for code in ("404", "NOT_FOUND")) else
+                      "provider_unavailable" if any(code in message for code in ("503", "UNAVAILABLE")) else
+                      "provider_error" if any(name in message for name in (
+                          "APIConnectionError", "ClientError", "ServerError", "RateLimitError",
+                      )) else "pipeline_error")
+            failed_provider = "Gemini" if tier == 1 else "Groq" if tier == 2 else "deterministic"
+            failed_model = (os.getenv("GEMINI_MODEL", "gemini-3.8-flash") if tier == 1 else
+                            os.getenv("GROQ_MODEL", "openai/gpt-oss-120b") if tier == 2 else "n/a")
+            logger.warning("Tier %d failed: provider=%s model=%s class=%s reason=%s",
+                           tier, failed_provider, failed_model, type(exc).__name__, reason)
+            if i >= len(tiers):
+                logger.error("❌ All tiers exhausted. No plan generated.")
+                raise
+
+    raise RuntimeError("No tiers executed")
+
 
 def generate_plan(
     profile_path: Path = DEFAULT_PROFILE,
     trip_path: Path = DEFAULT_TRIP,
     force_tier: int | None = None,
 ) -> FinalPlanResponse:
-    """3-tier plan generation with automatic fallback.
-
-    Parameters
-    ----------
-    profile_path : Path
-        Path to the user profile JSON.
-    trip_path : Path
-        Path to the trip request JSON.
-    force_tier : int or None
-        If set, skip directly to this tier (1, 2, or 3). Useful for testing.
-    """
+    """3-tier plan generation with automatic fallback from file paths."""
     raw_profile = load_json(profile_path)
     raw_trip = load_json(trip_path)
 
-    # Strictly validate against schemas (contract §2, §3.2, §3.3)
-    # Reject unknown values in closed enums (hobbies, dietary_limits, etc.)
-    validated_profile = UserProfile.model_validate(raw_profile)
-    validated_trip = TripRequest.model_validate(raw_trip)
-
-    profile = validated_profile.model_dump()
-    trip = validated_trip.model_dump()
+    plan = generate_plan_from_dict(raw_profile, raw_trip, force_tier=force_tier)
     output_path = OUTPUT_DIR / "plan_output.json"
-
-    logger.info("=" * 60)
-    logger.info("Personal Travel Planner — Agent Pipeline")
-    logger.info("=" * 60)
-    logger.info(
-        "Destination: %s, %s | Budget: %s %s | Days: %s to %s",
-        trip["destination"]["city"],
-        trip["destination"]["country"],
-        trip["total_budget"],
-        trip.get("currency", "EGP"),
-        trip["start_date"],
-        trip["end_date"],
-    )
-
-    tiers = []
-    if force_tier:
-        tiers = [force_tier]
-    else:
-        tiers = [1, 2, 3]
-
-    for tier in tiers:
-        try:
-            if tier == 1:
-                logger.info("🚀 Tier 1: Starting CrewAI pipeline...")
-                plan = run_crewai_pipeline(profile, trip)
-            elif tier == 2:
-                logger.info("⚡ Tier 2: Direct Groq fallback...")
-                plan = run_direct_groq_fallback(profile, trip)
-            elif tier == 3:
-                logger.info("🏗️  Tier 3: Deterministic mock builder...")
-                plan = build_mock_plan(profile, trip)
-            else:
-                continue
-
-            # Post-process every output
-            plan = post_process(plan)
-            save_plan(plan, output_path)
-            logger.info("✅ Tier %d succeeded", tier)
-            return plan
-
-        except Exception as exc:
-            logger.warning("⚠️  Tier %d failed: %s", tier, exc, exc_info=True)
-            if tier == tiers[-1]:
-                # Last tier failed — this shouldn't happen with Tier 3
-                logger.error("❌ All tiers exhausted. No plan generated.")
-                raise
-
-    # Should never reach here
-    raise RuntimeError("No tiers executed")
+    save_plan(plan, output_path)
+    return plan
 
 
 # ---------------------------------------------------------------------------

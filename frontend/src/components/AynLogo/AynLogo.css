@@ -1,0 +1,139 @@
+.ayn-logo {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  height: var(--logo-height, 36px);
+  user-select: none;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.ayn-logo__icon-svg {
+  height: 100%;
+  width: auto;
+  aspect-ratio: 44 / 48;
+  display: block;
+  overflow: visible;
+  filter: drop-shadow(0 2px 0 rgba(43, 33, 24, 0.2));
+  transition: transform var(--motion-medium) var(--ease-spring);
+}
+
+.ayn-logo--animated:hover .ayn-logo__icon-svg {
+  transform: translateY(-2px) scale(1.06) rotate(-3deg);
+}
+
+/* Subtle Idle Floating */
+.ayn-logo--animated .ayn-logo__icon-svg {
+  animation: ayn-logo-float 4.5s ease-in-out infinite;
+  transform-origin: center bottom;
+}
+
+@keyframes ayn-logo-float {
+  0%, 100% {
+    transform: translateY(0) rotate(0deg);
+  }
+  35% {
+    transform: translateY(-2.5px) rotate(1.5deg);
+  }
+  70% {
+    transform: translateY(1px) rotate(-1deg);
+  }
+}
+
+/* Eye pupil animation */
+.ayn-logo__pupil {
+  transform-origin: 22px 19px;
+  animation: ayn-eye-glance 6s ease-in-out infinite;
+}
+
+@keyframes ayn-eye-glance {
+  0%, 45%, 100% {
+    transform: translate(0, 0);
+  }
+  50%, 65% {
+    transform: translate(2px, -0.5px);
+  }
+  70%, 85% {
+    transform: translate(-1.8px, 0.5px);
+  }
+}
+
+/* Wink on hover */
+.ayn-logo__eye-group--wink {
+  animation: ayn-eye-wink 0.6s ease-in-out forwards;
+  transform-origin: 22px 19px;
+}
+
+@keyframes ayn-eye-wink {
+  0% { transform: scaleY(1); }
+  30% { transform: scaleY(0.1); }
+  60% { transform: scaleY(1.15); }
+  100% { transform: scaleY(1); }
+}
+
+/* Spark pulse */
+.ayn-logo__spark {
+  transform-origin: 34px 7px;
+  animation: ayn-spark-pulse 3s ease-in-out infinite;
+}
+
+@keyframes ayn-spark-pulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 0.9;
+  }
+  50% {
+    transform: scale(1.35);
+    opacity: 1;
+    filter: drop-shadow(0 0 3px #F5A623);
+  }
+}
+
+/* Wordmark typography */
+.ayn-logo__text {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 6px;
+  font-family: var(--font-heading);
+  line-height: 1;
+}
+
+.ayn-logo__brand-en {
+  font-size: calc(var(--logo-height, 36px) * 0.72);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  background: var(--gradient-brand);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: var(--color-terracotta);
+}
+
+.ayn-logo__divider {
+  font-size: calc(var(--logo-height, 36px) * 0.4);
+  color: var(--color-sun);
+  opacity: 0.75;
+}
+
+.ayn-logo__brand-ar {
+  font-family: var(--font-arabic), var(--font-heading);
+  font-size: calc(var(--logo-height, 36px) * 0.68);
+  font-weight: 700;
+  color: var(--color-text);
+  letter-spacing: -0.01em;
+}
+
+/* RTL layout adjustments */
+html.ayn-arabic .ayn-logo__text {
+  flex-direction: row-reverse;
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .ayn-logo--animated .ayn-logo__icon-svg,
+  .ayn-logo__pupil,
+  .ayn-logo__spark,
+  .ayn-logo__eye-group--wink {
+    animation: none !important;
+    transform: none !important;
+  }
+}

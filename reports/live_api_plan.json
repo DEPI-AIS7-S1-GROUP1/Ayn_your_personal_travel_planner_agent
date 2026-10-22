@@ -1,0 +1,187 @@
+{
+  "id": "plan_001",
+  "trip_id": "trip_001",
+  "status": "draft",
+  "destination": {
+    "city": "Sharm El Sheikh",
+    "country": "Egypt"
+  },
+  "start_date": "2026-11-10",
+  "end_date": "2026-11-12",
+  "travelers": 2,
+  "total_budget": 60000,
+  "currency": "EGP",
+  "budget_split": {
+    "hotel": 24000,
+    "food": 18000,
+    "activities": 12000,
+    "transport": 6000
+  },
+  "itinerary": [
+    {
+      "day": 1,
+      "date": "2026-11-10",
+      "activities": [
+        {
+          "id": "act_1_1",
+          "title": "Hotel Check-in",
+          "description": "Arrive and check into the hotel.",
+          "time_slot": "morning",
+          "estimated_cost": 0,
+          "category": "hotel"
+        },
+        {
+          "id": "act_1_2",
+          "title": "Old Town Walking Tour",
+          "description": "Explore historic streets and local markets.",
+          "time_slot": "afternoon",
+          "estimated_cost": 2000,
+          "category": "activities"
+        },
+        {
+          "id": "act_1_3",
+          "title": "Halal Seafood Dinner",
+          "description": "Enjoy grilled seafood at a local restaurant.",
+          "time_slot": "evening",
+          "estimated_cost": 3000,
+          "category": "food"
+        }
+      ]
+    },
+    {
+      "day": 2,
+      "date": "2026-11-11",
+      "activities": [
+        {
+          "id": "act_2_1",
+          "title": "Breakfast",
+          "description": "Traditional Egyptian breakfast.",
+          "time_slot": "morning",
+          "estimated_cost": 1500,
+          "category": "food"
+        },
+        {
+          "id": "act_2_2",
+          "title": "Sharm El Sheikh Museum",
+          "description": "Visit the local history museum.",
+          "time_slot": "afternoon",
+          "estimated_cost": 1000,
+          "category": "activities"
+        },
+        {
+          "id": "act_2_3",
+          "title": "Koshari Lunch",
+          "description": "Taste authentic koshari at a street food stall.",
+          "time_slot": "afternoon",
+          "estimated_cost": 1000,
+          "category": "food"
+        },
+        {
+          "id": "act_2_4",
+          "title": "Dinner",
+          "description": "Grilled meat dinner.",
+          "time_slot": "evening",
+          "estimated_cost": 2500,
+          "category": "food"
+        }
+      ]
+    },
+    {
+      "day": 3,
+      "date": "2026-11-12",
+      "activities": [
+        {
+          "id": "act_3_1",
+          "title": "Breakfast",
+          "description": "Hotel breakfast.",
+          "time_slot": "morning",
+          "estimated_cost": 1000,
+          "category": "food"
+        },
+        {
+          "id": "act_3_2",
+          "title": "Hotel Check-out",
+          "description": "Check out and prepare for departure.",
+          "time_slot": "morning",
+          "estimated_cost": 0,
+          "category": "hotel"
+        },
+        {
+          "id": "act_3_3",
+          "title": "Airport Transfer",
+          "description": "Transport to the airport.",
+          "time_slot": "afternoon",
+          "estimated_cost": 2000,
+          "category": "transport"
+        }
+      ]
+    }
+  ],
+  "options": {
+    "flights": [
+      {
+        "id": "flt_001",
+        "airline": "EgyptAir",
+        "outbound": {
+          "from": "Cairo (CAI)",
+          "to": "Sharm El Sheikh (SSH)",
+          "departure": "2026-11-10T08:00:00Z",
+          "arrival": "2026-11-10T09:30:00Z"
+        },
+        "return": {
+          "from": "Sharm El Sheikh (SSH)",
+          "to": "Cairo (CAI)",
+          "departure": "2026-11-12T14:00:00Z",
+          "arrival": "2026-11-12T15:30:00Z"
+        },
+        "price": 4000,
+        "details": "Direct flight, 2 travelers."
+      },
+      {
+        "id": "flt_002",
+        "airline": "Nile Air",
+        "outbound": {
+          "from": "Cairo (CAI)",
+          "to": "Sharm El Sheikh (SSH)",
+          "departure": "2026-11-10T10:00:00Z",
+          "arrival": "2026-11-10T11:30:00Z"
+        },
+        "return": {
+          "from": "Sharm El Sheikh (SSH)",
+          "to": "Cairo (CAI)",
+          "departure": "2026-11-12T16:00:00Z",
+          "arrival": "2026-11-12T17:30:00Z"
+        },
+        "price": 3500,
+        "details": "Direct flight, 2 travelers."
+      }
+    ],
+    "hotels": [
+      {
+        "id": "hot_001",
+        "name": "Sharm El Sheikh Resort",
+        "stars": 4,
+        "area": "Naama Bay",
+        "price_per_night": 8000,
+        "total_price": 16000,
+        "details": "2 nights, 2 travelers, includes breakfast.",
+        "image_url": "https://example.com/hot_001.jpg"
+      },
+      {
+        "id": "hot_002",
+        "name": "Old Town Boutique Hotel",
+        "stars": 3,
+        "area": "Old Town",
+        "price_per_night": 6000,
+        "total_price": 12000,
+        "details": "2 nights, 2 travelers, no breakfast.",
+        "image_url": "https://example.com/hot_002.jpg"
+      }
+    ]
+  },
+  "selected_flight_id": "flt_001",
+  "selected_hotel_id": "hot_001",
+  "search_context": "groq_unverified",
+  "created_at": "2026-10-19",
+  "updated_at": "2026-10-19"
+}

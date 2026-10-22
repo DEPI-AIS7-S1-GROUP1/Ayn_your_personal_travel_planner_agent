@@ -3,16 +3,22 @@
 import json
 from datetime import date
 from crewai import Task, Agent
+from agent.arabic import arabic_language_rule_block
 from agent.schemas import FinalPlanResponse
-
+from agent.feedback import feedback_text
+from agent.tools.restaurant_search import restaurant_rule_block
 
 def create_planner_task(
     agent: Agent,
     search_task: Task,
     profile: dict,
     trip: dict,
+    restaurants: list[dict] | None = None,
 ) -> Task:
-    """Build the task that constructs the full plan from verified places."""
+    """Build the task that constructs the full plan from verified places.
+
+    restaurants: search evidence from agent/tools/restaurant_search.py, so meals name real places.
+    """
     start = date.fromisoformat(trip["start_date"])
     end = date.fromisoformat(trip["end_date"])
     num_days = (end - start).days + 1
@@ -59,7 +65,11 @@ def create_planner_task(
             f"11. Use id format: htl_001, htl_002 for hotels\n"
             f"12. All prices are total for the whole group, not per person\n"
             f"13. Avoid: {profile.get('food_dislikes', [])} and respect "
-            f"dietary limits: {profile.get('dietary_limits', [])}\n\n"
+            f"dietary limits: {profile.get('dietary_limits', [])}\n"
+            f"14. Use only places supported by search results as source-backed; do not invent source URLs, prices, or opening hours. Unsupported details must remain clearly unverified. Budget arithmetic does not verify market prices.\n"
+            f"14. {feedback_text(profile)}\n\n"
+            f"{arabic_language_rule_block(trip)}\n"
+            f"{restaurant_rule_block(restaurants or [], trip)}\n"
             f"Output ONLY valid JSON matching this schema (no conversational filler, no prose):\n"
             f"{json.dumps(FinalPlanResponse.model_json_schema(), indent=2)}"
         ),

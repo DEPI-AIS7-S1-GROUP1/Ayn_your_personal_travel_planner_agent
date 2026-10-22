@@ -1,9 +1,23 @@
 import os
+import sys
+from pathlib import Path
+
+# Ensure project root is in sys.path so 'agent' and other root modules can be imported
+PROJECT_ROOT = Path(__file__).resolve().parents[2]
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
 
 # Must be set before the app is imported: config reads them at import time.
 # Test-only values; the real secret lives only in your local .env.
 os.environ["AUTH_SECRET_KEY"] = "test-only-secret-key-not-used-anywhere-real-0123456789"
 os.environ["DATABASE_URL"] = "sqlite://"
+# No real AI calls from tests: empty keys win over .env (load_dotenv never overrides), so the
+# agent uses its deterministic fallbacks and results do not depend on the network or quota.
+for _key in ("GEMINI_API_KEY", "GROQ_API_KEY", "GROQ_API_KEY_CONTEXT", "GROQ_API_KEY_SEARCH",
+             "GROQ_API_KEY_PLANNER", "TAVILY_API_KEY", "AGENTOPS_API_KEY"):
+    os.environ[_key] = ""
+# Hotel photos come from Wikimedia, which needs no key: switch the lookup off instead.
+os.environ["HOTEL_PHOTOS"] = "off"
 
 import pytest  # noqa: E402
 from fastapi.testclient import TestClient  # noqa: E402

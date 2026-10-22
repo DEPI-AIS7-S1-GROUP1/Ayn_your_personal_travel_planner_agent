@@ -6,6 +6,8 @@
   align-items: center;
   gap: var(--space-3);
   width: 100%;
+  cursor: pointer;
+  transition: transform var(--motion-medium) var(--ease-spring);
 }
 
 .ayn-feature-arch-card__image-container {
@@ -16,21 +18,51 @@
   overflow: hidden;
   background-color: var(--color-border);
   box-sizing: border-box;
+  box-shadow: 0 4px 0 var(--color-text);
+  transition: transform var(--motion-medium) var(--ease-spring),
+              border-radius var(--motion-medium) ease,
+              box-shadow var(--motion-medium) var(--ease-spring);
+}
+
+/* On hover: soft arch morph, gentle lift & spring */
+.ayn-feature-arch-card:hover .ayn-feature-arch-card__image-container {
+  transform: translateY(-6px) scale(1.02);
+  border-radius: 960px 1020px 22px 14px / 1020px 960px 16px 22px;
+  box-shadow: 0 10px 0 var(--color-text), 0 16px 28px rgba(43, 33, 24, 0.16);
+}
+
+.ayn-feature-arch-card:hover .ayn-illustration--arch-scene {
+  transform: scale(1.06);
+}
+
+.ayn-feature-arch-card:hover .ayn-feature-arch-card__title {
+  color: var(--color-terracotta);
 }
 
 .ayn-feature-arch-card__title {
   font-family: var(--font-heading);
   font-size: 20px;
   line-height: 28px;
-  font-weight: 600;
+  font-weight: 700;
   color: var(--color-text);
   margin: 0;
+  transition: color var(--motion-fast) ease;
 }
 
 .ayn-feature-arch-card__description {
   font-family: var(--font-body);
   font-size: 14px;
-  line-height: 20px;
+  line-height: 22px;
   color: var(--color-text-muted);
   margin: 0;
+  max-width: 260px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ayn-feature-arch-card:hover .ayn-feature-arch-card__image-container,
+  .ayn-feature-arch-card:hover .ayn-illustration--arch-scene {
+    transform: none !important;
+    border-radius: var(--radius-arch) !important;
+    box-shadow: 0 4px 0 var(--color-text) !important;
+  }
 }

@@ -11,12 +11,18 @@
   width: 100%;
   box-shadow: none;
   font-family: var(--font-body);
-  transition: border-color 150ms ease;
+  transition: border-color var(--motion-fast) ease, transform var(--motion-medium) var(--ease-spring), box-shadow var(--motion-medium) var(--ease-spring);
   user-select: none;
 }
 
 .ayn-picture-card:hover:not(:disabled) {
-  border-color: var(--color-text-muted);
+  border-color: var(--color-terracotta);
+  transform: translateY(-4px);
+  box-shadow: 0 10px 24px rgba(43, 33, 24, 0.12);
+}
+
+.ayn-picture-card:hover:not(:disabled) .ayn-picture-card__image {
+  transform: scale(1.05);
 }
 
 .ayn-picture-card:focus-visible {

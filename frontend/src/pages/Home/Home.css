@@ -1,14 +1,23 @@
+/* ==========================================================================
+   Ayn Organic Home Page (Living Motion, Flowing Dividers & Character Charm)
+   ========================================================================== */
+
 .ayn-home {
   display: flex;
   flex-direction: column;
   width: 100%;
+  position: relative;
+  overflow-x: hidden;
 }
 
-/* SECTION 1: HERO SLIDER */
+/* ==========================================================================
+   1. HERO SECTION
+   ========================================================================== */
+
 .ayn-home__hero {
   position: relative;
   width: 100%;
-  height: 440px;
+  height: 480px;
   overflow: hidden;
   background-color: #E8D9C0;
   box-sizing: border-box;
@@ -18,8 +27,39 @@
   position: absolute;
   inset: 0;
   opacity: 0;
-  transition: opacity 600ms ease;
+  transition: opacity 700ms var(--ease-out);
   pointer-events: none;
+}
+
+.ayn-home__hero-slide--sky {
+  z-index: 1;
+}
+
+/* Floating Hero Clouds: strictly behind landmarks, card, and walking figure */
+.ayn-home__hero-clouds {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.ayn-home__cloud--hero-1 {
+  position: absolute;
+  top: 24px;
+  inset-inline-end: 120px;
+  animation: ayn-cloud-drift 32s linear infinite;
+}
+
+.ayn-home__cloud--hero-2 {
+  position: absolute;
+  top: 56px;
+  inset-inline-end: 480px;
+  animation: ayn-cloud-drift 44s linear infinite;
+}
+
+/* Architectural Landmarks & Ground: in front of clouds, behind walker & card */
+.ayn-home__hero-slide--landmark {
+  z-index: 3;
 }
 
 .ayn-home__hero-slide--active {
@@ -33,6 +73,17 @@
   display: block;
 }
 
+/* Walking Traveler on bottom dunes: in front of landmarks */
+.ayn-home__hero-walker {
+  position: absolute;
+  bottom: 24px;
+  left: 0;
+  width: 100%;
+  pointer-events: none;
+  z-index: 4;
+}
+
+/* Content Wrap: hero card in top foreground */
 .ayn-home__hero-content-wrap {
   position: absolute;
   inset: 0;
@@ -44,139 +95,257 @@
   justify-content: space-between;
   box-sizing: border-box;
   pointer-events: none;
+  z-index: 5;
 }
 
-/* White card on the left */
+/* Organic Hero Card */
 .ayn-home__hero-card {
-  width: 380px;
-  max-width: 90%;
+  width: 420px;
+  max-width: 92%;
   background-color: var(--color-surface);
   border: 2px solid var(--color-text);
-  border-radius: var(--radius-card);
+  border-radius: 26px 20px 32px 22px; /* Playful organic radius */
   padding: var(--space-6);
   display: flex;
   flex-direction: column;
   align-items: flex-start;
   gap: var(--space-4);
-  text-align: left;
-  box-shadow: none;
+  text-align: start;
+  box-shadow: 0 10px 0 var(--color-text), 0 18px 36px rgba(43, 33, 24, 0.16);
   pointer-events: auto;
-  z-index: 2;
+  transition: transform var(--motion-medium) var(--ease-spring), box-shadow var(--motion-medium) var(--ease-spring);
+}
+
+.ayn-home__hero-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 0 var(--color-text), 0 22px 42px rgba(43, 33, 24, 0.2);
+}
+
+.ayn-home__hero-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  border-radius: 999px;
+  background-color: var(--color-sand-light);
+  border: 1.5px solid var(--color-border);
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--color-brown);
+}
+
+.ayn-home__badge-icon {
+  color: var(--color-sun);
+  animation: ayn-sparkle-wiggle 2.5s ease-in-out infinite;
+}
+
+@keyframes ayn-sparkle-wiggle {
+  0%, 100% { transform: scale(1) rotate(0deg); }
+  50% { transform: scale(1.25) rotate(15deg); }
 }
 
 .ayn-home__hero-title {
   font-family: var(--font-heading);
-  font-size: 40px;
-  line-height: 44px;
+  font-size: 42px;
+  line-height: 46px;
   font-weight: 800;
   letter-spacing: -0.02em;
-  color: var(--color-terracotta);
+  color: var(--color-text);
   margin: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.ayn-home__hero-line--accent {
+  color: var(--color-primary);
+  font-weight: 800;
 }
 
 .ayn-home__hero-subtitle {
   font-family: var(--font-body);
   font-size: 16px;
-  line-height: 24px;
+  line-height: 25px;
   color: var(--color-text-muted);
   margin: 0;
+}
+
+.ayn-home__hero-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin-top: var(--space-2);
+}
+
+.ayn-home__hero-cta {
+  height: 48px;
+  padding: 0 24px;
+  font-size: 16px;
 }
 
 /* Caption pill at bottom right */
 .ayn-home__hero-caption {
   position: absolute;
-  bottom: 24px;
-  right: 24px;
+  bottom: 30px;
+  inset-inline-end: 28px;
   background-color: var(--color-surface);
   border: 2px solid var(--color-text);
   border-radius: 999px;
-  padding: 8px 16px;
+  padding: 8px 18px;
+  display: inline-flex;
+  align-items: center;
   font-family: var(--font-body);
   font-size: 14px;
-  font-weight: 600;
+  font-weight: 700;
   color: var(--color-text);
+  box-shadow: 0 4px 0 var(--color-text);
   pointer-events: auto;
-  z-index: 2;
+  z-index: 6;
 }
 
-/* SECTION 2: ABOUT AYN */
-.ayn-home__about-section {
+/* Flowing Section Dividers */
+.ayn-home__divider {
   width: 100%;
-  background-color: var(--color-bg);
-  padding: var(--space-7) 0;
-  box-sizing: border-box;
+  line-height: 0;
+  overflow: hidden;
 }
 
-.ayn-home__about-container {
-  max-width: 1120px;
-  margin: 0 auto;
-  padding: 0 var(--space-5);
-  display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-  gap: var(--space-6);
-  box-sizing: border-box;
+.ayn-home__divider--bottom {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  z-index: 4;
 }
 
-.ayn-home__about-text {
-  flex: 1;
-  max-width: 680px;
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-4);
-  text-align: left;
+.ayn-home__divider svg {
+  width: 100%;
+  height: 48px;
+  display: block;
 }
 
-.ayn-home__about-title {
-  font-family: var(--font-heading);
-  font-size: 28px;
-  line-height: 36px;
-  font-weight: 600;
-  color: var(--color-terracotta);
-  margin: 0;
-}
+/* ==========================================================================
+   2. FEATURES SECTION (Wavy divider, morphing blobs, dotted route)
+   ========================================================================== */
 
-.ayn-home__about-desc {
-  font-family: var(--font-body);
-  font-size: 16px;
-  line-height: 26px;
-  color: var(--color-text);
-  margin: 0;
-}
-
-.ayn-home__about-figures {
-  display: flex;
-  align-items: flex-end;
-  gap: var(--space-2);
-  flex-shrink: 0;
-}
-
-/* SECTION 3: FEATURES (WHAT AYN DOES) */
 .ayn-home__features-section {
+  position: relative;
   width: 100%;
   background-color: var(--color-bg);
-  padding: var(--space-7) 0 var(--space-8);
+  padding: var(--space-6) 0 0;
   box-sizing: border-box;
+}
+
+/* Floating Morphing Background Blobs */
+.ayn-floating-blob {
+  position: absolute;
+  border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%;
+  filter: blur(48px);
+  opacity: 0.45;
+  pointer-events: none;
+  z-index: 0;
+  animation: ayn-blob-morph 16s ease-in-out infinite alternate;
+}
+
+.ayn-blob--1 {
+  top: 10%;
+  left: -60px;
+  width: 260px;
+  height: 260px;
+  background: var(--color-warm-sand);
+}
+
+.ayn-blob--2 {
+  top: 45%;
+  right: -50px;
+  width: 300px;
+  height: 300px;
+  background: var(--color-sky);
+  animation-duration: 20s;
+  animation-delay: -4s;
+}
+
+.ayn-blob--3 {
+  bottom: 15%;
+  left: 20%;
+  width: 280px;
+  height: 280px;
+  background: var(--color-sand-light);
+  animation-duration: 18s;
+  animation-delay: -8s;
+}
+
+@keyframes ayn-blob-morph {
+  0% {
+    border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%;
+    transform: translate(0, 0) rotate(0deg);
+  }
+  50% {
+    border-radius: 40% 60% 70% 30% / 40% 50% 50% 60%;
+    transform: translate(24px, -16px) rotate(6deg);
+  }
+  100% {
+    border-radius: 70% 30% 50% 50% / 30% 60% 40% 70%;
+    transform: translate(-18px, 18px) rotate(-6deg);
+  }
 }
 
 .ayn-home__features-container {
+  position: relative;
   max-width: 1120px;
   margin: 0 auto;
-  padding: 0 var(--space-5);
+  padding: 0 var(--space-5) var(--space-7);
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: var(--space-6);
   box-sizing: border-box;
+  z-index: 1;
+}
+
+/* Dotted Route Line */
+.ayn-route-motif {
+  width: 100%;
+  max-width: 540px;
+  margin-bottom: -16px;
+}
+
+.ayn-route-motif__svg {
+  width: 100%;
+  height: 36px;
+  overflow: visible;
+}
+
+.ayn-route-motif__path {
+  stroke-dasharray: 8 8;
+  animation: ayn-route-dash 1.8s linear infinite;
+}
+
+@keyframes ayn-route-dash {
+  to { stroke-dashoffset: -32; }
+}
+
+.ayn-home__features-header {
+  text-align: center;
+  max-width: 600px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
 }
 
 .ayn-home__features-title {
   font-family: var(--font-heading);
-  font-size: 28px;
-  line-height: 36px;
-  font-weight: 600;
+  font-size: 32px;
+  line-height: 40px;
+  font-weight: 700;
   color: var(--color-terracotta);
-  text-align: center;
+  margin: 0;
+}
+
+.ayn-home__features-subtitle {
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 24px;
+  color: var(--color-text-muted);
   margin: 0;
 }
 
@@ -187,10 +356,93 @@
   width: 100%;
 }
 
-/* SECTION 4: CALL TO ACTION BAND */
+/* ==========================================================================
+   3. ABOUT AYN SECTION
+   ========================================================================== */
+
+.ayn-home__about-section {
+  position: relative;
+  width: 100%;
+  background-color: #F4EAD4;
+  padding: var(--space-7) 0 0;
+  box-sizing: border-box;
+}
+
+.ayn-home__about-container {
+  position: relative;
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 0 var(--space-5) var(--space-7);
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--space-7);
+  box-sizing: border-box;
+  z-index: 1;
+}
+
+.ayn-home__about-text {
+  flex: 1;
+  max-width: 620px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  text-align: start;
+}
+
+.ayn-home__about-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 12px;
+  border-radius: 999px;
+  background-color: var(--color-surface);
+  border: 1.5px solid var(--color-border);
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--color-primary);
+  width: fit-content;
+}
+
+.ayn-home__about-title {
+  font-family: var(--font-heading);
+  font-size: 30px;
+  line-height: 38px;
+  font-weight: 700;
+  color: var(--color-terracotta);
+  margin: 0;
+}
+
+.ayn-home__about-desc {
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 28px;
+  color: var(--color-text);
+  margin: 0;
+}
+
+.ayn-home__about-hint {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--color-primary);
+  margin-top: var(--space-1);
+}
+
+.ayn-home__about-figures {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--space-3);
+  flex-shrink: 0;
+  padding-bottom: 8px;
+}
+
+/* ==========================================================================
+   4. CALL TO ACTION BAND
+   ========================================================================== */
+
 .ayn-home__cta-band {
   width: 100%;
-  min-height: 240px;
+  min-height: 280px;
   background-color: var(--color-sky);
   position: relative;
   overflow: hidden;
@@ -211,18 +463,20 @@
   position: absolute;
   top: 15px;
   left: 60px;
+  animation: ayn-cloud-drift 36s linear infinite;
 }
 
 .ayn-home__cloud--top-right {
   position: absolute;
   top: 25px;
   right: 60px;
+  animation: ayn-cloud-drift 42s linear infinite;
 }
 
 .ayn-home__cloud--bottom-center {
   position: absolute;
   bottom: -20px;
-  left: 180px;
+  left: 200px;
 }
 
 .ayn-home__cta-figures {
@@ -234,15 +488,15 @@
 .ayn-home__person--bottom-left {
   position: absolute;
   bottom: 0;
-  left: 60px;
+  left: 80px;
   display: flex;
-  gap: 8px;
+  gap: 12px;
 }
 
 .ayn-home__person--bottom-right {
   position: absolute;
   bottom: 0;
-  right: 80px;
+  right: 100px;
 }
 
 .ayn-home__cta-content {
@@ -259,24 +513,49 @@
 
 .ayn-home__cta-title {
   font-family: var(--font-heading);
-  font-size: 32px;
-  line-height: 40px;
-  font-weight: 600;
+  font-size: 34px;
+  line-height: 42px;
+  font-weight: 700;
   color: var(--color-terracotta);
   margin: 0;
 }
 
-/* Responsive adjustments */
+.ayn-home__cta-button {
+  height: 48px;
+  padding: 0 24px;
+  font-size: 16px;
+  animation: ayn-btn-wiggle 3s ease-in-out infinite;
+}
+
+@keyframes ayn-btn-wiggle {
+  0%, 85%, 100% { transform: scale(1) rotate(0deg); }
+  90% { transform: scale(1.04) rotate(-2deg); }
+  95% { transform: scale(1.04) rotate(2deg); }
+}
+
+/* ==========================================================================
+   Responsive Breakpoints
+   ========================================================================== */
+
 @media (max-width: 1024px) {
   .ayn-home__features-grid {
     grid-template-columns: repeat(2, 1fr);
+  }
+
+  .ayn-home__about-container {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .ayn-home__about-figures {
+    align-self: center;
   }
 }
 
 @media (max-width: 640px) {
   .ayn-home__hero {
     height: auto;
-    min-height: 480px;
+    min-height: 520px;
   }
 
   .ayn-home__hero-content-wrap {
@@ -289,17 +568,42 @@
     width: 100%;
   }
 
-  .ayn-home__about-container {
-    flex-direction: column;
-    align-items: flex-start;
+  .ayn-home__hero-title {
+    font-size: 32px;
+    line-height: 38px;
   }
 
   .ayn-home__features-grid {
     grid-template-columns: 1fr;
   }
 
+  .ayn-home__about-figures {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .ayn-home__person--bottom-left,
+  .ayn-home__person--bottom-right,
   .ayn-home__cloud--bottom-center,
   .ayn-home__cloud--top-right {
     display: none;
+  }
+}
+
+/* ==========================================================================
+   Reduced Motion
+   ========================================================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  .ayn-floating-blob,
+  .ayn-route-motif__path,
+  .ayn-home__cta-button,
+  .ayn-home__badge-icon,
+  .ayn-home__cloud--hero-1,
+  .ayn-home__cloud--hero-2,
+  .ayn-home__cloud--top-left,
+  .ayn-home__cloud--top-right {
+    animation: none !important;
+    transform: none !important;
   }
 }

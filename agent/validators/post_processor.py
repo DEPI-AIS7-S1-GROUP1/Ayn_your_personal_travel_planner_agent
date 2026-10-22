@@ -2,23 +2,26 @@
 
 Runs on EVERY plan output regardless of which tier produced it.
 Fixes budget rounding, ensures integer costs, assigns missing IDs,
-and validates the final result against FinalPlanResponse.
+strips food-dislike mentions, and validates the final result against
+FinalPlanResponse.
 """
 
 import logging
+from agent.arabic import normalize_arabic
 from agent.schemas import FinalPlanResponse
 
 logger = logging.getLogger(__name__)
 
 
-def post_process(plan: FinalPlanResponse) -> FinalPlanResponse:
+def post_process(plan: FinalPlanResponse, profile: dict | None = None, language: str = "en") -> FinalPlanResponse:
     """Auto-repair and validate a plan. Returns the cleaned plan.
 
     Repairs applied:
       1. Budget sum rounding — adjusts the largest category
-      2. Float-to-int coercion on estimated_cost
+      2. Float-to-int coercion on estimated_cost, then per-category budget caps
       3. Missing activity IDs — assigns act_NNN
-      4. Final Pydantic re-validation (raises on unfixable issues)
+      4. Food-dislike mentions — replace violating food items (Arabic-normalized)
+      5. Final Pydantic re-validation (raises on unfixable issues)
     """
     data = plan.model_dump(by_alias=True)
 
@@ -51,6 +54,21 @@ def post_process(plan: FinalPlanResponse) -> FinalPlanResponse:
                     act["title"], old, act["estimated_cost"],
                 )
 
+    # --- 2b. Keep every category within its budget (contract §3.5) ---
+    # "For each category, the sum of estimated_cost across all activities must not exceed that
+    # category's amount in the budget split." LLM tiers often overshoot (e.g. food 320 of 250),
+    # so costs in an over-budget category are scaled down by one shared factor.
+    for category, cap in bs.items():
+        acts = [a for day in data["itinerary"] for a in day["activities"] if a["category"] == category]
+        spent = sum(a["estimated_cost"] for a in acts)
+        if spent > cap:
+            for act in acts:
+                act["estimated_cost"] = act["estimated_cost"] * cap // spent  # rounds down: never over
+            logger.warning(
+                "Scaled %s costs to fit the budget: %d → %d (cap %d)",
+                category, spent, sum(a["estimated_cost"] for a in acts), cap,
+            )
+
     # --- 3. Assign missing activity IDs ---
     id_counter = 1
     existing_ids = set()
@@ -68,7 +86,29 @@ def post_process(plan: FinalPlanResponse) -> FinalPlanResponse:
                 existing_ids.add(act["id"])
                 id_counter += 1
 
-    # --- 4. Final validation (raises on unfixable issues) ---
+    # --- 4. Strip food-dislike mentions (Arabic-normalized) ---
+    if profile:
+        dislikes = [
+            normalize_arabic(d)
+            for d in (profile.get("food_dislikes") or [])
+            if d and len(normalize_arabic(d)) >= 3
+        ]
+        for day in data["itinerary"]:
+            for act in day["activities"]:
+                if act.get("category") != "food":
+                    continue
+                blob = normalize_arabic(f"{act.get('title', '')} {act.get('description', '')}")
+                if any(d in blob for d in dislikes):
+                    old_title = act.get("title")
+                    if language == "ar":
+                        act["title"] = "وجبة محلية تناسب تفضيلاتك الغذائية"
+                        act["description"] = "مطعم مختار بحيث يتجنب الأكلات التي لا تحبها."
+                    else:
+                        act["title"] = "Local meal that respects dietary preferences"
+                        act["description"] = "A restaurant option chosen to avoid listed food dislikes."
+                    logger.warning("Replaced dislike-violating meal: %s", old_title)
+
+    # --- 5. Final validation (raises on unfixable issues) ---
     repaired_plan = FinalPlanResponse.model_validate(data)
     logger.info("Post-processing complete — plan is valid")
     return repaired_plan

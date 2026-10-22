@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import { useRef } from 'react';
 import './SegmentedChoice.css';
 
 /**
@@ -22,7 +22,6 @@ export function SegmentedChoice({
   caption,
   disabled = false,
   className = '',
-  name
 }) {
   const groupRef = useRef(null);
 

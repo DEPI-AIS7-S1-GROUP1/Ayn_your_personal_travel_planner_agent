@@ -1,0 +1,242 @@
+import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Check } from 'lucide-react';
+import { Button } from '../../components/Button';
+import api from '../../services/api';
+import { useLanguage } from '../../context/LanguageContext.js';
+import './Survey.css';
+
+const PERSONALITY_OPTIONS = [
+  { value: 'calm', label: 'Calm' },
+  { value: 'adventurous', label: 'Adventurous' },
+  { value: 'foodie', label: 'Foodie' },
+  { value: 'landmark-loving', label: 'Landmark lover' },
+  { value: 'history-loving', label: 'History lover' },
+  { value: 'style-loving', label: 'Style lover' },
+  { value: 'exploring', label: 'Explorer' }
+];
+
+const HOBBY_OPTIONS = [
+  { value: 'museums', label: 'Museums' },
+  { value: 'photography', label: 'Photography' },
+  { value: 'beaches', label: 'Beaches' },
+  { value: 'diving', label: 'Diving' },
+  { value: 'hiking', label: 'Hiking' },
+  { value: 'local-markets', label: 'Local markets' },
+  { value: 'cooking', label: 'Cooking' },
+  { value: 'art', label: 'Art' }
+];
+
+const DIETARY_OPTIONS = [
+  { value: 'halal', label: 'Halal' },
+  { value: 'vegetarian', label: 'Vegetarian' },
+  { value: 'vegan', label: 'Vegan' },
+  { value: 'gluten-free', label: 'Gluten-free' },
+  { value: 'dairy-free', label: 'Dairy-free' },
+  { value: 'nut-free', label: 'Nut-free' }
+];
+
+export function Survey() {
+  const navigate = useNavigate();
+  const { t } = useLanguage();
+
+  const [personality, setPersonality] = useState([]);
+  const [hobbies, setHobbies] = useState([]);
+  const [dietary, setDietary] = useState([]);
+  const [foodLikes, setFoodLikes] = useState('');
+  const [foodDislikes, setFoodDislikes] = useState('');
+  const [likedLastTrip, setLikedLastTrip] = useState('');
+  const [dislikedLastTrip, setDislikedLastTrip] = useState('');
+  const [isSaving, setIsSaving] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    let cancelled = false;
+    api.getProfile()
+      .then((res) => {
+        const p = res?.profile ?? res;
+        if (cancelled || !p) return;
+        setPersonality(p.personality || []);
+        setHobbies(p.hobbies || []);
+        setDietary(p.dietary_limits || []);
+        setFoodLikes((p.food_likes || []).join(', '));
+        setFoodDislikes((p.food_dislikes || []).join(', '));
+        setLikedLastTrip(p.liked_last_trip || '');
+        setDislikedLastTrip(p.disliked_last_trip || '');
+    })
+    .catch(() => {})   // a new user has no profile yet, so the form stays empty
+    .finally(() => {
+      if (!cancelled) setIsLoading(false);
+    });
+  return () => { cancelled = true; };
+}, []);
+
+  const toggleItem = (list, setList, item, max = Infinity) => {
+    if (list.includes(item)) {
+      setList(list.filter((x) => x !== item));
+    } else {
+      if (list.length < max) {
+        setList([...list, item]);
+      }
+    }
+  };
+
+  const handleSave = async (e) => {
+    e.preventDefault();
+    setIsSaving(true);
+
+    const payload = {
+      personality,
+      hobbies,
+      dietary_limits: dietary,
+      food_likes: foodLikes.split(',').map((s) => s.trim()).filter(Boolean),
+      food_dislikes: foodDislikes.split(',').map((s) => s.trim()).filter(Boolean),
+      liked_last_trip: likedLastTrip,
+      disliked_last_trip: dislikedLastTrip
+    };
+
+    try {
+      await api.updateProfile(payload);
+      navigate('/destination');
+    } catch (err) {
+      console.warn('Could not save profile via API:', err);
+      navigate('/destination');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  return (
+    <div className="ayn-survey-page">
+      <h1 className="ayn-survey-page__title">{t('survey.title')}</h1>
+      <p className="ayn-survey-page__desc">
+        {t('survey.description')}
+      </p>
+
+      <form className="ayn-survey-page__form" onSubmit={handleSave}>
+        {/* Personality */}
+        <div>
+          <h3 className="ayn-survey-page__section-title">
+            {t('survey.travelStyle')}
+          </h3>
+          <div className="ayn-chips-grid">
+            {PERSONALITY_OPTIONS.map((opt) => {
+              const selected = personality.includes(opt.value);
+              return (
+                <button
+                  key={opt.value}
+                  type="button"
+                  className={`ayn-chip-button ${selected ? 'ayn-chip-button--selected' : ''}`}
+                  onClick={() => toggleItem(personality, setPersonality, opt.value, 3)}
+                >
+                  {selected && <Check size={16} />}
+                  {t(`survey.option.${opt.value}`, opt.label)}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Hobbies */}
+        <div>
+          <h3 className="ayn-survey-page__section-title">
+            {t('survey.interests')}
+          </h3>
+          <div className="ayn-chips-grid">
+            {HOBBY_OPTIONS.map((opt) => {
+              const selected = hobbies.includes(opt.value);
+              return (
+                <button
+                  key={opt.value}
+                  type="button"
+                  className={`ayn-chip-button ${selected ? 'ayn-chip-button--selected' : ''}`}
+                  onClick={() => toggleItem(hobbies, setHobbies, opt.value)}
+                >
+                  {selected && <Check size={16} />}
+                  {t(`survey.option.${opt.value}`, opt.label)}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Dietary limits */}
+        <div>
+          <h3 className="ayn-survey-page__section-title">
+            {t('survey.dietaryLimits')}
+          </h3>
+          <div className="ayn-chips-grid">
+            {DIETARY_OPTIONS.map((opt) => {
+              const selected = dietary.includes(opt.value);
+              return (
+                <button
+                  key={opt.value}
+                  type="button"
+                  className={`ayn-chip-button ${selected ? 'ayn-chip-button--selected' : ''}`}
+                  onClick={() => toggleItem(dietary, setDietary, opt.value)}
+                >
+                  {selected && <Check size={16} />}
+                  {t(`survey.option.${opt.value}`, opt.label)}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Food likes / dislikes */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+          <label className="ayn-dest-page__label">
+            {t('survey.foodLikes')}
+          </label>
+          <input
+            type="text"
+            className="ayn-dest-page__input"
+            value={foodLikes}
+            onChange={(e) => setFoodLikes(e.target.value)}
+          />
+        </div>
+
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+          <label className="ayn-dest-page__label">
+            {t('survey.foodDislikes')}
+          </label>
+          <input
+            type="text"
+            className="ayn-dest-page__input"
+            value={foodDislikes}
+            onChange={(e) => setFoodDislikes(e.target.value)}
+          />
+        </div>
+
+        {/* Last trip feedback */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+          <label className="ayn-dest-page__label">
+            {t('survey.likedLastTrip')}
+          </label>
+          <textarea
+            className="ayn-survey-textarea"
+            value={likedLastTrip}
+            onChange={(e) => setLikedLastTrip(e.target.value)}
+          />
+        </div>
+
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+          <label className="ayn-dest-page__label">
+            {t('survey.dislikedLastTrip')}
+          </label>
+          <textarea
+            className="ayn-survey-textarea"
+            value={dislikedLastTrip}
+            onChange={(e) => setDislikedLastTrip(e.target.value)}
+          />
+        </div>
+
+        <Button variant="primary" type="submit" disabled={isSaving || isLoading}>
+          {isSaving ? t('common.saving') : t('survey.save')}
+        </Button>
+      </form>
+    </div>
+  );
+}
+
+export default Survey;

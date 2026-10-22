@@ -1,4 +1,3 @@
-import React from 'react';
 import { ArchSceneIllustration } from '../Illustration';
 import './FeatureArchCard.css';
 

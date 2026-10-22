@@ -1,5 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '../Button';
+import { CountUp } from '../CountUp/CountUp';
+import { useLanguage } from '../../context/LanguageContext.js';
 import './BudgetStackedBar.css';
 
 const CATEGORIES = [
@@ -33,9 +35,12 @@ export function BudgetStackedBar({
   onCancel,
   className = ''
 }) {
+  const { t, tf, money, currencyLabel, language } = useLanguage();
   const [draftSplit, setDraftSplit] = useState(budgetSplit);
 
   useEffect(() => {
+    // Keep draft values aligned when the plan is replaced externally.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setDraftSplit(budgetSplit);
   }, [budgetSplit]);
 
@@ -61,9 +66,22 @@ export function BudgetStackedBar({
   return (
     <div className={`ayn-budget-card ${className}`}>
       <div className="ayn-budget-card__header">
-        <h3 className="ayn-budget-card__title">Budget</h3>
+        <div className="ayn-budget-card__title-group">
+          <div className="ayn-budget-jar-icon" aria-hidden="true">
+            <svg viewBox="0 0 28 28" className="ayn-jar-svg">
+              <ellipse cx="14" cy="5" rx="7" ry="2" fill="#B5472F" />
+              <path d="M7,5 C7,10 4,14 5,21 C6,25 22,25 23,21 C24,14 21,10 21,5 Z" fill="#D97A53" stroke="#B5472F" strokeWidth="1.2" />
+              <circle cx="14" cy="15" r="3.5" fill="#F5A623" stroke="#FFF" strokeWidth="0.8" />
+              <text x="14" y="17" textAnchor="middle" fill="#2B2118" fontSize="5.5" fontWeight="900">£</text>
+            </svg>
+          </div>
+          <h3 className="ayn-budget-card__title">{t('budget.title')}</h3>
+        </div>
         <span className="ayn-budget-card__total tabular-nums">
-          {currency} {totalBudget.toLocaleString()}
+          {/* The amount comes first in Arabic: "1,500 دولار". */}
+          {language === 'ar'
+            ? <><CountUp value={totalBudget} /> {currencyLabel(currency)}</>
+            : <>{currency} <CountUp value={totalBudget} /></>}
         </span>
       </div>
 
@@ -86,7 +104,8 @@ export function BudgetStackedBar({
 
       {/* Legend & Category rows */}
       <div className="ayn-budget-legend">
-        {CATEGORIES.map(({ key, label }) => {
+        {CATEGORIES.map(({ key }) => {
+          const label = t(`budget.${key}`);
           const allocatedAmount = Number(activeSplit[key]) || 0;
           const percentage = totalBudget > 0 ? ((allocatedAmount / totalBudget) * 100).toFixed(0) : 0;
           const plannedAmount = planned[key];
@@ -112,7 +131,7 @@ export function BudgetStackedBar({
                   ) : (
                     <>
                       <span className="ayn-budget-legend__amount tabular-nums">
-                        {currency} {allocatedAmount.toLocaleString()}
+                        {money(allocatedAmount, currency)}
                       </span>
                       <span className="ayn-budget-legend__percent tabular-nums">
                         ({percentage}%)
@@ -125,7 +144,10 @@ export function BudgetStackedBar({
               {/* Planned vs allocated recommended line */}
               {plannedAmount !== undefined && (
                 <div className="ayn-budget-legend__sub tabular-nums">
-                  Planned {plannedAmount.toLocaleString()} of {allocatedAmount.toLocaleString()}
+                  {tf('budget.plannedOf', {
+                    planned: plannedAmount.toLocaleString('en-US'),
+                    allocated: allocatedAmount.toLocaleString('en-US'),
+                  })}
                 </div>
               )}
             </div>
@@ -141,15 +163,15 @@ export function BudgetStackedBar({
               isValid ? 'ayn-budget-card__remaining--valid' : 'ayn-budget-card__remaining--invalid'
             }`}
           >
-            {remaining === 0 && 'Budget balanced (0 left to assign)'}
-            {remaining > 0 && `${remaining.toLocaleString()} left to assign`}
-            {remaining < 0 && `Over by ${Math.abs(remaining).toLocaleString()}`}
+            {remaining === 0 && t('budget.balanced')}
+            {remaining > 0 && tf('budget.leftAmount', { amount: remaining.toLocaleString('en-US') })}
+            {remaining < 0 && tf('budget.overByAmount', { amount: Math.abs(remaining).toLocaleString('en-US') })}
           </div>
 
           <div className="ayn-budget-card__actions">
             {onCancel && (
               <Button variant="secondary" onClick={onCancel}>
-                Cancel
+                {t('common.cancel')}
               </Button>
             )}
             <Button
@@ -157,7 +179,7 @@ export function BudgetStackedBar({
               disabled={!isValid}
               onClick={handleSave}
             >
-              Save
+              {t('common.save')}
             </Button>
           </div>
         </div>

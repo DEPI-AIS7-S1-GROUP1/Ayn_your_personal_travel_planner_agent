@@ -1,82 +1,127 @@
-# Personal Travel Planner
+# 🧭 أين | Ayn — Personal Travel Planner Agent
 
-A personal travel planner website. The user signs up and answers a short survey about who they are (hobbies, personality, food preferences, what they liked and disliked on their last trip). The system remembers this in a profile. The user then chooses a destination, dates, budget and number of travelers, and an AI agent working in the background builds a day-by-day plan personalised to that profile. It splits the budget across hotel, food, activities and transport, and suggests flight and hotel options. The user reviews the draft, edits it, confirms it, and rates it. Ratings are saved so future plans can improve.
+> **«أين» (Ayn — "Where to?")** هو مساعد سفر ذكي فائق التخصيص لتخطيط وإدارة الرحلات السياحية داخل جمهورية مصر العربية.  
+> يقوم النظام بتحليل تفضيلات المسافر وميزانيته عبر استبيان ذكي، ثم يقود فريق من وكلاء الذكاء الاصطناعي (Multi-Agent System) للبحث الحي عبر الإنترنت عن مطاعم حقيقية ومعالم سياحية، وتوزيع الميزانية هندسياً، وصياغة خطة يومية تفاعلية تحاكي صفحات جواز السفر والبطاقات البريدية.
 
-The site is a normal, interactive travel site with forms, picture cards, a timeline and a budget chart. A chat refine panel lets the user describe changes to a draft plan in natural language. The AI is the engine behind the pages.
+---
 
-**Live demo deadline: Oct 19, 2026**
+## 🌟 مميزات النظام (Key Features)
 
-## Where things are
+- 📋 **استبيان التفضيلات الشخصية (Traveler Profile Survey)**:
+  - تخصيص كامل للرحلة بناءً على نمط السفر (فاخر Luxury، اقتصادي Budget، استرخاء، مغامرة)، وتيرة الرحلة (سريعة، متوازنة، هادئة)، والاهتمامات والقيود الغذائية.
+- 🤖 **نظام وكلاء الذكاء الاصطناعي ثلاثي المستويات (3-Tier Multi-Agent Hierarchy)**:
+  - **Tier 1 (الأساسي)**: فريق CrewAI متعدد الوكلاء مدعوم بنموذج Google Gemini وبحث جغرافي حي عبر Tavily لجلب مطاعم مصرية حقيقية ومحدثة وأسعار واقعية.
+  - **Tier 2 (الاحتياطي الأول)**: نموذج Groq فائق السرعة لضمان استمرار الخدمة في حال تعطل سيرفرات جوجل أو نفاد الكوتا.
+  - **Tier 3 (الاحتياطي الأوفلاين)**: قوالب ذكية مسبقة الإعداد تضمن عدم ظهور أي شاشة خطأ أو توقف للخدمة إطلاقاً حتى مع انقطاع الإنترنت الخارجي.
+- ☁️🚗 **رحلة التمرير العضوي "من السماء إلى الطريق" (From Sky to Road)**:
+  - مشهد بصري متصل يبدأ من السحب والسماء (كروت الفنادق الطافية)، ثم يهبط مع حركة التمرير عبر الشفق الصحراوي ليصل إلى الطريق الأسفلتي (خيارات المواصلات كمركبات كارتونية مبهجة تتفاعل بالصوت والحركة).
+- 📜 **جدول يومي تفاعلي (Passport & Postcard Itinerary)**:
+  - تصميم يحاكي صفحات جواز السفر مع أختام تذكارية خاصة بكل يوم، وتغير ديناميكي في إضاءة السماء بين الفجر والظهيرة والليل المرصع بالنجوم.
+  - لوحة ميزانية تفاعلية مستوحاة من الجرّة المصرية القديمة تتحدث لحظياً مع أي تعديل.
+- 💬 **مساعد التعديل التفاعلي («اسأل أين» — Ask Ayn)**:
+  - شات جانبي ذكي يفهم طلبات التعديل باللغة الطبيعية (إضافة نشاط، استبدال مكان، حذف موعد) مع إعادة احتساب الميزانية تلقائياً وإبراز الأنشطة المعدلة بحركة تقليب ذهبية ثلاثية الأبعاد (3D Golden Flip).
+- 🇪🇬 **دعم ثنائي أصيل للعربية والإنجليزية (Full Bilingual RTL/LTR)**:
+  - واجهة عربية كاملة وصياغة سياحية مصرية أنيقة، مع حفظ لغة المستخدم المفضلة فورياً.
 
-| Path | What it is |
+---
+
+## 📁 هيكل المشروع (Project Structure)
+
+| المسار / الملف | الوصف والدور في النظام |
 |---|---|
-| `docs/api-contract.md` | The API contract. The single source of truth for how the frontend, backend and agent talk to each other. |
-| `mock-data/` | Example JSON files that match the contract exactly, for building the frontend before the backend exists. |
+| [`frontend/`](frontend/) | واجهة الويب التفاعلية مبنية بـ **React 19 + Vite** والرسومات المتحركة ورموز Lucide. |
+| [`backend/`](backend/) | خادم الواجهة الخلفية مبني بـ **FastAPI** مع قاعدة بيانات **SQLite (WAL)** ومصادقة **JWT**. |
+| [`agent/`](agent/) | محرك الذكاء الاصطناعي وفريق الوكلاء (**CrewAI**, **Gemini**, **Groq**, **Tavily**, ونظام التعريب). |
+| [`docker-compose.yml`](docker-compose.yml) | ملف تشغيل المشروع بالكامل بحاوية موحدة جاهزة للإنتاج. |
+| [`PRESENTATION_MASTER_GUIDE.md`](PRESENTATION_MASTER_GUIDE.md) | **المرجع الشامل للمناقشة**: شرح كل متغيرات `.env`، معمارية الأكواد، سيناريوهات المشاكل الحقيقية وحلولها، وبنك أسئلة لجنة التحكيم. |
+| [`README_DOCKER.md`](README_DOCKER.md) | الدليل الكامل لتشغيل وإدارة الحاويات والنشر السحابي عبر Docker. |
 
-Mock files: `profile.json`, `trip-request.json`, `budget-split.json`, `flight-hotel-options.json`, `plan-sharm-el-sheikh.json`, `chat-refinement.json`.
+---
 
-## MVP scope
+## 🚀 طريقة التشغيل (How to Run)
 
-This is the agreed scope. If something is not in the "Must have" list, it does not block the demo.
+### الخيار الأول: التشغيل عبر Docker (موصى به — خطوة واحدة 🐳)
 
-### Must have (MVP)
+تأكد من تشغيل تطبيق Docker Desktop، ثم نفّذ الأمر التالي في المجلد الرئيسي:
 
-- Sign up / log in
-- Onboarding survey
-- Profile saved in database
-- Trip form
-- Budget split with chart
-- Daily itinerary from the agent
-- Mock flights and hotels
-- Draft review and edit
-- Chat-based draft plan refinement
-- Plan rating
-- Deployed website
+```bash
+docker compose up --build -d
+```
 
-### Should have (only if the MVP is stable by about Oct 13)
+* 🌐 **تطبيق الويب (Frontend)**: [http://localhost:3000](http://localhost:3000)
+* 📡 **توثيق الواجهة الخلفية (FastAPI Swagger)**: [http://localhost:8000/docs](http://localhost:8000/docs)
+* 🩺 **فحص صحة النظام (Health Check)**: [http://localhost:8000/api/health](http://localhost:8000/api/health)
 
-- Food suggestions filtered by preferences
-- Live Tavily search for real activities
-- Past ratings improve the next plan
-- Personality-based UI theme
-- Drag-and-drop days
+*(لإيقاف التشغيل: `docker compose down`)*
 
-### Out of scope
+---
 
-- Real booking and payments
-- Maps and routing
-- Mobile app
-- Collaborative or multi-user trips
+### الخيار الثاني: التشغيل المحلي المباشر (Without Docker 💻)
 
-## Timeline
+#### 1. إعداد الواجهة الخلفية (Backend & AI Agent)
+```bash
+# إنشاء وتفعيل البيئة الافتراضية
+python -m venv .venv
+# على ويندوز:
+.venv\Scripts\activate
+# على ماك/لينكس:
+source .venv/bin/activate
 
-| Sprint | Dates | Goal |
-|---|---|---|
-| Sprint 1 | Oct 3 - Oct 8 | Foundation and design: API contract, style guide, agent prototype, repo/database/auth skeleton, frontend scaffold |
-| Sprint 2 | Oct 9 - Oct 14 | Build and integrate: all screens connected to the real API, survey saved, budget split, draft review, rating |
-| Sprint 3 | Oct 15 - Oct 19 | Feature freeze Oct 15. Deploy by Oct 16. Test with 2-3 demo scenarios. Demo-ready by Oct 18. Live demo Oct 19. |
+# تثبيت الحزم المطلوبة
+pip install -r requirements.txt
 
-## Team
+# إعداد ملف البيئة
+cp .env.example .env
+# تأكد من إضافة مفتاح سري للتشفير ومفاتيح الذكاء الاصطناعي في .env
 
-Manal (team leader), Roaa, Mohammed, Abdelrhman El Yamny, Abdelrhman Esma3el.
+# تشغيل خادم FastAPI
+cd backend
+uvicorn app.main:app --reload --port 8000
+```
 
-## Working rules
+#### 2. إعداد الواجهة الأمامية (Frontend)
+في نافذة طرفية ثانية:
+```bash
+cd frontend
+npm install
+npm run dev
+```
+افتح المتصفح على: `http://localhost:5173`
 
-- Use Git with feature branches. Do not commit directly to `main`. Every change goes through a pull request reviewed by another person.
-- Never commit API keys or passwords. Keep them in a local `.env` file that is ignored by Git.
-- Follow the API contract exactly. If it needs to change, tell the team leader first, then add a line to the change log in the contract.
-- Say early if you are blocked.
-- Use only fake users and fake data in the demo. Free AI tiers may use inputs to improve models.
+---
 
-## Contract and scope sign-off
+## ⚙️ إعداد متغيرات البيئة (Environment Variables)
 
-Each member confirms they have read `docs/api-contract.md`, the mock files and this scope, and have no open questions.
+انسخ ملف `.env.example` إلى `.env` وقم بتعيين المتغيرات الأساسية:
 
-| Member | Read it | No open questions | Date |
-|---|---|---|---|
-| Roaa (author) | [ ] | [ ] | |
-| Manal | [ ] | [ ] | |
-| Abdelrhman Esma3el | [ ] | [ ] | |
-| Mohammed | [ ] | [ ] | |
-| Abdelrhman El Yamny | [ ] | [ ] | |
+```env
+# مفتاح سري إجباري لحماية جلسات المستخدمين (JWT)
+AUTH_SECRET_KEY=your_random_secret_key_here_minimum_32_chars
 
+# محركات الذكاء الاصطناعي (احصل على مفاتيح مجانية)
+GEMINI_API_KEY=your_gemini_api_key_here          # https://aistudio.google.com/
+TAVILY_API_KEY=your_tavily_api_key_here          # https://tavily.com/
+GROQ_API_KEY=your_groq_api_key_here              # https://console.groq.com/
+```
+
+> 💡 **ملاحظة**: النظام يعمل حتى بدون إدخال أي مفاتيح ذكاء اصطناعي اعتماداً على المستوى الاحتياطي الذكي (Tier 3 Mock Templates)، ولكن لإخراج رحلات مخصصة حقيقية يوصى بإضافة `GEMINI_API_KEY` و `TAVILY_API_KEY`.
+
+---
+
+## 🌐 النشر السحابي (Cloud Deployment)
+
+لرفع المشروع على رابط أونلاين لمشاركته مع الفريق أو لجنة التقييم:
+* **الواجهة الخلفية (Backend)**: تُرفع على [Render](https://render.com) أو [Railway](https://railway.app) كـ Web Service باستخدام `backend/Dockerfile`.
+* **الواجهة الأمامية (Frontend)**: تُرفع على [Vercel](https://vercel.com) مجاناً مع توجيه `VITE_API_BASE_URL` إلى رابط الباك إند على Render.
+
+*(راجع الدليل الكامل للنشر في [README_DOCKER.md](README_DOCKER.md)).*
+
+---
+
+## 🧪 فحص واختبار النظام (Testing)
+
+لتشغيل حزمة الاختبارات الشاملة (155 اختباراً مؤكداً بنسبة 100%):
+```bash
+cd backend
+pytest
+```

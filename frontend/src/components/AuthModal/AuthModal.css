@@ -1,0 +1,117 @@
+.ayn-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(43, 33, 24, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: var(--space-4);
+}
+
+.ayn-modal {
+  background-color: var(--color-surface);
+  border: 2px solid var(--color-border);
+  border-radius: 20px;
+  width: 100%;
+  max-width: 440px;
+  padding: var(--space-6);
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  box-shadow: 0 4px 0 var(--color-text);
+}
+
+.ayn-modal__close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: var(--color-text-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+  border-radius: 6px;
+}
+
+.ayn-modal__close:hover {
+  color: var(--color-text);
+}
+
+.ayn-modal__title {
+  font-family: 'Bricolage Grotesque', sans-serif;
+  font-size: 26px;
+  font-weight: 800;
+  color: var(--color-text);
+  margin: 0;
+}
+
+.ayn-modal__desc {
+  font-size: 14px;
+  color: var(--color-text-muted);
+  margin: -8px 0 0 0;
+}
+
+.ayn-modal__form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.ayn-modal__field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.ayn-modal__label {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.ayn-modal__input {
+  height: 44px;
+  padding: 0 14px;
+  border: 2px solid var(--color-border);
+  border-radius: 8px;
+  background-color: var(--color-surface);
+  font-family: 'Nunito', sans-serif;
+  font-size: 14px;
+  color: var(--color-text);
+  outline: none;
+  transition: border-color 150ms ease;
+}
+
+.ayn-modal__input:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 2px var(--color-primary);
+}
+
+.ayn-modal__error {
+  font-size: 13px;
+  color: var(--color-error);
+  font-weight: 600;
+  margin: 0;
+}
+
+.ayn-modal__footer-text {
+  font-size: 13px;
+  color: var(--color-text-muted);
+  text-align: center;
+  margin: 0;
+}
+
+.ayn-modal__toggle-btn {
+  background: transparent;
+  border: none;
+  color: var(--color-primary);
+  font-weight: 700;
+  cursor: pointer;
+  padding: 0 4px;
+  text-decoration: underline;
+}

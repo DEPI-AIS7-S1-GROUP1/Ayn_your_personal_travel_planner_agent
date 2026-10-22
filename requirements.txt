@@ -1,6 +1,41 @@
-crewai>=0.80.0
-groq>=0.11.0
-tavily-python>=0.5.0
-pydantic>=2.7.0
-python-dotenv>=1.0.0
-litellm>=1.40.0
+# ──────────────────────────────────────────────────────────────────────────────
+# Ayn — Personal Travel Planner: the ONE package list for the backend and the agent (Y1)
+# Agent list verified in A3; backend list from Task 4 — Sprint 3 / Oct 2026
+# Run from the repository root: pip install -r requirements.txt
+# (backend/requirements.txt points here, so hosts that build from backend/ get the same list)
+# ──────────────────────────────────────────────────────────────────────────────
+
+# ── Backend API (FastAPI) ─────────────────────────────────────────────────────
+fastapi==0.142.2
+uvicorn==0.54.0
+SQLAlchemy==2.1.3
+bcrypt==5.0.0                    # password hashing
+PyJWT==2.15.1                    # login tokens
+email-validator==2.3.0           # sign-up email validation
+
+# ── Tests ─────────────────────────────────────────────────────────────────────
+pytest==9.1.1
+httpx==0.28.1                    # FastAPI's test client; also the agent's hotel photo lookup (Wikimedia)
+
+# ── Core agent framework ──────────────────────────────────────────────────────
+crewai>=0.80.0,<1.0.0           # 3-agent sequential pipeline (Tier 1)
+
+# ── LLM providers ────────────────────────────────────────────────────────────
+groq>=0.11.0,<1.0.0             # Tier 2 direct Groq SDK + litellm Groq backend
+google-genai>=1.30,<3           # Tier 1 direct Gemini SDK; the code needs types.HttpRetryOptions (not in 0.x)
+litellm>=1.40.0,<2.0.0          # LLM proxy used by CrewAI / llm_config.py
+
+# ── Search ────────────────────────────────────────────────────────────────────
+tavily-python>=0.5.0,<1.0.0     # Tavily web search (CrewAI search agent tool)
+
+# ── Schema & validation ───────────────────────────────────────────────────────
+pydantic>=2.7.0,<3.0.0          # FinalPlanResponse + all contract models
+json_repair>=0.28.0,<1.0.0      # Repair malformed JSON from LLM outputs
+
+# ── Environment & config ─────────────────────────────────────────────────────
+python-dotenv>=1.0.0,<2.0.0     # Load .env files
+
+# ── Performance monitoring (A1) ───────────────────────────────────────────────
+# Optional: only needed if AGENTOPS_API_KEY is set in .env
+# The agent degrades gracefully if this package is absent.
+agentops>=0.3.0,<1.0.0          # Session tracing, token counts, cost dashboard

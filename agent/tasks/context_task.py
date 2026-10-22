@@ -19,8 +19,9 @@ def create_context_task(agent: Agent, profile: dict, trip: dict) -> Task:
             f"2. strict_constraints: Things to AVOID (food dislikes, dietary "
             f"limits, disliked experiences)\n"
             f"3. search_queries: Exactly 2-3 targeted web search queries to "
-            f"find real places at {destination}. Queries should cover dining, "
-            f"activities, and sightseeing.\n\n"
+            f"find real places at {destination}. Use the trip dates, interests, "
+            f"budget, and constraints to cover useful categories such as dining, "
+            f"activities, accommodation, or transport when relevant.\n\n"
             f"Output ONLY valid JSON. No commentary or explanation.\n"
             f"Schema:\n{json.dumps(Agent1Output.model_json_schema(), indent=2)}"
         ),

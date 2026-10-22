@@ -116,6 +116,7 @@ The public currency list endpoint is `GET /currencies`.
 | `total_budget` | integer | yes | Greater than 0 |
 | `currency` | string | yes | The currency selected by the user, from the `currency` enum. |
 | `travelers` | integer | yes | 1 to 10 |
+| `language` | string | no | `"en"` or `"ar"`. Default `"en"`. The language the agent writes the plan in. Any other value gives `400 VALIDATION_ERROR`. |
 
 ```json
 {
@@ -124,7 +125,8 @@ The public currency list endpoint is `GET /currencies`.
   "end_date": "2026-11-12",
   "total_budget": 60000,
   "currency": "EGP",
-  "travelers": 2
+  "travelers": 2,
+  "language": "ar"
 }
 ```
 
@@ -495,6 +497,7 @@ Notes:
 - `destination.country` must be `"Egypt"`. The backend rejects all other countries.
 - Generation can take several seconds (this is the "Generating" screen). In the MVP the request stays open until the plan is ready.
 - The agent must return an itinerary that follows section 3.5 and a budget split that sums to `total_budget`.
+- `language` is returned inside the plan as `plan.search_context.language` (`"en"` or `"ar"`). Titles and descriptions are written in that language.
 
 ---
 
@@ -703,6 +706,40 @@ Errors: `400 VALIDATION_ERROR` (score outside 1 to 5), `401 UNAUTHORIZED`, `404 
 Notes: One rating per plan. Ratings are stored against the user's profile so the agent can read them when building later plans.
 
 ---
+### GET /currencies/default
+
+**Purpose:** Same as `GET /currencies`, plus a default. Kept for backward compatibility. The frontend must not preselect it.
+**Auth:** none
+
+Response `200`:
+```json
+{ "default": "EGP", "supported": ["USD", "EUR", "GBP", "JPY", "CNY", "CHF", "CAD", "AUD", "INR", "TRY", "EGP", "SAR", "AED", "MAD"] }
+```
+
+---
+
+### GET /plans/{id}
+
+**Purpose:** Read one plan.
+**Auth:** required
+
+Response `200`: the full Plan object (section 3.8).
+
+Errors: `401 UNAUTHORIZED`, `404 NOT_FOUND` (also for another user's plan).
+
+---
+
+### GET /health
+
+**Purpose:** Check that the server and database are up, and which AI keys are configured. Never returns key values.
+**Auth:** none
+
+Response `200`:
+```json
+{ "status": "ok", "database": "ok", "ai_keys": { "gemini": "yes", "groq": "yes", "tavily": "no" } }
+```
+
+Errors: `503 SERVICE_UNAVAILABLE` (database not reachable).
 
 ## 5. Error format
 
